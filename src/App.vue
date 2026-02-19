@@ -1,12 +1,16 @@
 <template>
-  <div class="kiosk-wrapper">
-    <div class="bg-overlay" />
+  <div class="checkout">
+    <div class="checkout__overlay" aria-hidden="true"></div>
 
-    <nav class="top-nav">
-      <button class="nav-btn nav-left">
-        <span class="nav-icon" aria-hidden="true">
-          <!-- Help Icon -->
-          <svg viewBox="0 0 24 24" class="icon-svg">
+    <nav class="navbar">
+      <button
+        type="button"
+        class="navbar-btn navbar-btn-left"
+        @click="onHelp"
+        :aria-label="t('help')"
+      >
+        <span class="navbar-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="icon" focusable="false">
             <path
               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
                  10-4.48 10-10S17.52 2 12 2Zm0 17a1.25 1.25 0 1 1 0-2.5
@@ -18,13 +22,17 @@
             />
           </svg>
         </span>
-        <span class="nav-text">{{ t('help') }}</span>
+        <span class="navbar-text">{{ t('help') }}</span>
       </button>
 
-      <button class="nav-btn nav-center">
-        <span class="nav-icon" aria-hidden="true">
-          <!-- Volume Icon -->
-          <svg viewBox="0 0 24 24" class="icon-svg">
+      <button
+        type="button"
+        class="navbar-btn navbar-btn-center"
+        @click="onVolume"
+        :aria-label="t('volume')"
+      >
+        <span class="navbar-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="icon">
             <path
               d="M3 10v4h4l5 4V6L7 10H3Zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05
                  c1.48-.73 2.5-2.25 2.5-4.02ZM14 3.23v2.06c2.89 1 5 3.77 5 6.71
@@ -32,48 +40,56 @@
             />
           </svg>
         </span>
-        <span class="nav-text">{{ t('volume') }}</span>
+        <span class="navbar-text">{{ t('volume') }}</span>
       </button>
 
-      <button class="nav-btn nav-right">
-        <span class="nav-icon" aria-hidden="true">
-          <!-- Bag Icon -->
-          <svg viewBox="0 0 24 24" class="icon-svg">
+      <button
+        type="button"
+        class="navbar-btn navbar-btn-right"
+        @click="onOwnBag"
+        :aria-label="t('ownBag')"
+      >
+        <span class="navbar-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="icon">
             <path
               d="M6 7V6a6 6 0 0 1 12 0v1h2v15H4V7h2Zm2 0h8V6a4 4 0 0 0-8 0v1Zm-1 5
                  a1 1 0 0 0 2 0v-1H7v1Zm8 0a1 1 0 0 0 2 0v-1h-2v1Z"
             />
           </svg>
         </span>
-        <span class="nav-text">{{ t('ownBag') }}</span>
+        <span class="navbar-text">{{ t('ownBag') }}</span>
       </button>
     </nav>
 
-    <main class="main-content">
-      <h1 class="welcome-title">{{ t('welcome') }}</h1>
-      <p class="welcome-subtitle">{{ t('instruction') }}</p>
-      <button class="start-btn" @click="onStart">
+    <main class="main">
+      <h1 class="main-title">{{ t('welcome') }}</h1>
+      <p class="main-subtitle">{{ t('instruction') }}</p>
+
+      <button type="button" class="start" @click="onStart">
         {{ t('start') }}
       </button>
     </main>
 
-    <footer class="language-bar">
+    <footer class="language-bar" aria-label="Sprache auswählen">
       <button
         v-for="lang in languages"
         :key="lang.code"
-        class="lang-btn"
-        :class="{ active: currentLang === lang.code }"
+        type="button"
+        class="language-bar-btn"
+        :class="{ 'language-bar-btn-active': currentLang === lang.code }"
         :aria-label="lang.label"
         @click="setLanguage(lang.code)"
       >
-        <img :src="lang.flag" :alt="lang.label" class="flag-icon" />
+        <img :src="lang.flag" :alt="lang.label" class="language-bar-flag" />
       </button>
     </footer>
   </div>
 </template>
 
+<!--------------------------------HTML Teil durch---------------------------------------------------------->
+
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 const translations = {
   de: {
@@ -81,7 +97,7 @@ const translations = {
     volume: 'Lautstärke',
     ownBag: 'eigene Tasche',
     welcome: 'Willkommen!',
-    instruction: 'Bitte scannen Sie ihren Artikel\noder drücken Sie auf "Start"',
+    instruction: 'Bitte scannen Sie Ihren Artikel\noder drücken Sie auf "Start"',
     start: 'Start',
   },
   en: {
@@ -133,62 +149,65 @@ const languages = [
   },
 ]
 
-const currentLang = ref('de')
-const t = computed(() => (key) => translations[currentLang.value]?.[key] ?? key)
+const LANG_KEY = 'checkout_lang'
+const currentLang = ref(localStorage.getItem(LANG_KEY) ?? 'de')
+
+const t = (key) => translations[currentLang.value]?.[key] ?? key
 
 function setLanguage(code) {
   currentLang.value = code
+  localStorage.setItem(LANG_KEY, code)
 }
+
+function onHelp() {
+  console.log('[checkout] help clicked')
+}
+
+function onVolume() {
+  console.log('[checkout] volume clicked')
+}
+
+function onOwnBag() {
+  console.log('[checkout] own bag clicked')
+}
+
 function onStart() {
-  console.log('Start pressed')
+  console.log('[checkout] start clicked')
 }
 </script>
 
+<!---------------------------------------- CSS Teil kommt ab hier ----------------->
 <style>
 html,
 body,
 #app {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100%;
+  margin: 0;
   height: 100%;
-  overflow: hidden;
 }
 </style>
 
 <style scoped>
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-/* ───────────────────────────────────────────── */
-/* WRAPPER                                       */
-/* ───────────────────────────────────────────── */
-.kiosk-wrapper {
+.checkout {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
-  font-family: 'Segoe UI', sans-serif;
-  color: #fff;
-  overflow: hidden;
-
   display: flex;
   flex-direction: column;
-
+  overflow: hidden;
+  color: #fff;
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-image: url('https://www.edeka.de/static/media/eh/edeka-resp/minden-hannover/edeka-fromm-m%C3%BCllerstr.-12a-c/16x9-titel-startbild-edk-fromm-12a-c.jpg');
   background-size: cover;
   background-position: center;
 }
 
-/* ───────────────────────────────────────────── */
-/* Overlay                                       */
-/* ───────────────────────────────────────────── */
-.bg-overlay {
+.checkout__overlay {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background: linear-gradient(
     to right,
     rgba(0, 0, 0, 0.91) 0%,
@@ -197,102 +216,85 @@ body,
   );
 }
 
-/* ───────────────────────────────────────────── */
-/* Top Navigation (Grid: links / mitte / rechts) */
-/* ───────────────────────────────────────────── */
-.top-nav {
+.navbar {
   position: relative;
-  z-index: 10;
-
+  z-index: 2;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
-
   padding: 1.5rem 4rem;
   background: rgba(90, 50, 180, 0.85);
   backdrop-filter: blur(4px);
 }
 
-.nav-btn {
+.navbar-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-
-  background: none;
-  border: none;
-  color: #fff;
-
+  border: 0;
+  background: transparent;
+  color: inherit;
   font-size: 1.25rem;
-  font-weight: 650;
-
+  font-weight: 600;
   cursor: pointer;
   padding: 0.45rem 0.9rem;
   border-radius: 12px;
-
   transition:
     background 0.2s,
     transform 0.15s;
 }
 
-.nav-btn:hover {
+.navbar-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
-.nav-left {
+.navbar-btn-left {
   justify-self: start;
 }
 
-.nav-center {
+.navbar-btn-center {
   justify-self: center;
 }
 
-.nav-right {
+.navbar-btn-right {
   justify-self: end;
 }
 
-.nav-icon {
-  display: inline-flex;
+.navbar-icon {
   width: 26px;
   height: 26px;
+  display: inline-flex;
 }
 
-.icon-svg {
+.icon {
   width: 26px;
   height: 26px;
   fill: currentColor;
   opacity: 0.95;
 }
 
-.nav-text {
+.navbar-text {
   line-height: 1;
   white-space: nowrap;
 }
 
-/* ───────────────────────────────────────────── */
-/* Main Content                                  */
-/* ───────────────────────────────────────────── */
-.main-content {
+.main {
   position: relative;
-  z-index: 10;
-
+  z-index: 2;
   flex: 1;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   text-align: center;
-
   max-width: 900px;
   margin: 0 auto;
-
-  padding-bottom: 8vh;
+  padding: 0 1rem 8vh;
 }
 
-.welcome-title {
+.main-title {
   font-size: clamp(4rem, 8vw, 7rem);
   font-weight: 800;
   line-height: 1.05;
@@ -300,59 +302,52 @@ body,
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
 }
 
-.welcome-subtitle {
+.main-subtitle {
+  margin-top: 1rem;
   font-size: clamp(1.4rem, 3vw, 2.2rem);
   line-height: 1.6;
   white-space: pre-line;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-  margin-top: 1rem;
 }
 
-/* ───────────────────────────────────────────── */
-/* Start Button                                  */
-/* ───────────────────────────────────────────── */
-.start-btn {
+.start {
   margin-top: 2rem;
   padding: 1.6rem 5rem;
   font-size: 1.6rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
-  background: rgba(90, 50, 180, 0.9);
-  border: none;
+  border: 0;
   border-radius: 2rem;
+  background: rgba(90, 50, 180, 0.9);
   cursor: pointer;
+  box-shadow: 0 4px 16px rgba(90, 50, 180, 0.5);
   transition:
     transform 0.15s,
     background 0.2s,
     box-shadow 0.2s;
-  box-shadow: 0 4px 16px rgba(90, 50, 180, 0.5);
 }
 
-.start-btn:hover {
+.start:hover {
   background: rgba(110, 70, 210, 0.95);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(90, 50, 180, 0.65);
 }
 
-.start-btn:active {
+.start:active {
   transform: translateY(0);
 }
 
-/* ───────────────────────────────────────────── */
-/* Language Bar                                  */
-/* ───────────────────────────────────────────── */
 .language-bar {
   position: absolute;
-  bottom: 1.75rem;
   left: 2rem;
-  z-index: 10;
-
+  bottom: 1.75rem;
+  z-index: 2;
   display: flex;
   gap: 1rem;
 }
 
-.lang-btn {
-  background: none;
+.language-bar-btn {
+  background: transparent;
   border: 3px solid transparent;
   border-radius: 6px;
   padding: 2px;
@@ -362,15 +357,15 @@ body,
     transform 0.15s;
 }
 
-.lang-btn:hover {
+.language-bar-btn:hover {
   transform: scale(1.08);
 }
 
-.lang-btn.active {
+.language-bar-btn-active {
   border-color: #fff;
 }
 
-.flag-icon {
+.language-bar-flag {
   display: block;
   width: 110px;
   height: 84px;

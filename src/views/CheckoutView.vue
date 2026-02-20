@@ -9,28 +9,34 @@
     </div>
 
     <div class="paying">
-  <div class="top-actions">
-    <button class="action-btn">❓ Hilfe</button>
-    <button class="action-btn">🌍 Sprache</button>
+
+      <div class="top-actions">
+        <button class="action-btn">❓ Hilfe</button>
+        <button class="action-btn">🌍 Sprache</button>
+      </div>
+
+      <div class="scan-text">
+    Bitte scannen Sie Ihre Artikel ein
   </div>
 
-  <div class="category-buttons">
-  <button class="category-btn">
-    🥦
-    <span>Gemüse / Obst</span>
-  </button>
+      <div class="category-buttons">
+        <button class="category-btn">
+          🥦
+          <span>Gemüse / Obst</span>
+        </button>
 
-  <button class="category-btn">
-    🥐
-    <span>Backwaren</span>
-  </button>
-</div>
+        <button class="category-btn">
+          🥐
+          <span>Backwaren</span>
+        </button>
+      </div>
 
-  <div class="buttons">
-    <button class="btn cancel">Abbrechen</button>
-    <button class="btn pay">Zahlen</button>
-  </div>
-</div>
+      <div class="buttons">
+        <button class="btn cancel">Abbrechen</button>
+        <button class="btn pay">Zahlen</button>
+      </div>
+
+    </div>
   </div>
 </template>
 
@@ -38,8 +44,9 @@
 html, body {
   margin: 0;
   height: 100%;
-  overflow: hidden; 
+  overflow: hidden;
 }
+
 body {
   background: linear-gradient(to bottom, #7A5CC2, #6E4FB3);
 }
@@ -51,12 +58,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 7%;            
-  padding: 150px;
+  gap: 7%;
+  padding: 120px;
   box-sizing: border-box;
 }
 
-.card, .paying {
+.card,
+.paying {
   background: #F4F4F6;
   border-radius: 25px;
   min-height: 80vh;
@@ -64,32 +72,69 @@ body {
 }
 
 .card {
-  width: 25vw;         
+  width: 25vw;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.category-buttons {
-  flex: 1; 
+.paying {
+  width: 60vw;
+  position: relative;
+  padding: 40px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 60px;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.top-actions {
+  position: absolute;
+  top: 25px;
+  right: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.scan-text {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 600;
+  color: #6b6b6b;
+  margin-top: 25%;   
+  margin-bottom: 40px; 
+  letter-spacing: 0.5px;
+}
+
+.action-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+  backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+}
+
+.action-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
 }
 
 .category-buttons {
   display: flex;
   justify-content: center;
-  gap: 60px;
-  margin-top: auto;
-  margin-bottom: 120px; 
+  gap: 80px;
+  margin-top: 180px;
 }
-
 
 .category-btn {
-  width: 360px;     
-  height: 210px;    
+  width: 40%;
+  height: 240px;
   border-radius: 26px;
   border: none;
   cursor: pointer;
@@ -121,70 +166,6 @@ body {
 
 .category-btn:active {
   transform: scale(0.96);
-}
-
-.empty-state {
-  text-align: center;
-  color: #6b6b6b;
-}
-
-.empty-state .icon {
-  font-size: 50px;
-  margin-bottom: 15px;
-  opacity: 0.7;
-}
-
-.empty-state h2 {
-  font-weight: 600;
-  margin: 0;
-  font-size: 22px;
-}
-
-.empty-state p {
-  margin-top: 8px;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.paying {
-  width: 60vw;
-  position: relative;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end; 
-}
-
-/* Top right container */
-.top-actions {
-  position: absolute;
-  top: 25px;
-  right: 30px;
-  display: flex;
-  gap: 15px;
-}
-
-/* Fancy small buttons */
-.action-btn {
-  padding: 8px 18px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-
-  background: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
-
-  backdrop-filter: blur(8px);
-  transition: all 0.25s ease;
-}
-
-.action-btn:hover {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
 }
 
 .buttons {
@@ -228,5 +209,28 @@ body {
 .pay:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(124, 58, 237, 0.6);
+}
+
+.empty-state {
+  text-align: center;
+  color: #6b6b6b;
+}
+
+.empty-state .icon {
+  font-size: 50px;
+  margin-bottom: 15px;
+  opacity: 0.7;
+}
+
+.empty-state h2 {
+  font-weight: 600;
+  margin: 0;
+  font-size: 22px;
+}
+
+.empty-state p {
+  margin-top: 8px;
+  font-size: 14px;
+  opacity: 0.8;
 }
 </style>

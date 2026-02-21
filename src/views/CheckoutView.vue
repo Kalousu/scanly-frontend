@@ -213,6 +213,9 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const status = ref('idle')
 const language = ref('de')
@@ -606,6 +609,8 @@ async function pay() {
   await new Promise((r) => setTimeout(r, 900))
   cart.splice(0, cart.length)
   status.value = 'idle'
+
+  router.push('/payback')
 }
 
 async function startCamera() {

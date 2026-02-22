@@ -212,10 +212,12 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCartStore } from '../stores/cart'
 
 const router = useRouter()
+const cartStore = useCartStore()
 
 const status = ref('idle')
 const language = ref('de')
@@ -224,7 +226,7 @@ const modal = ref(null)
 const vatEnabled = ref(false)
 const vatRate = ref(19)
 
-const cart = reactive([])
+const cart = cartStore.items
 
 const scanBuffer = ref('')
 let scanTimer = null
@@ -407,7 +409,7 @@ const t = computed(() => ({
       : 'Barcode scanning not supported in browser – please use hardware scanner.',
 }))
 
-const subtotal = computed(() => cart.reduce((sum, line) => sum + line.price * line.qty, 0))
+const subtotal = computed(() => cartStore.subtotal)
 
 const vatAmount = computed(() => {
   if (!vatEnabled.value) return 0
@@ -415,10 +417,6 @@ const vatAmount = computed(() => {
 })
 
 const total = computed(() => subtotal.value + vatAmount.value)
-
-function uid() {
-  return Math.random().toString(16).slice(2) + '-' + Date.now().toString(16)
-}
 
 function round2(n) {
   return Math.round(n * 100) / 100
@@ -452,19 +450,10 @@ function getLocalizedCategory(item) {
 function addItem(item) {
   status.value = 'idle'
 
-  const existing = cart.find((l) => l.sku === item.sku && l.unit !== 'kg')
-
-  if (existing) {
-    existing.qty += 1
-    return
-  }
-
-  cart.push({
-    lineId: uid(),
+  cartStore.addItem({
     sku: item.sku,
     name: getLocalizedName(item),
     category: getLocalizedCategory(item),
-    qty: 1,
     price: item.price,
     unit: 'each',
   })
@@ -487,16 +476,15 @@ function confirmWeighted() {
   const itemName = getLocalizedName(selectedProduce.value)
   const categoryName = language.value === 'de' ? 'Gemüse/Obst' : 'Produce'
 
-  cart.push({
-    lineId: uid(),
-    sku: selectedProduce.value.sku,
-    name: `${itemName} (${kg.toFixed(2)} kg)`,
-    category: categoryName,
-    qty: 1,
-    price: round2(linePrice),
-    unit: 'kg',
-    meta: { kg, pricePerKg: selectedProduce.value.pricePerKg },
-  })
+  cartStore.addWeighted(
+    {
+      sku: selectedProduce.value.sku,
+      name: `${itemName} (${kg.toFixed(2)} kg)`,
+      category: categoryName,
+      price: round2(linePrice),
+    },
+    kg,
+  )
 
   selectedProduce.value = null
   weightKg.value = 0.25
@@ -504,17 +492,15 @@ function confirmWeighted() {
 }
 
 function removeLine(lineId) {
-  const idx = cart.findIndex((l) => l.lineId === lineId)
-  if (idx >= 0) cart.splice(idx, 1)
+  cartStore.removeLine(lineId)
 }
 
 function inc(line) {
-  line.qty += 1
+  cartStore.inc(line)
 }
 
 function dec(line) {
-  line.qty -= 1
-  if (line.qty <= 0) removeLine(line.lineId)
+  cartStore.dec(line)
 }
 
 function handleKeydown(e) {
@@ -589,7 +575,7 @@ function closeModal() {
 }
 
 function cancel() {
-  cart.splice(0, cart.length)
+  cartStore.clearCart()
   scanBuffer.value = ''
   status.value = 'cancelled'
   closeModal()
@@ -607,7 +593,6 @@ async function pay() {
   status.value = 'paid'
 
   await new Promise((r) => setTimeout(r, 900))
-  cart.splice(0, cart.length)
   status.value = 'idle'
 
   router.push('/payback')

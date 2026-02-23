@@ -74,9 +74,6 @@
         <div v-else-if="status === 'paid'">{{ t.paid }}</div>
         <div v-else-if="status === 'cancelled'">{{ t.cancelled }}</div>
 
-        <div class="scan-debug" v-if="scanBuffer.length">
-          Scan: <strong>{{ scanBuffer }}</strong>
-        </div>
       </div>
 
       <div class="camera-container">
@@ -139,37 +136,70 @@
       </div>
 
       <div v-if="modal === 'produce'" class="modal">
-        <div class="modal-card">
-          <div class="modal-title">{{ t.selectProduce }}</div>
-          <div class="grid">
-            <button v-for="p in produceCatalog" :key="p.sku" class="pill" @click="addWeighted(p)">
-              {{ getItemName(p) }} · {{ formatPrice(p.pricePerKg) }}{{ t.priceKg }}
+        <div class="modal-card-new">
+          <div class="modal-header">
+            <div class="category-icon">🥦</div>
+            <div class="category-tabs">
+              <button class="category-tab active">{{ t.produce }}</button>
+            </div>
+          </div>
+
+          <div class="product-grid">
+            <button
+              v-for="p in produceCatalog"
+              :key="p.sku"
+              class="product-card"
+              @click="addWeighted(p)"
+            >
+              <div class="product-name">{{ getItemName(p) }}</div>
+              <div class="product-price">{{ formatPrice(p.pricePerKg) }}{{ t.priceKg }}</div>
             </button>
           </div>
 
-          <div class="weight-row">
+          <div v-if="selectedProduce" class="weight-input-row">
             <label>{{ t.weightLabel }}</label>
             <input v-model.number="weightKg" type="number" min="0.01" step="0.01" />
-            <button class="pill primary" @click="confirmWeighted">{{ t.add }}</button>
           </div>
 
-          <div class="modal-actions">
-            <button class="pill" @click="closeModal">{{ t.close }}</button>
+          <div class="modal-bottom-actions">
+            <button class="modal-back-btn" @click="selectedProduce ? (selectedProduce = null) : closeModal()">
+              Zurück
+            </button>
+            <button
+              class="modal-done-btn"
+              :disabled="!selectedProduce"
+              @click="confirmWeighted"
+            >
+              Fertig
+            </button>
           </div>
         </div>
       </div>
 
       <div v-if="modal === 'bakery'" class="modal">
-        <div class="modal-card">
-          <div class="modal-title">{{ t.selectBakery }}</div>
-          <div class="grid">
-            <button v-for="b in bakeryCatalog" :key="b.sku" class="pill" @click="addItem(b)">
-              {{ getItemName(b) }} · {{ formatPrice(b.price) }}
+        <div class="modal-card-new">
+          <div class="modal-header">
+            <div class="category-icon">🥐</div>
+            <div class="category-tabs">
+              <button class="category-tab active">{{ t.bakery }}</button>
+            </div>
+          </div>
+
+          <div class="product-grid">
+            <button
+              v-for="b in bakeryCatalog"
+              :key="b.sku"
+              class="product-card"
+              @click="addItem(b); closeModal()"
+            >
+              <div class="product-name">{{ getItemName(b) }}</div>
+              <div class="product-price">{{ formatPrice(b.price) }}</div>
             </button>
           </div>
 
-          <div class="modal-actions">
-            <button class="pill" @click="closeModal">{{ t.close }}</button>
+          <div class="modal-bottom-actions">
+            <button class="modal-back-btn" @click="closeModal()">Zurück</button>
+            <button class="modal-done-btn" @click="closeModal()">Fertig</button>
           </div>
         </div>
       </div>
@@ -367,10 +397,6 @@ const t = computed(() => ({
       ? 'Scanne ein Produkt, um es hier anzuzeigen.'
       : 'Scan a product to display it here.',
   cartTitle: language.value === 'de' ? 'Warenkorb' : 'Shopping Cart',
-  scanActive:
-    language.value === 'de'
-      ? 'Scan aktiv (Enter beendet Scan)'
-      : 'Scan active (Enter finishes scan)',
   subtotal: language.value === 'de' ? 'Zwischensumme' : 'Subtotal',
   vat: language.value === 'de' ? `MwSt (${vatRate.value}%)` : `VAT (${vatRate.value}%)`,
   total: language.value === 'de' ? 'Gesamt' : 'Total',
@@ -506,6 +532,9 @@ function dec(line) {
 function handleKeydown(e) {
   const tag = (e.target && e.target.tagName && e.target.tagName.toLowerCase()) || ''
   if (tag === 'input' || tag === 'textarea') return
+
+  // Ignore keyboard input when any modal is open
+  if (modal.value) return
 
   if (scanTimer) window.clearTimeout(scanTimer)
 
@@ -1282,6 +1311,7 @@ body {
   align-items: center;
   border-radius: 25px;
   padding: 18px;
+  z-index: 1000;
 }
 
 .modal-card {
@@ -1493,5 +1523,188 @@ body {
   .camera-container {
     width: 92%;
   }
+}
+
+.modal-card-new {
+  width: min(1100px, 95%);
+  max-height: 85vh;
+  background: #f0eff4;
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.category-icon {
+  font-size: 48px;
+  background: white;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.category-tabs {
+  display: flex;
+  gap: 12px;
+}
+
+.category-tab {
+  padding: 12px 32px;
+  border-radius: 50px;
+  border: none;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #d4d1e0;
+  color: #5b5768;
+  transition: all 0.2s ease;
+}
+
+.category-tab.active {
+  background: linear-gradient(135deg, #5b4c9e, #7c3aed);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  overflow-y: auto;
+  max-height: 50vh;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.product-card {
+  aspect-ratio: 1;
+  background: #d8d5e6;
+  border: none;
+  border-radius: 20px;
+  padding: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.product-card:hover {
+  background: #c9c4dd;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.product-card:active {
+  transform: scale(0.96);
+}
+
+.product-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3f3556;
+  text-align: center;
+}
+
+.product-price {
+  font-size: 14px;
+  color: #6b5f7d;
+  font-weight: 600;
+}
+
+.weight-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.weight-input-row label {
+  font-weight: 600;
+  color: #3f3556;
+  min-width: 120px;
+}
+
+.weight-input-row input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #d4d1e0;
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.weight-input-row input:focus {
+  border-color: #7c3aed;
+}
+
+.modal-bottom-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: auto;
+}
+
+.modal-back-btn,
+.modal-done-btn {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-back-btn {
+  background: #d8d5e6;
+  color: #3f3556;
+}
+
+.modal-back-btn:hover {
+  background: #c9c4dd;
+  transform: translateY(-2px);
+}
+
+.modal-done-btn {
+  background: linear-gradient(135deg, #3d3a45, #2a2730);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.modal-done-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-done-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.modal-done-btn:active:not(:disabled),
+.modal-back-btn:active {
+  transform: scale(0.98);
 }
 </style>

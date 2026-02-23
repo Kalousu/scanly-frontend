@@ -113,8 +113,10 @@
       </div>
 
       <div class="payment-content">
-        <h1 class="payment-title">Zahlung</h1>
+        <div class="payment-header">
+        <h2 class="payment-title">Zahlung</h2>
         <p class="payment-subtitle">Wähle deine Zahlungsart</p>
+        </div>
 
         <div class="payment-actions">
           <button class="primary-payment-btn" @click="processPayment" :disabled="isProcessing">
@@ -233,15 +235,26 @@ async function processPayment() {
 }
 </script>
 
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: linear-gradient(to bottom, #7A5CC2, #6E4FB3);
+}
+</style>
+
 <style scoped>
 .payment-page {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 48px;
+  gap: 7%; 
   padding: 48px;
-  background: linear-gradient(135deg, #6b46c1 0%, #805ad5 50%, #553c9a 100%);
   font-family:
     'Inter',
     -apple-system,
@@ -270,12 +283,26 @@ async function processPayment() {
     0 40px 80px rgba(0, 0, 0, 0.1);
 }
 
+.cart-card,
+.payment-card {
+  background: #F4F4F6;
+  border-radius: 25px;
+  min-height: 80vh;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
 .cart-card {
-  width: 380px;
-  min-height: 600px;
+  width: 25vw;
   display: flex;
   flex-direction: column;
-  padding: 28px;
+  align-items: stretch;     
+  justify-content: flex-start;
+  padding: 40px;           
+  gap: 18px;                
+}
+
+.cart-card > * {
+  width: 100%;
 }
 
 .cart-header {
@@ -390,8 +417,7 @@ async function processPayment() {
 
 .cart-summary {
   margin-top: auto;
-  padding-top: 20px;
-  border-top: 2px solid #f3f4f6;
+  width: 100%;
 }
 
 .summary-row {
@@ -413,19 +439,20 @@ async function processPayment() {
 }
 
 .payment-card {
-  width: 480px;
-  min-height: 600px;
+  width: 60vw;
+  position: relative;
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  padding: 28px;
-  position: relative;
+  justify-content: space-between;
 }
 
 .utility-actions {
+  position: absolute;
+  top: 40px;  
+  right: 40px;
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
-  margin-bottom: 20px;
 }
 
 .utility-btn {
@@ -441,6 +468,7 @@ async function processPayment() {
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
+  line-height: 1; 
 }
 
 .utility-btn:hover {
@@ -451,6 +479,7 @@ async function processPayment() {
 }
 
 .utility-btn svg {
+  display: block; 
   flex-shrink: 0;
 }
 
@@ -458,22 +487,28 @@ async function processPayment() {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding-top: 0;     
+}
+
+.payment-header {
+  margin-top: 0;
 }
 
 .payment-title {
-  font-size: 28px;
+  font-size: 22px;      
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 6px;
+  margin: 0 0 6px 0;
 }
 
 .payment-subtitle {
-  font-size: 15px;
+  font-size: 13px;   
   color: #6b7280;
-  margin-bottom: 32px;
+  margin: 0;
 }
 
 .payment-actions {
+  margin-top: auto; 
   display: flex;
   flex-direction: column;
   gap: 14px;

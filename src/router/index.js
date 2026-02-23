@@ -4,6 +4,7 @@ import CheckoutView from '../views/CheckoutView.vue'
 import AboutView from '../views/AboutView.vue'
 import PaybackView from '../views/PaybackView.vue'
 import PaymentView from '../views/PaymentView.vue'
+import SummaryView from '../views/SummaryView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,11 @@ const router = createRouter({
       path: '/payment',
       name: 'payment',
       component: PaymentView,
+    },
+    {
+      path: '/summary',
+      name: 'SummaryView', 
+      component: SummaryView,
     },
     {
       path: '/about',

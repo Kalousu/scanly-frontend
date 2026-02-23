@@ -231,7 +231,7 @@ async function processPayment() {
   cartStore.clearCart()
   isProcessing.value = false
 
-  router.push('/')
+  router.push('/summary')
 }
 </script>
 

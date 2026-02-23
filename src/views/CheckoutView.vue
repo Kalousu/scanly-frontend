@@ -1,240 +1,261 @@
 <template>
-  <div class="page">
-    <div class="card">
-      <div v-if="cart.length === 0" class="empty-state">
-        <div class="icon">🧾</div>
-        <h2>{{ t.emptyTitle }}</h2>
-        <p>{{ t.emptyHint }}</p>
-      </div>
+  <div class="checkout-page">
+    <div class="bg-grid" aria-hidden="true"></div>
 
-      <div v-else class="cart">
-        <div class="cart-header">
-          <h2>{{ t.cartTitle }}</h2>
-          <div class="hint">{{ t.scanActive }}</div>
+    <div class="layout">
+
+      <aside class="panel cart-panel">
+        <div v-if="cart.length === 0" class="empty-state">
+          <div class="empty-icon">🧾</div>
+          <h2 class="empty-title">{{ t.emptyTitle }}</h2>
+          <p class="empty-hint">{{ t.emptyHint }}</p>
         </div>
 
-        <div class="cart-items">
-          <div v-for="item in cart" :key="item.lineId" class="cart-item">
-            <div class="ci-left">
-              <div class="ci-name">{{ item.name }}</div>
-              <div class="ci-meta">
-                <span v-if="item.sku">SKU: {{ item.sku }}</span>
-                <span v-else>{{ item.category }}</span>
-              </div>
-            </div>
+        <div v-else class="cart">
+          <div class="cart-header">
+            <h2 class="cart-title">{{ t.cartTitle }}</h2>
+            <span class="scan-badge">{{ t.scanActive }}</span>
+          </div>
 
-            <div class="ci-right">
-              <div class="ci-price">{{ formatPrice(item.price) }}</div>
-
-              <div class="ci-qty">
-                <button class="qty-btn" @click="dec(item)">−</button>
-                <div class="qty-val">{{ item.qty }}</div>
-                <button class="qty-btn" @click="inc(item)">+</button>
+          <div class="cart-items">
+            <div v-for="item in cart" :key="item.lineId" class="cart-item">
+              <div class="ci-left">
+                <div class="ci-name">{{ item.name }}</div>
+                <div class="ci-meta">
+                  <span v-if="item.sku">SKU: {{ item.sku }}</span>
+                  <span v-else>{{ item.category }}</span>
+                </div>
               </div>
 
-              <button class="remove" @click="removeLine(item.lineId)">✕</button>
+              <div class="ci-right">
+                <div class="ci-price">{{ formatPrice(item.price) }}</div>
+
+                <div class="ci-qty">
+                  <button class="qty-btn" @click="dec(item)">−</button>
+                  <span class="qty-val">{{ item.qty }}</span>
+                  <button class="qty-btn" @click="inc(item)">+</button>
+                </div>
+
+                <button class="remove-btn" @click="removeLine(item.lineId)" aria-label="Entfernen">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="totals">
+            <div class="totals-row">
+              <span>{{ t.subtotal }}</span>
+              <span>{{ formatPrice(subtotal) }}</span>
+            </div>
+            <div class="totals-row totals-vat" v-if="vatEnabled">
+              <span>{{ t.vat }}</span>
+              <span>{{ formatPrice(vatAmount) }}</span>
+            </div>
+            <div class="totals-row totals-total">
+              <span>{{ t.total }}</span>
+              <span>{{ formatPrice(total) }}</span>
             </div>
           </div>
         </div>
+      </aside>
 
-        <div class="totals">
-          <div class="row">
-            <span>{{ t.subtotal }}</span>
-            <span>{{ formatPrice(subtotal) }}</span>
-          </div>
-          <div class="row small" v-if="vatEnabled">
-            <span>{{ t.vat }}</span>
-            <span>{{ formatPrice(vatAmount) }}</span>
-          </div>
-          <div class="row total">
-            <span>{{ t.total }}</span>
-            <span>{{ formatPrice(total) }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
+      <main class="panel scan-panel">
 
-    <div class="paying">
-      <div class="top-actions">
-        <button class="action-btn" @click="toggleLanguage">{{ t.language }}</button>
-        <button class="action-btn" @click="openHelp">{{ t.help }}</button>
-        <button
-          class="action-btn"
-          :class="{ active: vatEnabled }"
-          @click="vatEnabled = !vatEnabled"
-        >
-          MwSt
-        </button>
-      </div>
-
-      <div class="scan-text">
-        <div v-if="status === 'idle'">{{ t.scanPrompt }}</div>
-        <div v-else-if="status === 'scanning'">{{ t.scanning }}</div>
-        <div v-else-if="status === 'paying'">{{ t.paying }}</div>
-        <div v-else-if="status === 'paid'">{{ t.paid }}</div>
-        <div v-else-if="status === 'cancelled'">{{ t.cancelled }}</div>
-      </div>
-
-      <div class="camera-container">
-        <div class="camera-window" :class="{ error: cameraError }">
-          <video
-            v-show="cameraActive && !cameraError"
-            ref="videoRef"
-            autoplay
-            playsinline
-            muted
-          ></video>
-
-          <div v-if="cameraLoading" class="camera-overlay loading">
-            <div class="spinner-small"></div>
-            <span>{{ t.cameraLoading }}</span>
-          </div>
-
-          <div v-else-if="cameraError" class="camera-overlay error">
-            <div class="error-icon">📷</div>
-            <span>{{ cameraError }}</span>
-            <button class="retry-btn" @click="startCamera">{{ t.retry }}</button>
-          </div>
-
-          <div v-else-if="!cameraActive" class="camera-overlay inactive">
-            <span>{{ t.cameraOff }}</span>
-          </div>
-
-          <button class="camera-toggle" @click="toggleCamera" :class="{ active: cameraActive }">
-            {{ cameraActive ? t.cameraOn : t.cameraOff }}
+        <div class="top-actions">
+          <button class="action-pill" @click="toggleLanguage">{{ t.language }}</button>
+          <button class="action-pill" @click="openHelp">{{ t.help }}</button>
+          <button
+            class="action-pill"
+            :class="{ 'action-pill--active': vatEnabled }"
+            @click="vatEnabled = !vatEnabled"
+          >
+            MwSt
           </button>
         </div>
 
-        <div v-if="barcodeSupported === false" class="barcode-warning">
-          {{ t.barcodeNotSupported }}
+        <div class="status-text">
+          <span v-if="status === 'idle'">{{ t.scanPrompt }}</span>
+          <span v-else-if="status === 'scanning'">{{ t.scanning }}</span>
+          <span v-else-if="status === 'paying'">{{ t.paying }}</span>
+          <span v-else-if="status === 'paid'">{{ t.paid }}</span>
+          <span v-else-if="status === 'cancelled'">{{ t.cancelled }}</span>
         </div>
-      </div>
 
-      <div v-if="errorMessage" class="error-toast">⚠️ {{ errorMessage }}</div>
+        <div class="camera-wrap">
+          <div class="camera-window" :class="{ 'camera-window--error': cameraError }">
+            <video
+              v-show="cameraActive && !cameraError"
+              ref="videoRef"
+              autoplay
+              playsinline
+              muted
+            ></video>
 
-      <div class="category-buttons">
-        <button class="category-btn" @click="openProduce">
-          🥦
-          <span>{{ t.produce }}</span>
-        </button>
+            <div v-if="cameraActive && !cameraError" class="scan-guides" aria-hidden="true">
+              <span class="guide guide--tl"></span>
+              <span class="guide guide--tr"></span>
+              <span class="guide guide--bl"></span>
+              <span class="guide guide--br"></span>
+            </div>
 
-        <button class="category-btn" @click="openBakery">
-          🥐
-          <span>{{ t.bakery }}</span>
-        </button>
-      </div>
+            <div v-if="cameraLoading" class="cam-overlay cam-overlay--loading">
+              <div class="spinner-ring"></div>
+              <span>{{ t.cameraLoading }}</span>
+            </div>
 
-      <div class="buttons">
-        <button class="btn cancel" @click="cancel" :disabled="status === 'paying'">
-          {{ t.cancel }}
-        </button>
-        <button class="btn pay" :disabled="cart.length === 0 || status === 'paying'" @click="pay">
-          <span v-if="status === 'paying'" class="spinner"></span>
-          <span v-else>{{ t.pay }}</span>
-        </button>
-      </div>
+            <div v-else-if="cameraError" class="cam-overlay cam-overlay--error">
+              <span class="cam-error-icon">📷</span>
+              <span>{{ cameraError }}</span>
+              <button class="retry-btn" @click="startCamera">{{ t.retry }}</button>
+            </div>
 
-      <div v-if="modal === 'produce'" class="modal">
-        <div class="modal-card-new">
-          <div class="modal-header">
-            <div class="category-icon">🥦</div>
-            <div class="category-tabs">
-              <button class="category-tab active">{{ t.produce }}</button>
+            <div v-else-if="!cameraActive" class="cam-overlay cam-overlay--inactive">
+              <span>{{ t.cameraOff }}</span>
+            </div>
+
+            <button
+              class="cam-toggle"
+              :class="{ 'cam-toggle--active': cameraActive }"
+              @click="toggleCamera"
+            >
+              {{ cameraActive ? t.cameraOn : t.cameraOff }}
+            </button>
+          </div>
+
+          <div v-if="barcodeSupported === false" class="barcode-warning">
+            {{ t.barcodeNotSupported }}
+          </div>
+        </div>
+
+        <div v-if="errorMessage" class="error-toast" role="alert">
+          ⚠️ {{ errorMessage }}
+        </div>
+
+        <div class="category-row">
+          <button class="category-btn" @click="openProduce">
+            <span class="category-emoji">🥦</span>
+            <span class="category-label">{{ t.produce }}</span>
+          </button>
+          <button class="category-btn" @click="openBakery">
+            <span class="category-emoji">🥐</span>
+            <span class="category-label">{{ t.bakery }}</span>
+          </button>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn--cancel" @click="cancel" :disabled="status === 'paying'">
+            {{ t.cancel }}
+          </button>
+          <button
+            class="btn btn--pay"
+            :disabled="cart.length === 0 || status === 'paying'"
+            @click="pay"
+          >
+            <span v-if="status === 'paying'" class="spinner"></span>
+            <span v-else>{{ t.pay }}</span>
+          </button>
+        </div>
+
+        <div v-if="modal === 'produce'" class="modal-backdrop" @click.self="closeModal">
+          <div class="modal-card">
+            <div class="modal-head">
+              <div class="modal-icon">🥦</div>
+              <h3 class="modal-title">{{ t.produce }}</h3>
+            </div>
+
+            <div class="product-grid">
+              <button
+                v-for="p in produceCatalog"
+                :key="p.sku"
+                class="product-card"
+                :class="{ 'product-card--selected': selectedProduce?.sku === p.sku }"
+                @click="addWeighted(p)"
+              >
+                <div class="product-name">{{ getItemName(p) }}</div>
+                <div class="product-price">{{ formatPrice(p.pricePerKg) }}{{ t.priceKg }}</div>
+              </button>
+            </div>
+
+            <div v-if="selectedProduce" class="weight-row">
+              <label class="weight-label">{{ t.weightLabel }}</label>
+              <input
+                v-model.number="weightKg"
+                type="number"
+                min="0.01"
+                step="0.01"
+                class="weight-input"
+              />
+            </div>
+
+            <div class="modal-actions">
+              <button class="modal-btn modal-btn--back" @click="selectedProduce ? (selectedProduce = null) : closeModal()">
+                Zurück
+              </button>
+              <button class="modal-btn modal-btn--done" :disabled="!selectedProduce" @click="confirmWeighted">
+                Fertig
+              </button>
             </div>
           </div>
-
-          <div class="product-grid">
-            <button
-              v-for="p in produceCatalog"
-              :key="p.sku"
-              class="product-card"
-              @click="addWeighted(p)"
-            >
-              <div class="product-name">{{ getItemName(p) }}</div>
-              <div class="product-price">{{ formatPrice(p.pricePerKg) }}{{ t.priceKg }}</div>
-            </button>
-          </div>
-
-          <div v-if="selectedProduce" class="weight-input-row">
-            <label>{{ t.weightLabel }}</label>
-            <input v-model.number="weightKg" type="number" min="0.01" step="0.01" />
-          </div>
-
-          <div class="modal-bottom-actions">
-            <button
-              class="modal-back-btn"
-              @click="selectedProduce ? (selectedProduce = null) : closeModal()"
-            >
-              Zurück
-            </button>
-            <button class="modal-done-btn" :disabled="!selectedProduce" @click="confirmWeighted">
-              Fertig
-            </button>
-          </div>
         </div>
-      </div>
 
-      <div v-if="modal === 'bakery'" class="modal">
-        <div class="modal-card-new">
-          <div class="modal-header">
-            <div class="category-icon">🥐</div>
-            <div class="category-tabs">
-              <button class="category-tab active">{{ t.bakery }}</button>
+        <div v-if="modal === 'bakery'" class="modal-backdrop" @click.self="closeModal">
+          <div class="modal-card">
+            <div class="modal-head">
+              <div class="modal-icon">🥐</div>
+              <h3 class="modal-title">{{ t.bakery }}</h3>
+            </div>
+
+            <div class="product-grid">
+              <button
+                v-for="b in bakeryCatalog"
+                :key="b.sku"
+                class="product-card"
+                @click="addItem(b); closeModal()"
+              >
+                <div class="product-name">{{ getItemName(b) }}</div>
+                <div class="product-price">{{ formatPrice(b.price) }}</div>
+              </button>
+            </div>
+
+            <div class="modal-actions">
+              <button class="modal-btn modal-btn--back" @click="closeModal">Zurück</button>
+              <button class="modal-btn modal-btn--done" @click="closeModal">Fertig</button>
             </div>
           </div>
+        </div>
 
-          <div class="product-grid">
-            <button
-              v-for="b in bakeryCatalog"
-              :key="b.sku"
-              class="product-card"
-              @click="addItem(b); closeModal()"
-            >
-              <div class="product-name">{{ getItemName(b) }}</div>
-              <div class="product-price">{{ formatPrice(b.price) }}</div>
-            </button>
-          </div>
-
-          <div class="modal-bottom-actions">
-            <button class="modal-back-btn" @click="closeModal()">Zurück</button>
-            <button class="modal-done-btn" @click="closeModal()">Fertig</button>
+        <div v-if="modal === 'help'" class="modal-backdrop" @click.self="closeModal">
+          <div class="modal-card modal-card--sm">
+            <h3 class="modal-title">{{ t.helpTitle }}</h3>
+            <ul class="help-list">
+              <li v-if="language === 'de'">Scanner: einfach scannen, <strong>Enter</strong> beendet den Barcode.</li>
+              <li v-if="language === 'de'">Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.</li>
+              <li v-if="language === 'de'">Backwaren: antippen zum Hinzufügen.</li>
+              <li v-if="language === 'de'">Abbrechen: Warenkorb wird geleert.</li>
+              <li v-if="language === 'en'">Scanner: just scan, <strong>Enter</strong> finishes the barcode.</li>
+              <li v-if="language === 'en'">Produce: select, enter weight, add.</li>
+              <li v-if="language === 'en'">Bakery: tap to add.</li>
+              <li v-if="language === 'en'">Cancel: empties the cart.</li>
+            </ul>
+            <div class="modal-actions">
+              <button class="modal-btn modal-btn--done" @click="closeModal">{{ t.close }}</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div v-if="modal === 'help'" class="modal">
-        <div class="modal-card">
-          <div class="modal-title">{{ t.helpTitle }}</div>
-          <ul class="help-list">
-            <li v-if="language === 'de'">
-              Scanner: einfach scannen, <b>Enter</b> beendet den Barcode.
-            </li>
-            <li v-if="language === 'de'">Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.</li>
-            <li v-if="language === 'de'">Backwaren: antippen zum Hinzufügen.</li>
-            <li v-if="language === 'de'">Abbrechen: Warenkorb wird geleert.</li>
-            <li v-if="language === 'en'">Scanner: just scan, <b>Enter</b> finishes the barcode.</li>
-            <li v-if="language === 'en'">Produce: select, enter weight, add.</li>
-            <li v-if="language === 'en'">Bakery: tap to add.</li>
-            <li v-if="language === 'en'">Cancel: empties the cart.</li>
-          </ul>
-          <div class="modal-actions">
-            <button class="pill" @click="closeModal">{{ t.close }}</button>
+        <div v-if="modal === 'lang'" class="modal-backdrop" @click.self="closeModal">
+          <div class="modal-card modal-card--sm">
+            <h3 class="modal-title">{{ t.langTitle }}</h3>
+            <div class="lang-grid">
+              <button class="lang-btn" @click="setLanguage('de')">Deutsch</button>
+              <button class="lang-btn" @click="setLanguage('en')">English</button>
+            </div>
+            <div class="modal-actions">
+              <button class="modal-btn modal-btn--back" @click="closeModal">{{ t.close }}</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div v-if="modal === 'lang'" class="modal">
-        <div class="modal-card">
-          <div class="modal-title">{{ t.langTitle }}</div>
-          <div class="grid">
-            <button class="pill" @click="setLanguage('de')">Deutsch</button>
-            <button class="pill" @click="setLanguage('en')">English</button>
-          </div>
-          <div class="modal-actions">
-            <button class="pill" @click="closeModal">{{ t.close }}</button>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   </div>
 </template>
@@ -271,66 +292,16 @@ let scanInterval = null
 let scanCooldown = false
 
 const catalogByBarcode = {
-  123456789: {
-    sku: '123456789',
-    name: { de: 'Wasser', en: 'Water' },
-    price: 0.79,
-    category: { de: 'Getränke', en: 'Drinks' },
-  },
-  123450000: {
-    sku: '123450000',
-    name: { de: 'Schokolade', en: 'Chocolate' },
-    price: 1.29,
-    category: { de: 'Süßwaren', en: 'Sweets' },
-  },
-  129999999: {
-    sku: '129999999',
-    name: { de: 'Milch', en: 'Milk' },
-    price: 1.19,
-    category: { de: 'Kühlregal', en: 'Dairy' },
-  },
-  111111111: {
-    sku: '111111111',
-    name: { de: 'Brot', en: 'Bread' },
-    price: 1.99,
-    category: { de: 'Backwaren', en: 'Bakery' },
-  },
-  222222222: {
-    sku: '222222222',
-    name: { de: 'Butter', en: 'Butter' },
-    price: 1.49,
-    category: { de: 'Kühlregal', en: 'Dairy' },
-  },
-  333333333: {
-    sku: '333333333',
-    name: { de: 'Käse', en: 'Cheese' },
-    price: 2.99,
-    category: { de: 'Kühlregal', en: 'Dairy' },
-  },
-  444444444: {
-    sku: '444444444',
-    name: { de: 'Joghurt', en: 'Yogurt' },
-    price: 0.99,
-    category: { de: 'Kühlregal', en: 'Dairy' },
-  },
-  555555555: {
-    sku: '555555555',
-    name: { de: 'Apfelsaft', en: 'Apple Juice' },
-    price: 1.79,
-    category: { de: 'Getränke', en: 'Drinks' },
-  },
-  666666666: {
-    sku: '666666666',
-    name: { de: 'Chips', en: 'Chips' },
-    price: 1.99,
-    category: { de: 'Snacks', en: 'Snacks' },
-  },
-  777777777: {
-    sku: '777777777',
-    name: { de: 'Cola', en: 'Cola' },
-    price: 1.59,
-    category: { de: 'Getränke', en: 'Drinks' },
-  },
+  123456789: { sku: '123456789', name: { de: 'Wasser', en: 'Water' }, price: 0.79, category: { de: 'Getränke', en: 'Drinks' } },
+  123450000: { sku: '123450000', name: { de: 'Schokolade', en: 'Chocolate' }, price: 1.29, category: { de: 'Süßwaren', en: 'Sweets' } },
+  129999999: { sku: '129999999', name: { de: 'Milch', en: 'Milk' }, price: 1.19, category: { de: 'Kühlregal', en: 'Dairy' } },
+  111111111: { sku: '111111111', name: { de: 'Brot', en: 'Bread' }, price: 1.99, category: { de: 'Backwaren', en: 'Bakery' } },
+  222222222: { sku: '222222222', name: { de: 'Butter', en: 'Butter' }, price: 1.49, category: { de: 'Kühlregal', en: 'Dairy' } },
+  333333333: { sku: '333333333', name: { de: 'Käse', en: 'Cheese' }, price: 2.99, category: { de: 'Kühlregal', en: 'Dairy' } },
+  444444444: { sku: '444444444', name: { de: 'Joghurt', en: 'Yogurt' }, price: 0.99, category: { de: 'Kühlregal', en: 'Dairy' } },
+  555555555: { sku: '555555555', name: { de: 'Apfelsaft', en: 'Apple Juice' }, price: 1.79, category: { de: 'Getränke', en: 'Drinks' } },
+  666666666: { sku: '666666666', name: { de: 'Chips', en: 'Chips' }, price: 1.99, category: { de: 'Snacks', en: 'Snacks' } },
+  777777777: { sku: '777777777', name: { de: 'Cola', en: 'Cola' }, price: 1.59, category: { de: 'Getränke', en: 'Drinks' } },
 }
 
 const produceCatalog = ref([
@@ -345,42 +316,12 @@ const produceCatalog = ref([
 ])
 
 const bakeryCatalog = ref([
-  {
-    sku: 'BAK-CRO',
-    name: { de: 'Croissant', en: 'Croissant' },
-    price: 0.99,
-    category: { de: 'Backwaren', en: 'Bakery' },
-  },
-  {
-    sku: 'BAK-BRO',
-    name: { de: 'Brötchen', en: 'Roll' },
-    price: 0.39,
-    category: { de: 'Backwaren', en: 'Bakery' },
-  },
-  {
-    sku: 'BAK-BRE',
-    name: { de: 'Brezel', en: 'Pretzel' },
-    price: 0.89,
-    category: { de: 'Backwaren', en: 'Bakery' },
-  },
-  {
-    sku: 'BAK-SEM',
-    name: { de: 'Semmel', en: 'Bread Roll' },
-    price: 0.35,
-    category: { de: 'Backwaren', en: 'Bakery' },
-  },
-  {
-    sku: 'BAK-MI',
-    name: { de: 'Milchbrötchen', en: 'Milk Roll' },
-    price: 0.65,
-    category: { de: 'Backwaren', en: 'Bakery' },
-  },
-  {
-    sku: 'BAK-WE',
-    name: { de: 'Weizenbrot', en: 'Wheat Bread' },
-    price: 2.49,
-    category: { de: 'Backwaren', en: 'Bakery' },
-  },
+  { sku: 'BAK-CRO', name: { de: 'Croissant', en: 'Croissant' }, price: 0.99, category: { de: 'Backwaren', en: 'Bakery' } },
+  { sku: 'BAK-BRO', name: { de: 'Brötchen', en: 'Roll' }, price: 0.39, category: { de: 'Backwaren', en: 'Bakery' } },
+  { sku: 'BAK-BRE', name: { de: 'Brezel', en: 'Pretzel' }, price: 0.89, category: { de: 'Backwaren', en: 'Bakery' } },
+  { sku: 'BAK-SEM', name: { de: 'Semmel', en: 'Bread Roll' }, price: 0.35, category: { de: 'Backwaren', en: 'Bakery' } },
+  { sku: 'BAK-MI', name: { de: 'Milchbrötchen', en: 'Milk Roll' }, price: 0.65, category: { de: 'Backwaren', en: 'Bakery' } },
+  { sku: 'BAK-WE', name: { de: 'Weizenbrot', en: 'Wheat Bread' }, price: 2.49, category: { de: 'Backwaren', en: 'Bakery' } },
 ])
 
 const selectedProduce = ref(null)
@@ -390,16 +331,13 @@ let errorTimeout = null
 
 const t = computed(() => ({
   emptyTitle: language.value === 'de' ? 'Noch keine Artikel gescannt' : 'No items scanned yet',
-  emptyHint:
-    language.value === 'de'
-      ? 'Scanne ein Produkt, um es hier anzuzeigen.'
-      : 'Scan a product to display it here.',
+  emptyHint: language.value === 'de' ? 'Scanne ein Produkt, um es hier anzuzeigen.' : 'Scan a product to display it here.',
   cartTitle: language.value === 'de' ? 'Warenkorb' : 'Shopping Cart',
+  scanActive: language.value === 'de' ? 'Scan aktiv' : 'Scan active',
   subtotal: language.value === 'de' ? 'Zwischensumme' : 'Subtotal',
   vat: language.value === 'de' ? `MwSt (${vatRate.value}%)` : `VAT (${vatRate.value}%)`,
   total: language.value === 'de' ? 'Gesamt' : 'Total',
-  scanPrompt:
-    language.value === 'de' ? 'Bitte scannen Sie Ihre Artikel ein' : 'Please scan your items',
+  scanPrompt: language.value === 'de' ? 'Bitte scannen Sie Ihre Artikel ein' : 'Please scan your items',
   scanning: language.value === 'de' ? 'Scanne...' : 'Scanning...',
   paying: language.value === 'de' ? 'Zahlung wird verarbeitet...' : 'Payment processing...',
   paid: language.value === 'de' ? 'Bezahlt. Danke!' : 'Paid. Thank you!',
@@ -411,739 +349,278 @@ const t = computed(() => ({
   cancel: language.value === 'de' ? 'Abbrechen' : 'Cancel',
   pay: language.value === 'de' ? 'Zahlen' : 'Pay',
   close: language.value === 'de' ? 'Schließen' : 'Close',
-  add: language.value === 'de' ? 'Hinzufügen' : 'Add',
-  selectProduce: language.value === 'de' ? 'Gemüse / Obst auswählen' : 'Select Produce',
-  selectBakery: language.value === 'de' ? 'Backwaren auswählen' : 'Select Bakery',
   weightLabel: language.value === 'de' ? 'Gewicht (kg)' : 'Weight (kg)',
-  unknown: language.value === 'de' ? 'Unbekannter Artikel' : 'Unknown item',
   helpTitle: language.value === 'de' ? 'Hilfe' : 'Help',
   langTitle: language.value === 'de' ? 'Sprache' : 'Language',
-  priceKg: language.value === 'de' ? '/kg' : '/kg',
+  priceKg: '/kg',
   error: language.value === 'de' ? 'Artikel nicht gefunden!' : 'Item not found!',
   cameraLoading: language.value === 'de' ? 'Kamera startet...' : 'Starting camera...',
   cameraOff: language.value === 'de' ? 'Kamera aus' : 'Camera off',
   cameraOn: language.value === 'de' ? 'Kamera an' : 'Camera on',
   retry: language.value === 'de' ? 'Erneut versuchen' : 'Retry',
-  cameraPermissionDenied:
-    language.value === 'de' ? 'Kamera-Zugriff verweigert' : 'Camera access denied',
+  cameraPermissionDenied: language.value === 'de' ? 'Kamera-Zugriff verweigert' : 'Camera access denied',
   cameraNotAvailable: language.value === 'de' ? 'Keine Kamera verfügbar' : 'No camera available',
-  barcodeNotSupported:
-    language.value === 'de'
-      ? 'Barcode-Scanning im Browser nicht unterstützt – bitte Hardware-Scanner verwenden.'
-      : 'Barcode scanning not supported in browser – please use hardware scanner.',
+  barcodeNotSupported: language.value === 'de'
+    ? 'Barcode-Scanning im Browser nicht unterstützt – bitte Hardware-Scanner verwenden.'
+    : 'Barcode scanning not supported in browser – please use hardware scanner.',
 }))
 
 const subtotal = computed(() => cartStore.subtotal)
-
-const vatAmount = computed(() => {
-  if (!vatEnabled.value) return 0
-  return subtotal.value * (vatRate.value / 100)
-})
-
+const vatAmount = computed(() => vatEnabled.value ? subtotal.value * (vatRate.value / 100) : 0)
 const total = computed(() => subtotal.value + vatAmount.value)
 
-function round2(n) {
-  return Math.round(n * 100) / 100
-}
+function round2(n) { return Math.round(n * 100) / 100 }
 
 function formatPrice(n) {
   return new Intl.NumberFormat(language.value === 'de' ? 'de-DE' : 'en-US', {
-    style: 'currency',
-    currency: 'EUR',
+    style: 'currency', currency: 'EUR',
   }).format(n)
 }
 
 function getLocalizedName(item) {
-  if (typeof item.name === 'object') {
-    return item.name[language.value] || item.name.de || Object.values(item.name)[0]
-  }
+  if (typeof item.name === 'object') return item.name[language.value] || item.name.de || Object.values(item.name)[0]
   return item.name
 }
 
-function getItemName(item) {
-  return getLocalizedName(item)
-}
+function getItemName(item) { return getLocalizedName(item) }
 
 function getLocalizedCategory(item) {
-  if (typeof item.category === 'object') {
-    return item.category[language.value] || item.category.de || Object.values(item.category)[0]
-  }
+  if (typeof item.category === 'object') return item.category[language.value] || item.category.de || Object.values(item.category)[0]
   return item.category || 'Artikel'
 }
 
 function addItem(item) {
   status.value = 'idle'
-
-  cartStore.addItem({
-    sku: item.sku,
-    name: getLocalizedName(item),
-    category: getLocalizedCategory(item),
-    price: item.price,
-    unit: 'each',
-  })
+  cartStore.addItem({ sku: item.sku, name: getLocalizedName(item), category: getLocalizedCategory(item), price: item.price, unit: 'each' })
 }
 
-function addWeighted(p) {
-  selectedProduce.value = p
-  weightKg.value = 0.25
-}
+function addWeighted(p) { selectedProduce.value = p; weightKg.value = 0.25 }
 
 function confirmWeighted() {
   if (!selectedProduce.value) return
-
   const kg = Number(weightKg.value)
   if (!Number.isFinite(kg) || kg <= 0) return
-
   status.value = 'idle'
-
   const linePrice = selectedProduce.value.pricePerKg * kg
   const itemName = getLocalizedName(selectedProduce.value)
   const categoryName = language.value === 'de' ? 'Gemüse/Obst' : 'Produce'
-
-  cartStore.addWeighted(
-    {
-      sku: selectedProduce.value.sku,
-      name: `${itemName} (${kg.toFixed(2)} kg)`,
-      category: categoryName,
-      price: round2(linePrice),
-    },
-    kg,
-  )
-
-  selectedProduce.value = null
-  weightKg.value = 0.25
-  closeModal()
+  cartStore.addWeighted({ sku: selectedProduce.value.sku, name: `${itemName} (${kg.toFixed(2)} kg)`, category: categoryName, price: round2(linePrice) }, kg)
+  selectedProduce.value = null; weightKg.value = 0.25; closeModal()
 }
 
-function removeLine(lineId) {
-  cartStore.removeLine(lineId)
-}
-
-function inc(line) {
-  cartStore.inc(line)
-}
-
-function dec(line) {
-  cartStore.dec(line)
-}
+function removeLine(lineId) { cartStore.removeLine(lineId) }
+function inc(line) { cartStore.inc(line) }
+function dec(line) { cartStore.dec(line) }
 
 function handleKeydown(e) {
-  const tag = (e.target && e.target.tagName && e.target.tagName.toLowerCase()) || ''
+  const tag = (e.target?.tagName || '').toLowerCase()
   if (tag === 'input' || tag === 'textarea') return
-
   if (modal.value) return
-
   if (scanTimer) window.clearTimeout(scanTimer)
-
   if (e.key === 'Enter') {
-    const code = scanBuffer.value.trim()
-    scanBuffer.value = ''
-    if (code) onBarcodeScanned(code)
-    return
+    const code = scanBuffer.value.trim(); scanBuffer.value = ''
+    if (code) onBarcodeScanned(code); return
   }
-
-  if (e.key.length === 1) {
-    scanBuffer.value += e.key
-  }
-
-  scanTimer = window.setTimeout(() => {
-    scanBuffer.value = ''
-  }, 120)
+  if (e.key.length === 1) scanBuffer.value += e.key
+  scanTimer = window.setTimeout(() => { scanBuffer.value = '' }, 120)
 }
 
 function onBarcodeScanned(code) {
   status.value = 'scanning'
-
   const item = catalogByBarcode[code]
-  if (!item) {
-    showError(`${t.value.error} (${code})`)
-    status.value = 'idle'
-    return
-  }
-
-  setTimeout(() => {
-    addItem(item)
-    status.value = 'idle'
-  }, 300)
+  if (!item) { showError(`${t.value.error} (${code})`); status.value = 'idle'; return }
+  setTimeout(() => { addItem(item); status.value = 'idle' }, 300)
 }
 
 function showError(msg) {
   if (errorTimeout) clearTimeout(errorTimeout)
   errorMessage.value = msg
-  errorTimeout = setTimeout(() => {
-    errorMessage.value = ''
-  }, 3000)
+  errorTimeout = setTimeout(() => { errorMessage.value = '' }, 3000)
 }
 
-function openHelp() {
-  modal.value = 'help'
-}
+function openHelp() { modal.value = 'help' }
+function toggleLanguage() { modal.value = 'lang' }
+function setLanguage(lang) { language.value = lang; closeModal() }
+function openProduce() { modal.value = 'produce' }
+function openBakery() { modal.value = 'bakery' }
+function closeModal() { modal.value = null }
 
-function toggleLanguage() {
-  modal.value = 'lang'
-}
-
-function setLanguage(lang) {
-  language.value = lang
-  closeModal()
-}
-
-function openProduce() {
-  modal.value = 'produce'
-}
-
-function openBakery() {
-  modal.value = 'bakery'
-}
-
-function closeModal() {
-  modal.value = null
-}
-
-function cancel() {
-  cartStore.clearCart()
-  scanBuffer.value = ''
-  status.value = 'cancelled'
-  closeModal()
-}
+function cancel() { cartStore.clearCart(); scanBuffer.value = ''; status.value = 'cancelled'; closeModal() }
 
 async function pay() {
   if (cart.length === 0) return
-
-  status.value = 'paying'
-  closeModal()
-  stopCamera()
-
-  await new Promise((r) => setTimeout(r, 900))
-
+  status.value = 'paying'; closeModal(); stopCamera()
+  await new Promise(r => setTimeout(r, 900))
   status.value = 'paid'
-
-  await new Promise((r) => setTimeout(r, 900))
+  await new Promise(r => setTimeout(r, 900))
   status.value = 'idle'
-
   router.push('/payback')
 }
 
 async function startCamera() {
-  cameraLoading.value = true
-  cameraError.value = ''
-
+  cameraLoading.value = true; cameraError.value = ''
   try {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error(t.value.cameraNotAvailable)
-    }
-
-    const constraints = {
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-      audio: false,
-    }
-
-    mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
-
-    if (videoRef.value) {
-      videoRef.value.srcObject = mediaStream
-      await videoRef.value.play()
-    }
-
-    cameraActive.value = true
-    cameraLoading.value = false
-
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error(t.value.cameraNotAvailable)
+    mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
+    if (videoRef.value) { videoRef.value.srcObject = mediaStream; await videoRef.value.play() }
+    cameraActive.value = true; cameraLoading.value = false
     if (barcodeSupported.value === null) {
       if ('BarcodeDetector' in window) {
-        try {
-          barcodeDetector = new BarcodeDetector({
-            formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e'],
-          })
-          barcodeSupported.value = true
-          startBarcodeScanning()
-        } catch {
-          barcodeSupported.value = false
-        }
-      } else {
-        barcodeSupported.value = false
-      }
+        try { barcodeDetector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e'] }); barcodeSupported.value = true; startBarcodeScanning() }
+        catch { barcodeSupported.value = false }
+      } else { barcodeSupported.value = false }
     }
-  } catch (err) {
-    cameraLoading.value = false
-    cameraActive.value = false
-
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      cameraError.value = t.value.cameraPermissionDenied
-    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      cameraError.value = t.value.cameraNotAvailable
-    } else {
-      cameraError.value = err.message || t.value.cameraNotAvailable
-    }
+  } catch(err) {
+    cameraLoading.value = false; cameraActive.value = false
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') cameraError.value = t.value.cameraPermissionDenied
+    else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') cameraError.value = t.value.cameraNotAvailable
+    else cameraError.value = err.message || t.value.cameraNotAvailable
   }
 }
 
 function stopCamera() {
-  if (mediaStream) {
-    mediaStream.getTracks().forEach((track) => track.stop())
-    mediaStream = null
-  }
-  if (videoRef.value) {
-    videoRef.value.srcObject = null
-  }
-  cameraActive.value = false
-  stopBarcodeScanning()
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null }
+  if (videoRef.value) videoRef.value.srcObject = null
+  cameraActive.value = false; stopBarcodeScanning()
 }
 
-function toggleCamera() {
-  if (cameraActive.value) {
-    stopCamera()
-  } else {
-    startCamera()
-  }
-}
+function toggleCamera() { cameraActive.value ? stopCamera() : startCamera() }
 
 function startBarcodeScanning() {
   if (scanInterval || !barcodeDetector) return
-
   scanInterval = setInterval(async () => {
     if (!cameraActive.value || !videoRef.value || scanCooldown) return
-
     try {
       const video = videoRef.value
       if (video.readyState !== video.HAVE_ENOUGH_DATA) return
-
       const barcodes = await barcodeDetector.detect(video)
       if (barcodes.length > 0) {
-        const code = barcodes[0].rawValue
-        scanCooldown = true
-        onBarcodeScanned(code)
-        setTimeout(() => {
-          scanCooldown = false
-        }, 1500)
+        const code = barcodes[0].rawValue; scanCooldown = true; onBarcodeScanned(code)
+        setTimeout(() => { scanCooldown = false }, 1500)
       }
-    } catch {
-      /* ignore detection errors */
-    }
+    } catch { /* balsdasd*/ }
   }, 250)
 }
 
-function stopBarcodeScanning() {
-  if (scanInterval) {
-    clearInterval(scanInterval)
-    scanInterval = null
-  }
-}
+function stopBarcodeScanning() { if (scanInterval) { clearInterval(scanInterval); scanInterval = null } }
 
-function cleanup() {
-  stopCamera()
-  if (scanTimer) {
-    clearTimeout(scanTimer)
-    scanTimer = null
-  }
-  if (errorTimeout) {
-    clearTimeout(errorTimeout)
-    errorTimeout = null
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-  startCamera()
-})
-
+onMounted(() => { window.addEventListener('keydown', handleKeydown); startCamera() })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
-  cleanup()
-})
-
-defineExpose({
-  status,
-  language,
-  modal,
-  vatEnabled,
-  vatRate,
-  cart,
-  scanBuffer,
-  produceCatalog,
-  bakeryCatalog,
-  selectedProduce,
-  weightKg,
-  subtotal,
-  vatAmount,
-  total,
-  formatPrice,
-  addItem,
-  addWeighted,
-  confirmWeighted,
-  removeLine,
-  inc,
-  dec,
-  openHelp,
-  toggleLanguage,
-  setLanguage,
-  openProduce,
-  openBakery,
-  closeModal,
-  cancel,
-  pay,
-  cameraActive,
-  cameraLoading,
-  cameraError,
-  startCamera,
-  stopCamera,
-  toggleCamera,
-  onBarcodeScanned,
+  stopCamera()
+  if (scanTimer) clearTimeout(scanTimer)
+  if (errorTimeout) clearTimeout(errorTimeout)
 })
 </script>
 
 <style>
-html,
-body {
+html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  font-family:
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
-
 body {
-  background: linear-gradient(to bottom, #7a5cc2, #6e4fb3);
+  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
 }
 </style>
 
 <style scoped>
-.page {
-  min-height: 100vh;
+:root {
+  --navy-0: #071A2A;
+  --navy-1: #0B2C44;
+  --navy-2: #092538;
+
+  --panel-bg:     rgba(10, 30, 45, 0.70);
+  --panel-strong: rgba(10, 30, 45, 0.85);
+  --stroke:       rgba(255, 255, 255, 0.10);
+  --stroke-hover: rgba(24, 231, 242, 0.30);
+
+  --text:   rgba(255, 255, 255, 0.92);
+  --muted:  rgba(255, 255, 255, 0.60);
+  --muted2: rgba(255, 255, 255, 0.40);
+
+  --cyan:  #18E7F2;
+  --cyan2: #1BC7FF;
+
+  --glow:   0 18px 45px rgba(24, 231, 242, 0.22);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.checkout-page {
+  position: fixed;
+  inset: 0;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  gap: 7%;
-  padding: 120px;
-  box-sizing: border-box;
+  overflow: hidden;
+  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
 }
 
-.card,
-.paying {
-  background: #f4f4f6;
-  border-radius: 25px;
-  min-height: 80vh;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-}
-
-.card {
-  width: 25vw;
-  display: flex;
-  flex-direction: column;
-  padding: 50px 40px;
-}
-
-.paying {
-  width: 60vw;
-  position: relative;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.top-actions {
+.bg-grid {
   position: absolute;
-  top: 25px;
-  right: 30px;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 36px 36px;
+  z-index: 0;
+}
+
+.layout {
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 15px;
-}
-
-.scan-text {
-  text-align: center;
-  font-size: 30px;
-  font-weight: 600;
-  color: #6b6b6b;
-  margin-top: 8%;
-  margin-bottom: 30px;
-  letter-spacing: 0.5px;
-}
-
-.action-btn {
-  padding: 8px 18px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-  background: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
-  backdrop-filter: blur(8px);
-  transition: all 0.25s ease;
-}
-
-.action-btn:hover {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
-}
-
-.action-btn.active {
-  background: linear-gradient(135deg, #10b981, #34d399);
-  color: white;
-}
-
-.camera-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 75%;
+  gap: 32px;
+  padding: 32px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
-.camera-window {
-  position: relative;
-  width: 100%;
-  height: 280px;
-  border-radius: 24px;
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--stroke);
+  border-radius: 28px;
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
   overflow: hidden;
-  background: #1a1a2e;
-  box-shadow: 0 12px 40px rgba(124, 58, 237, 0.25);
-  border: 3px solid rgba(124, 58, 237, 0.3);
 }
 
-.camera-window video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.camera-overlay {
-  position: absolute;
-  inset: 0;
+.cart-panel {
+  width: 30%;
+  min-width: 280px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  color: white;
-  font-weight: 500;
-}
-
-.camera-overlay.loading {
-  background: rgba(26, 26, 46, 0.95);
-}
-
-.camera-overlay.error {
-  background: rgba(127, 29, 29, 0.9);
-}
-
-.camera-overlay.inactive {
-  background: rgba(26, 26, 46, 0.85);
-}
-
-.error-icon {
-  font-size: 48px;
-  opacity: 0.8;
-}
-
-.retry-btn {
-  margin-top: 8px;
-  padding: 12px 28px;
-  border-radius: 20px;
-  border: none;
-  background: white;
-  color: #dc2626;
-  font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.retry-btn:hover {
-  transform: scale(1.05);
-}
-
-.camera-toggle {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: all 0.2s ease;
-  z-index: 10;
-}
-
-.camera-toggle:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.camera-toggle.active {
-  background: rgba(16, 185, 129, 0.8);
-}
-
-.spinner-small {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.barcode-warning {
-  margin-top: 12px;
-  padding: 10px 20px;
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 500;
-  text-align: center;
-}
-
-.category-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 80px;
-}
-
-.category-btn {
-  width: 40%;
-  height: 150px;
-  border-radius: 26px;
-  border: none;
-  cursor: pointer;
-  font-size: 24px;
-  font-weight: 700;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 18px;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
-  box-shadow: 0 20px 40px rgba(124, 58, 237, 0.35);
-  transition: all 0.25s ease;
-}
-
-.category-btn span {
-  font-size: 20px;
-}
-
-.category-btn:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 30px 60px rgba(124, 58, 237, 0.5);
-}
-
-.category-btn:active {
-  transform: scale(0.96);
-}
-
-.buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 20px;
-}
-
-.btn {
-  padding: 14px 36px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 14px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn:active {
-  transform: scale(0.97);
-}
-
-.cancel {
-  background: transparent;
-  border: 2px solid #7c3aed;
-  color: #7c3aed;
-}
-
-.cancel:hover {
-  background: #7c3aed;
-  color: white;
-  transform: translateY(-2px);
-}
-
-.pay {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
-}
-
-.pay:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.6);
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  padding: 36px 32px;
+  box-sizing: border-box;
 }
 
 .empty-state {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 40px 20px;
+  justify-content: center;
   text-align: center;
-  color: #6b6b6b;
+  color: var(--muted);
+  gap: 12px;
 }
 
-.empty-state .icon {
-  font-size: 50px;
-  margin-bottom: 20px;
-  opacity: 0.7;
-}
+.empty-icon { font-size: 48px; opacity: 0.7; }
 
-.empty-state h2 {
-  font-weight: 600;
+.empty-title {
   margin: 0;
   font-size: 17px;
-  color: #374151;
+  font-weight: 600;
+  color: var(--text);
 }
 
-.empty-state p {
-  margin-top: 8px;
+.empty-hint {
+  margin: 0;
   font-size: 13px;
-  color: #9ca3af;
-}
-
-.card > * {
-  width: 100%;
+  color: var(--muted2);
 }
 
 .cart {
@@ -1155,33 +632,40 @@ body {
 
 .cart-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  justify-content: space-between;
+  margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #f3f4f6;
+  border-bottom: 1px solid var(--stroke);
 }
 
-.cart-header h2 {
+.cart-title {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
 }
 
-.hint {
-  font-size: 13px;
-  color: #6b7280;
-  background: #f3f4f6;
-  padding: 6px 12px;
-  border-radius: 20px;
+.scan-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cyan);
+  background: rgba(24, 231, 242, 0.10);
+  border: 1px solid rgba(24, 231, 242, 0.25);
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
 }
 
 .cart-items {
   flex: 1;
-  min-height: 0;
   overflow-y: auto;
-  max-height: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.10) transparent;
 }
 
 .cart-item {
@@ -1189,238 +673,208 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 14px;
-  background: #f9fafb;
-  border-radius: 14px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid var(--stroke);
+  border-radius: 16px;
+  transition: border-color 0.15s;
 }
+
+.cart-item:hover { border-color: var(--stroke-hover); }
+
+.ci-left { flex: 1; min-width: 0; }
 
 .ci-name {
   font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
-}
-
-.ci-left {
-  flex: 1;
-  min-width: 0;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ci-meta {
-  font-size: 12px;
-  color: #9ca3af;
+  font-size: 11px;
+  color: var(--muted2);
   margin-top: 2px;
 }
 
 .ci-right {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-left: 12px;
+  gap: 10px;
+  margin-left: 10px;
+  flex-shrink: 0;
 }
 
 .ci-price {
   font-size: 14px;
   font-weight: 700;
-  color: #374151;
+  color: var(--text);
+  min-width: 52px;
+  text-align: right;
 }
 
 .ci-qty {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #e5e7eb;
-  border-radius: 12px;
-  padding: 4px 10px;
+  gap: 6px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 3px 8px;
 }
 
 .qty-btn {
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #6b46c1;
+  color: var(--muted);
+  padding: 0;
+  line-height: 1;
+  transition: color 0.13s;
 }
+
+.qty-btn:hover { color: var(--text); }
 
 .qty-val {
-  min-width: 22px;
+  min-width: 18px;
   text-align: center;
+  font-size: 13px;
   font-weight: 700;
-  color: #374151;
+  color: var(--text);
 }
 
-.remove {
+.remove-btn {
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: 10px;
-  width: 34px;
-  height: 34px;
-  color: #9ca3af;
-  font-size: 16px;
+  color: var(--muted2);
+  font-size: 13px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.13s, color 0.13s;
 }
 
-.remove:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+.remove-btn:hover {
+  background: rgba(248,113,113,0.12);
+  color: #fca5a5;
 }
 
 .totals {
-  margin-top: auto;
+  margin-top: 16px;
+  border-top: 1px solid var(--stroke);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.totals .row {
+.totals-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-
-.totals .row.small {
-  font-weight: 500;
-  color: #71717a;
   font-size: 13px;
+  color: var(--muted);
+  padding: 3px 0;
 }
 
-.totals .row.total {
+.totals-vat { color: var(--muted2); font-size: 12px; }
+
+.totals-total {
   font-size: 18px;
   font-weight: 700;
-  color: #000000;
-  padding-top: 2px;
-  border-top: 2px solid #f3f4f6;
+  color: var(--text);
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--stroke);
 }
 
-.scan-debug {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #71717a;
-}
-
-.error-toast {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #fee2e2;
-  color: #dc2626;
-  padding: 16px 32px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 18px;
-  box-shadow: 0 10px 40px rgba(220, 38, 38, 0.3);
-  z-index: 100;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.modal {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 25px;
-  padding: 18px;
-  z-index: 1000;
-}
-
-.modal-card {
-  width: min(720px, 95%);
-  background: #f7f7fb;
-  border-radius: 22px;
-  padding: 18px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
-}
-
-.modal-title {
-  font-weight: 700;
-  color: #2b2b2f;
-  margin-bottom: 12px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.pill {
-  border: none;
-  cursor: pointer;
-  border-radius: 16px;
-  padding: 12px 14px;
-  font-weight: 700;
-  background: rgba(124, 58, 237, 0.12);
-  color: #7c3aed;
-}
-
-.pill.primary {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 14px;
-}
-
-.weight-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.weight-row input {
+.scan-panel {
   flex: 1;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 36px 40px;
+  box-sizing: border-box;
+  position: relative;
 }
 
-.help-list {
-  margin: 0;
-  padding-left: 18px;
-  color: #3f3f46;
-  line-height: 1.6;
+.top-actions {
+  position: absolute;
+  top: 28px;
+  right: 32px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
 }
 
-.camera-container {
+.action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.87);
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.13s, box-shadow 0.18s;
+}
+
+.action-pill:hover {
+  color: #fff;
+  background: rgba(0, 212, 232, 0.08);
+  border-color: rgba(24, 231, 242, 0.30);
+  box-shadow: 0 0 12px rgba(24, 231, 242, 0.12);
+  transform: translateY(-1px);
+}
+
+.action-pill--active {
+  border-color: rgba(24, 231, 242, 0.55);
+  box-shadow: var(--glow);
+  color: var(--cyan);
+}
+
+.status-text {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 52px;
+  margin-bottom: 20px;
+  letter-spacing: 0.01em;
+}
+
+.camera-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  width: 72%;
   margin: 0 auto;
-  width: 75%;
 }
 
 .camera-window {
   width: 100%;
-  height: 280px;
-  background: #1a1a2e;
+  height: 260px;
+  background: rgba(0,0,0,0.35);
   border-radius: 24px;
   overflow: hidden;
   position: relative;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.25),
-    0 0 0 4px rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--stroke);
+  box-shadow: 0 18px 55px rgba(0,0,0,0.40);
+  transition: border-color 0.2s;
 }
+
+.camera-window--error { border-color: rgba(248,113,113,0.45); }
 
 .camera-window video {
   width: 100%;
@@ -1428,306 +882,438 @@ body {
   object-fit: cover;
 }
 
-.camera-window.error {
-  background: #2a2a3e;
+.scan-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.camera-overlay {
+.guide {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: var(--cyan);
+  border-style: solid;
+  opacity: 0.7;
+}
+
+.guide--tl { top: 12px; left: 12px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+.guide--tr { top: 12px; right: 12px; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+.guide--bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+.guide--br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+.cam-overlay {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   gap: 12px;
-  color: #a1a1aa;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
+  color: var(--muted);
 }
 
-.camera-overlay.loading {
-  background: rgba(26, 26, 46, 0.95);
-}
+.cam-overlay--loading { background: rgba(7,26,42,0.95); }
+.cam-overlay--error   { background: rgba(42,18,18,0.96); color: #fca5a5; }
+.cam-overlay--inactive { background: rgba(7,26,42,0.88); }
 
-.camera-overlay.error {
-  background: rgba(42, 42, 62, 0.98);
-  color: #fca5a5;
-}
+.cam-error-icon { font-size: 36px; }
 
-.camera-overlay.inactive {
-  background: rgba(26, 26, 46, 0.9);
-}
-
-.spinner-small {
+.spinner-ring {
   width: 28px;
   height: 28px;
-  border: 3px solid rgba(124, 58, 237, 0.3);
-  border-top-color: #a855f7;
+  border: 3px solid rgba(255,255,255,0.12);
+  border-top-color: var(--cyan);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
-.error-icon {
-  font-size: 36px;
-}
-
 .retry-btn {
-  margin-top: 8px;
-  padding: 10px 24px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(24,231,242,0.35);
+  background: linear-gradient(90deg, var(--cyan), var(--cyan2));
+  color: rgba(0,0,0,0.80);
+  font-weight: 800;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: var(--glow);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 
-.retry-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
-}
+.retry-btn:hover { transform: translateY(-1px) scale(1.01); }
 
-.retry-btn:active {
-  transform: scale(0.96);
-}
-
-.camera-toggle {
+.cam-toggle {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: none;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
+  top: 10px;
+  right: 10px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,0.40);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.15s, transform 0.13s, box-shadow 0.15s;
   z-index: 10;
 }
 
-.camera-toggle:hover {
-  background: rgba(124, 58, 237, 0.8);
-}
-
-.camera-toggle.active {
-  background: rgba(16, 185, 129, 0.8);
-}
+.cam-toggle:hover { transform: translateY(-1px); border-color: var(--stroke-hover); }
+.cam-toggle--active { border-color: rgba(24,231,242,0.55); box-shadow: 0 0 14px rgba(24,231,242,0.18); }
 
 .barcode-warning {
-  padding: 10px 16px;
-  background: rgba(245, 158, 11, 0.15);
+  padding: 9px 16px;
+  background: rgba(245,158,11,0.12);
   color: #d97706;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-@media (max-width: 900px) {
-  .camera-window {
-    height: 220px;
-  }
-
-  .camera-container {
-    width: 85%;
-  }
+.error-toast {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(248,113,113,0.14);
+  color: var(--text);
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 16px;
+  border: 1px solid rgba(248,113,113,0.35);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+  z-index: 100;
+  white-space: nowrap;
+  animation: slideDown 0.3s ease;
 }
 
-@media (max-width: 600px) {
-  .camera-window {
-    height: 180px;
-  }
-
-  .camera-container {
-    width: 92%;
-  }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-.modal-card-new {
-  width: min(1100px, 95%);
-  max-height: 85vh;
-  background: #f0eff4;
-  border-radius: 28px;
-  padding: 28px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+.category-row {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.category-btn {
+  flex: 1;
+  max-width: 240px;
+  height: 120px;
+  border-radius: 24px;
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,0.20);
+  color: var(--text);
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-}
-
-.modal-header {
-  display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
+  justify-content: center;
+  gap: 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
-.category-icon {
-  font-size: 48px;
-  background: white;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+.category-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--stroke-hover);
+  box-shadow: 0 18px 52px rgba(0,0,0,0.38);
+}
+
+.category-btn:active { transform: scale(0.98); }
+
+.category-emoji { font-size: 30px; }
+
+.category-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.btn {
+  padding: 14px 32px;
+  font-size: 15px;
+  font-weight: 800;
+  border-radius: 16px;
+  border: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  gap: 10px;
+  background: rgba(0,0,0,0.18);
+  color: var(--text);
+  letter-spacing: 0.02em;
 }
 
-.category-tabs {
-  display: flex;
-  gap: 12px;
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn--cancel {
+  color: var(--muted);
+  border-color: rgba(255,255,255,0.14);
 }
 
-.category-tab {
-  padding: 12px 32px;
-  border-radius: 50px;
+.btn--cancel:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(248,113,113,0.40);
+}
+
+.btn--pay {
   border: none;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  background: #d4d1e0;
-  color: #5b5768;
-  transition: all 0.2s ease;
+  background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan2) 100%);
+  color: rgba(0,0,0,0.80);
+  box-shadow: var(--glow);
+  min-width: 120px;
 }
 
-.category-tab.active {
-  background: linear-gradient(135deg, #5b4c9e, #7c3aed);
-  color: white;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+.btn--pay:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: 0 22px 55px rgba(24,231,242,0.30);
+}
+
+.btn:active:not(:disabled) { transform: scale(0.98); }
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(0,0,0,0.25);
+  border-top-color: rgba(0,0,0,0.70);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  padding: 20px;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  width: min(900px, 95%);
+  max-height: 82vh;
+  background: var(--panel-strong);
+  border: 1px solid var(--stroke);
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-card--sm { width: min(480px, 95%); }
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-icon {
+  font-size: 36px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--stroke);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
   overflow-y: auto;
-  max-height: 50vh;
-  padding: 10px;
-  margin-bottom: 20px;
+  max-height: 45vh;
+  padding: 4px 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
 
 .product-card {
   aspect-ratio: 1;
-  background: #d8d5e6;
-  border: none;
-  border-radius: 20px;
-  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,0.20);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  transition: border-color 0.15s, transform 0.13s, background 0.15s, box-shadow 0.15s;
 }
 
 .product-card:hover {
-  background: #c9c4dd;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--stroke-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.30);
 }
 
-.product-card:active {
-  transform: scale(0.96);
+.product-card--selected {
+  border-color: var(--cyan);
+  background: rgba(24,231,242,0.08);
+  box-shadow: 0 0 0 1px rgba(24,231,242,0.35), var(--glow);
 }
+
+.product-card:active { transform: scale(0.96); }
 
 .product-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  color: #3f3556;
+  color: var(--text);
   text-align: center;
 }
 
 .product-price {
-  font-size: 14px;
-  color: #6b5f7d;
+  font-size: 12px;
+  color: var(--muted);
   font-weight: 600;
 }
 
-.weight-input-row {
+.weight-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: white;
-  border-radius: 16px;
-  margin-bottom: 20px;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  margin-top: 14px;
 }
 
-.weight-input-row label {
+.weight-label {
+  font-size: 13px;
   font-weight: 600;
-  color: #3f3556;
-  min-width: 120px;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
-.weight-input-row input {
+.weight-input {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 2px solid #d4d1e0;
-  font-size: 16px;
+  background: rgba(0,0,0,0.28);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
   outline: none;
-  transition: border-color 0.2s ease;
+  font-family: inherit;
+  transition: border-color 0.2s;
 }
 
-.weight-input-row input:focus {
-  border-color: #7c3aed;
-}
+.weight-input:focus { border-color: rgba(24,231,242,0.45); }
 
-.modal-bottom-actions {
+.modal-actions {
   display: flex;
-  gap: 16px;
-  margin-top: auto;
+  gap: 12px;
+  margin-top: 18px;
 }
 
-.modal-back-btn,
-.modal-done-btn {
+.modal-btn {
   flex: 1;
-  padding: 16px;
+  padding: 14px;
   border: none;
-  border-radius: 16px;
-  font-size: 18px;
+  border-radius: 14px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-family: inherit;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
-.modal-back-btn {
-  background: #d8d5e6;
-  color: #3f3556;
+.modal-btn--back {
+  background: rgba(255,255,255,0.07);
+  color: var(--muted);
+  border: 1px solid var(--stroke);
 }
 
-.modal-back-btn:hover {
-  background: #c9c4dd;
-  transform: translateY(-2px);
+.modal-btn--back:hover { background: rgba(255,255,255,0.11); transform: translateY(-1px); }
+
+.modal-btn--done {
+  background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan2) 100%);
+  color: rgba(0,0,0,0.80);
+  box-shadow: var(--glow);
 }
 
-.modal-done-btn {
-  background: linear-gradient(135deg, #3d3a45, #2a2730);
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.modal-btn--done:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 22px 50px rgba(24,231,242,0.28); }
+.modal-btn--done:disabled { opacity: 0.4; cursor: not-allowed; }
+.modal-btn:active:not(:disabled) { transform: scale(0.98); }
+
+.help-list {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 14px;
 }
 
-.modal-done-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+.help-list strong { color: var(--text); }
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
 }
 
-.modal-done-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+.lang-btn {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,0.20);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, transform 0.13s, background 0.15s;
 }
 
-.modal-done-btn:active:not(:disabled),
-.modal-back-btn:active {
-  transform: scale(0.98);
+.lang-btn:hover {
+  border-color: var(--stroke-hover);
+  background: rgba(24,231,242,0.07);
+  transform: translateY(-1px);
 }
 </style>

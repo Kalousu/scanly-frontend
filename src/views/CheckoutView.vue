@@ -73,7 +73,6 @@
         <div v-else-if="status === 'paying'">{{ t.paying }}</div>
         <div v-else-if="status === 'paid'">{{ t.paid }}</div>
         <div v-else-if="status === 'cancelled'">{{ t.cancelled }}</div>
-
       </div>
 
       <div class="camera-container">
@@ -162,14 +161,13 @@
           </div>
 
           <div class="modal-bottom-actions">
-            <button class="modal-back-btn" @click="selectedProduce ? (selectedProduce = null) : closeModal()">
+            <button
+              class="modal-back-btn"
+              @click="selectedProduce ? (selectedProduce = null) : closeModal()"
+            >
               Zurück
             </button>
-            <button
-              class="modal-done-btn"
-              :disabled="!selectedProduce"
-              @click="confirmWeighted"
-            >
+            <button class="modal-done-btn" :disabled="!selectedProduce" @click="confirmWeighted">
               Fertig
             </button>
           </div>
@@ -533,7 +531,6 @@ function handleKeydown(e) {
   const tag = (e.target && e.target.tagName && e.target.tagName.toLowerCase()) || ''
   if (tag === 'input' || tag === 'textarea') return
 
-  // Ignore keyboard input when any modal is open
   if (modal.value) return
 
   if (scanTimer) window.clearTimeout(scanTimer)
@@ -838,8 +835,8 @@ body {
 .card {
   width: 25vw;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  padding: 50px 40px;
 }
 
 .paying {
@@ -1116,82 +1113,100 @@ body {
 }
 
 .empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
   text-align: center;
   color: #6b6b6b;
 }
 
 .empty-state .icon {
   font-size: 50px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   opacity: 0.7;
 }
 
 .empty-state h2 {
   font-weight: 600;
   margin: 0;
-  font-size: 22px;
+  font-size: 17px;
+  color: #374151;
 }
 
 .empty-state p {
   margin-top: 8px;
-  font-size: 14px;
-  opacity: 0.8;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.card > * {
+  width: 100%;
 }
 
 .cart {
-  width: 100%;
-  padding: 24px;
-  box-sizing: border-box;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  min-height: 0;
 }
 
 .cart-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f3f4f6;
 }
 
 .cart-header h2 {
   margin: 0;
-  font-size: 18px;
-  color: #3f3f46;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .hint {
-  font-size: 12px;
-  color: #71717a;
+  font-size: 13px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 20px;
 }
 
 .cart-items {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 52vh;
-  overflow: auto;
-  padding-right: 6px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: none;
 }
 
 .cart-item {
-  background: white;
-  border-radius: 16px;
-  padding: 12px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 14px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+  padding: 12px 14px;
+  background: #f9fafb;
+  border-radius: 14px;
 }
 
 .ci-name {
+  font-size: 14px;
   font-weight: 600;
-  color: #27272a;
+  color: #1f2937;
+}
+
+.ci-left {
+  flex: 1;
+  min-width: 0;
 }
 
 .ci-meta {
   font-size: 12px;
-  color: #71717a;
+  color: #9ca3af;
   margin-top: 2px;
 }
 
@@ -1199,22 +1214,22 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: 12px;
 }
 
 .ci-price {
+  font-size: 14px;
   font-weight: 700;
-  color: #3f3f46;
-  min-width: 90px;
-  text-align: right;
+  color: #374151;
 }
 
 .ci-qty {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(124, 58, 237, 0.08);
-  border-radius: 999px;
-  padding: 6px 10px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  padding: 4px 10px;
 }
 
 .qty-btn {
@@ -1223,39 +1238,45 @@ body {
   cursor: pointer;
   font-size: 16px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #6b46c1;
 }
 
 .qty-val {
   min-width: 22px;
   text-align: center;
   font-weight: 700;
-  color: #3f3f46;
+  color: #374151;
 }
 
 .remove {
   border: none;
-  background: rgba(0, 0, 0, 0.06);
+  background: transparent;
   cursor: pointer;
   border-radius: 10px;
   width: 34px;
   height: 34px;
+  color: #9ca3af;
+  font-size: 16px;
+}
+
+.remove:hover {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .totals {
   margin-top: auto;
-  background: rgba(0, 0, 0, 0.03);
-  padding: 14px 16px;
-  border-radius: 16px;
 }
 
 .totals .row {
   display: flex;
   justify-content: space-between;
-  color: #3f3f46;
-  font-weight: 600;
-  margin: 6px 0;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 14px;
+  color: #6b7280;
 }
+
 
 .totals .row.small {
   font-weight: 500;
@@ -1265,8 +1286,10 @@ body {
 
 .totals .row.total {
   font-size: 18px;
-  font-weight: 800;
-  margin-top: 10px;
+  font-weight: 700;
+  color: #000000;
+  padding-top: 2px;
+  border-top: 2px solid #f3f4f6;
 }
 
 .scan-debug {

@@ -1,7 +1,5 @@
 <template>
   <div class="checkout">
-    <div class="checkout__overlay" aria-hidden="true"></div>
-
     <div class="bg-grid" aria-hidden="true"></div>
 
     <nav class="navbar">
@@ -13,24 +11,7 @@
         <button
           type="button"
           class="navbar-btn navbar-pill"
-          @click="onVolume"
-          :aria-label="t('ownBag')"
-        >
-          <span class="navbar-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" class="icon">
-              <path
-                d="M6 7V6a6 6 0 0 1 12 0v1h2v15H4V7h2Zm2 0h8V6a4 4 0 0 0-8 0v1Zm-1 5
-                   a1 1 0 0 0 2 0v-1H7v1Zm8 0a1 1 0 0 0 2 0v-1h-2v1Z"
-              />
-            </svg>
-          </span>
-          <span class="navbar-text" @onClick="onOwnBag">{{ t('ownBag') }}</span>
-        </button>
-
-        <button
-          type="button"
-          class="navbar-btn navbar-pill"
-          @click="onHelp"
+          @click="isHelpOpen = true"
           :aria-label="t('help')"
         >
           <span class="navbar-icon" aria-hidden="true">
@@ -55,7 +36,7 @@
       <div class="main-glow" aria-hidden="true"></div>
       <div class="main-inner">
         <h1 class="main-title">
-          <span class="title-line title-line--light">Bereit zum</span>
+          <span class="title-line title-line--light">{{ t('welcomePrefix') }}</span>
           <span class="title-line title-line--accent">{{ t('welcomeAccent') }}</span>
         </h1>
 
@@ -83,98 +64,25 @@
         </button>
       </div>
     </footer>
+
+    <HelpModal
+      v-model="isHelpOpen"
+      :current-lang="currentLang"
+      :translations="translations"
+    />
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import HelpModal from '../components/HelpModal.vue'
+import { useLanguage, translations } from '../components/Uselanguage'
 
 const router = useRouter()
+const { currentLang, languages, t, setLanguage } = useLanguage()
 
-const translations = {
-  de: {
-    help: 'Hilfe',
-    volume: 'Lautstärke',
-    ownBag: 'eigene Tasche',
-    welcome: 'Bereit zum Scannen?',
-    welcomeAccent: 'Scannen?',
-    instruction: 'Einfach Scannen. Das ist Scanly.',
-    start: 'Start',
-  },
-  en: {
-    help: 'Help',
-    volume: 'Volume',
-    ownBag: 'Own Bag',
-    welcome: 'Ready to Scan?',
-    welcomeAccent: 'Scan?',
-    instruction: 'Scan your items, print receipt, done.',
-    start: 'Start',
-  },
-  it: {
-    help: 'Assistenza',
-    volume: 'Volume',
-    ownBag: 'Borsa personale',
-    welcome: 'Pronto a scansionare?',
-    welcomeAccent: 'Scansionare?',
-    instruction: 'Scansioni il Suo articolo, poi prema "Inizia".',
-    start: 'Inizia',
-  },
-  ru: {
-    help: 'Помощь',
-    volume: 'Громкость',
-    ownBag: 'Собственный пакет',
-    welcome: 'Готовы к сканированию?',
-    welcomeAccent: 'Сканировать?',
-    instruction: 'Отсканируйте товар и нажмите «Старт».',
-    start: 'Старт',
-  },
-}
-
-const languages = [
-  {
-    code: 'de',
-    label: 'Deutsch',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/1280px-Flag_of_Germany.svg.png',
-  },
-  {
-    code: 'en',
-    label: 'English',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png',
-  },
-  {
-    code: 'it',
-    label: 'Italiano',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/0/03/Flag_of_Italy.svg',
-  },
-  {
-    code: 'ru',
-    label: 'Русский',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Flag_of_Russia.svg/3840px-Flag_of_Russia.svg.png',
-  },
-]
-
-const LANG_KEY = 'checkout_lang'
-const currentLang = ref(localStorage.getItem(LANG_KEY) ?? 'de')
-
-const t = (key) => translations[currentLang.value]?.[key] ?? key
-
-function setLanguage(code) {
-  currentLang.value = code
-  localStorage.setItem(LANG_KEY, code)
-}
-
-function onHelp() {
-  console.log('[checkout] help clicked')
-}
-
-function onVolume() {
-  console.log('[checkout] volume clicked')
-}
-
-function onOwnBag() {
-  console.log('[checkout] own bag clicked')
-}
+const isHelpOpen = ref(false)
 
 function onStart() {
   router.push('/checkout')
@@ -191,17 +99,6 @@ body,
 </style>
 
 <style scoped>
-:root {
-  --cyan: #00D4E8;
-  --cyan-glow: rgba(0, 212, 232, 0.35);
-  --navy-deep: #071A2A;
-  --navy-mid: #0B2C44;
-  --navy-surface: rgba(255,255,255,0.05);
-  --navy-border: rgba(255,255,255,0.08);
-  --text-primary: #FFFFFF;
-  --text-secondary: rgba(255,255,255,0.55);
-}
-
 .checkout {
   position: fixed;
   inset: 0;
@@ -220,10 +117,6 @@ body,
   background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
   background-size: 36px 36px;
   z-index: 0;
-}
-
-.checkout__overlay {
-  display: none;
 }
 
 .navbar {
@@ -371,8 +264,12 @@ body,
 }
 
 .title-line--accent {
-  background: linear-gradient(90deg, #00D4E8 0%, #6EF0F9 100%);
+  display: inline-block;
+  padding-right: 0.08em;
+  padding-top: 0.06em;
   -webkit-background-clip: text;
+  background-clip: text;
+  background: linear-gradient(90deg, #00D4E8 0%, #6EF0F9 100%);
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-size: clamp(4rem, 8.5vw, 7.5rem);
@@ -402,7 +299,7 @@ body,
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #ffffff;
+  color: #071A2A;
   border: 0;
   border-radius: 40px;
   background: linear-gradient(90deg, #1fd6d6 0%, #1ec3ff 100%);
@@ -427,8 +324,7 @@ body,
 
 .start:active {
   transform: translateY(0);
-  box-shadow:
-    0 3px 12px rgba(30, 195, 255, 0.25);
+  box-shadow: 0 3px 12px rgba(30, 195, 255, 0.25);
 }
 
 .language-bar {

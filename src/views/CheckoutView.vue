@@ -14,11 +14,15 @@
         <div v-else class="cart">
           <div class="cart-header">
             <h2 class="cart-title">{{ t.cartTitle }}</h2>
-            <span class="scan-badge">{{ t.scanActive }}</span>
+            <span class="scan-badge">
+              <span class="scan-badge-dot"></span>
+              {{ t.scanActive }}
+            </span>
           </div>
 
           <div class="cart-items">
             <div v-for="item in cart" :key="item.lineId" class="cart-item">
+              <div class="ci-accent"></div>
               <div class="ci-left">
                 <div class="ci-name">{{ item.name }}</div>
                 <div class="ci-meta">
@@ -36,7 +40,11 @@
                   <button class="qty-btn" @click="inc(item)">+</button>
                 </div>
 
-                <button class="remove-btn" @click="removeLine(item.lineId)" aria-label="Entfernen">✕</button>
+                <button class="remove-btn" @click="removeLine(item.lineId)" aria-label="Entfernen">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M1 1l9 9M10 1L1 10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -52,7 +60,7 @@
             </div>
             <div class="totals-row totals-total">
               <span>{{ t.total }}</span>
-              <span>{{ formatPrice(total) }}</span>
+              <span class="totals-total-value">{{ formatPrice(total) }}</span>
             </div>
           </div>
         </div>
@@ -72,94 +80,119 @@
           </button>
         </div>
 
-        <div class="status-text">
-          <span v-if="status === 'idle'">{{ t.scanPrompt }}</span>
-          <span v-else-if="status === 'scanning'">{{ t.scanning }}</span>
-          <span v-else-if="status === 'paying'">{{ t.paying }}</span>
-          <span v-else-if="status === 'paid'">{{ t.paid }}</span>
-          <span v-else-if="status === 'cancelled'">{{ t.cancelled }}</span>
+        <div class="hero-block">
+          <div class="hero-eyebrow"><img src="../assets/logo-removebg-preview.png"></div>
+          <div class="status-text">
+            <span v-if="status === 'idle'">{{ t.scanPrompt }}</span>
+            <span v-else-if="status === 'scanning'" class="status--scanning">{{ t.scanning }}</span>
+            <span v-else-if="status === 'paying'" class="status--paying">{{ t.paying }}</span>
+            <span v-else-if="status === 'paid'" class="status--paid">{{ t.paid }}</span>
+            <span v-else-if="status === 'cancelled'" class="status--cancelled">{{ t.cancelled }}</span>
+          </div>
+          <div class="hero-sub" v-if="status === 'idle'">{{ language === 'de' ? 'Artikel scannen oder Kategorie wählen' : 'Scan items or choose a category' }}</div>
         </div>
 
-        <div class="camera-wrap">
-          <div class="camera-window" :class="{ 'camera-window--error': cameraError }">
-            <video
-              v-show="cameraActive && !cameraError"
-              ref="videoRef"
-              autoplay
-              playsinline
-              muted
-            ></video>
+        <div class="flow-block">
 
-            <div v-if="cameraActive && !cameraError" class="scan-guides" aria-hidden="true">
-              <span class="guide guide--tl"></span>
-              <span class="guide guide--tr"></span>
-              <span class="guide guide--bl"></span>
-              <span class="guide guide--br"></span>
+          <div class="camera-wrap">
+            <div class="camera-window" :class="{
+              'camera-window--error': cameraError && !cameraNoDevice,
+              'camera-window--nodevice': cameraNoDevice
+            }">
+              <video
+                v-show="cameraActive && !cameraError"
+                ref="videoRef"
+                autoplay
+                playsinline
+                muted
+              ></video>
+
+              <div v-if="cameraActive && !cameraError" class="scan-guides" aria-hidden="true">
+                <span class="guide guide--tl"></span>
+                <span class="guide guide--tr"></span>
+                <span class="guide guide--bl"></span>
+                <span class="guide guide--br"></span>
+                <span class="scan-line"></span>
+              </div>
+
+              <div v-if="cameraLoading" class="cam-overlay cam-overlay--loading">
+                <div class="spinner-ring"></div>
+                <span>{{ t.cameraLoading }}</span>
+              </div>
+
+              <div v-else-if="cameraNoDevice" class="cam-overlay cam-overlay--neutral">
+                <div class="cam-nodevice-icon">📷</div>
+                <span class="cam-nodevice-title">{{ t.cameraNotAvailable }}</span>
+                <span class="cam-subhint">Hardware-Scanner nutzen oder Webcam anschließen – Tastaturbarcodes funktionieren jederzeit.</span>
+              </div>
+
+              <div v-else-if="cameraError" class="cam-overlay cam-overlay--error">
+                <span class="cam-error-icon">⚠️</span>
+                <span>{{ cameraError }}</span>
+                <button class="retry-btn" @click="startCamera">{{ t.retry }}</button>
+              </div>
+
+              <div v-else-if="!cameraActive" class="cam-overlay cam-overlay--inactive">
+                <span class="cam-off-icon">📷</span>
+                <span>{{ t.cameraOff }}</span>
+              </div>
+
+              <button
+                class="cam-toggle"
+                :class="{ 'cam-toggle--active': cameraActive }"
+                :disabled="cameraNoDevice"
+                @click="toggleCamera"
+              >
+                {{ cameraNoDevice ? 'Keine Kamera' : (cameraActive ? t.cameraOn : t.cameraOff) }}
+              </button>
             </div>
 
-            <div v-if="cameraLoading" class="cam-overlay cam-overlay--loading">
-              <div class="spinner-ring"></div>
-              <span>{{ t.cameraLoading }}</span>
+            <div v-if="barcodeSupported === false" class="barcode-warning">
+              {{ t.barcodeNotSupported }}
             </div>
+          </div>
 
-            <div v-else-if="cameraError" class="cam-overlay cam-overlay--error">
-              <span class="cam-error-icon">📷</span>
-              <span>{{ cameraError }}</span>
-              <button class="retry-btn" @click="startCamera">{{ t.retry }}</button>
-            </div>
-
-            <div v-else-if="!cameraActive" class="cam-overlay cam-overlay--inactive">
-              <span>{{ t.cameraOff }}</span>
-            </div>
-
-            <button
-              class="cam-toggle"
-              :class="{ 'cam-toggle--active': cameraActive }"
-              @click="toggleCamera"
-            >
-              {{ cameraActive ? t.cameraOn : t.cameraOff }}
+          <div class="category-row">
+            <button class="category-btn" @click="openProduce">
+              <span class="category-emoji">🥦</span>
+              <span class="category-label">{{ t.produce }}</span>
+              <span class="category-hint">PLU · nach Gewicht</span>
+            </button>
+            <button class="category-btn" @click="openBakery">
+              <span class="category-emoji">🥐</span>
+              <span class="category-label">{{ t.bakery }}</span>
+              <span class="category-hint">Tippen zum Hinzufügen</span>
             </button>
           </div>
 
-          <div v-if="barcodeSupported === false" class="barcode-warning">
-            {{ t.barcodeNotSupported }}
+          <div class="action-row">
+            <button class="btn btn--cancel" @click="cancel" :disabled="status === 'paying'">
+              {{ t.cancel }}
+            </button>
+            <button
+              class="btn btn--pay"
+              :disabled="cart.length === 0 || status === 'paying'"
+              @click="pay"
+            >
+              <span v-if="status === 'paying'" class="spinner"></span>
+              <span v-else>{{ t.pay }}</span>
+            </button>
           </div>
+
         </div>
 
         <div v-if="errorMessage" class="error-toast" role="alert">
           ⚠️ {{ errorMessage }}
         </div>
 
-        <div class="category-row">
-          <button class="category-btn" @click="openProduce">
-            <span class="category-emoji">🥦</span>
-            <span class="category-label">{{ t.produce }}</span>
-          </button>
-          <button class="category-btn" @click="openBakery">
-            <span class="category-emoji">🥐</span>
-            <span class="category-label">{{ t.bakery }}</span>
-          </button>
-        </div>
-
-        <div class="action-row">
-          <button class="btn btn--cancel" @click="cancel" :disabled="status === 'paying'">
-            {{ t.cancel }}
-          </button>
-          <button
-            class="btn btn--pay"
-            :disabled="cart.length === 0 || status === 'paying'"
-            @click="pay"
-          >
-            <span v-if="status === 'paying'" class="spinner"></span>
-            <span v-else>{{ t.pay }}</span>
-          </button>
-        </div>
-
         <div v-if="modal === 'produce'" class="modal-backdrop" @click.self="closeModal">
           <div class="modal-card">
             <div class="modal-head">
               <div class="modal-icon">🥦</div>
-              <h3 class="modal-title">{{ t.produce }}</h3>
+              <div>
+                <h3 class="modal-title">{{ t.produce }}</h3>
+                <p class="modal-subtitle">Produkt wählen, dann Gewicht eingeben</p>
+              </div>
             </div>
 
             <div class="product-grid">
@@ -171,7 +204,7 @@
                 @click="addWeighted(p)"
               >
                 <div class="product-name">{{ getItemName(p) }}</div>
-                <div class="product-price">{{ formatPrice(p.pricePerKg) }}{{ t.priceKg }}</div>
+                <div class="product-price">{{ formatPrice(p.pricePerKg) }}<span class="price-unit">/kg</span></div>
               </button>
             </div>
 
@@ -184,6 +217,7 @@
                 step="0.01"
                 class="weight-input"
               />
+              <span class="weight-preview">= {{ formatPrice(selectedProduce.pricePerKg * weightKg) }}</span>
             </div>
 
             <div class="modal-actions">
@@ -191,7 +225,7 @@
                 Zurück
               </button>
               <button class="modal-btn modal-btn--done" :disabled="!selectedProduce" @click="confirmWeighted">
-                Fertig
+                Hinzufügen
               </button>
             </div>
           </div>
@@ -201,7 +235,10 @@
           <div class="modal-card">
             <div class="modal-head">
               <div class="modal-icon">🥐</div>
-              <h3 class="modal-title">{{ t.bakery }}</h3>
+              <div>
+                <h3 class="modal-title">{{ t.bakery }}</h3>
+                <p class="modal-subtitle">Tippen zum sofortigen Hinzufügen</p>
+              </div>
             </div>
 
             <div class="product-grid">
@@ -246,8 +283,8 @@
           <div class="modal-card modal-card--sm">
             <h3 class="modal-title">{{ t.langTitle }}</h3>
             <div class="lang-grid">
-              <button class="lang-btn" @click="setLanguage('de')">Deutsch</button>
-              <button class="lang-btn" @click="setLanguage('en')">English</button>
+              <button class="lang-btn" :class="{ 'lang-btn--active': language === 'de' }" @click="setLanguage('de')">🇩🇪 Deutsch</button>
+              <button class="lang-btn" :class="{ 'lang-btn--active': language === 'en' }" @click="setLanguage('en')">🇬🇧 English</button>
             </div>
             <div class="modal-actions">
               <button class="modal-btn modal-btn--back" @click="closeModal">{{ t.close }}</button>
@@ -271,6 +308,8 @@ const cartStore = useCartStore()
 const status = ref('idle')
 const language = ref('de')
 const modal = ref(null)
+
+const cameraNoDevice = ref(false)
 
 const vatEnabled = ref(false)
 const vatRate = ref(19)
@@ -351,7 +390,7 @@ const t = computed(() => ({
   close: language.value === 'de' ? 'Schließen' : 'Close',
   weightLabel: language.value === 'de' ? 'Gewicht (kg)' : 'Weight (kg)',
   helpTitle: language.value === 'de' ? 'Hilfe' : 'Help',
-  langTitle: language.value === 'de' ? 'Sprache' : 'Language',
+  langTitle: language.value === 'de' ? 'Sprache wählen' : 'Select Language',
   priceKg: '/kg',
   error: language.value === 'de' ? 'Artikel nicht gefunden!' : 'Item not found!',
   cameraLoading: language.value === 'de' ? 'Kamera startet...' : 'Starting camera...',
@@ -359,7 +398,7 @@ const t = computed(() => ({
   cameraOn: language.value === 'de' ? 'Kamera an' : 'Camera on',
   retry: language.value === 'de' ? 'Erneut versuchen' : 'Retry',
   cameraPermissionDenied: language.value === 'de' ? 'Kamera-Zugriff verweigert' : 'Camera access denied',
-  cameraNotAvailable: language.value === 'de' ? 'Keine Kamera verfügbar' : 'No camera available',
+  cameraNotAvailable: language.value === 'de' ? 'Keine Kamera erkannt' : 'No camera detected',
   barcodeNotSupported: language.value === 'de'
     ? 'Barcode-Scanning im Browser nicht unterstützt – bitte Hardware-Scanner verwenden.'
     : 'Barcode scanning not supported in browser – please use hardware scanner.',
@@ -458,23 +497,74 @@ async function pay() {
 }
 
 async function startCamera() {
-  cameraLoading.value = true; cameraError.value = ''
+  cameraLoading.value = true
+  cameraError.value = ''
+  cameraNoDevice.value = false
+
   try {
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error(t.value.cameraNotAvailable)
-    mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
-    if (videoRef.value) { videoRef.value.srcObject = mediaStream; await videoRef.value.play() }
-    cameraActive.value = true; cameraLoading.value = false
+    if (!navigator.mediaDevices?.getUserMedia) {
+      cameraNoDevice.value = true
+      throw new Error(t.value.cameraNotAvailable)
+    }
+
+    const constraints = {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    }
+
+    mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
+
+    if (videoRef.value) {
+      videoRef.value.srcObject = mediaStream
+      await videoRef.value.play()
+    }
+
+    cameraActive.value = true
+    cameraLoading.value = false
+
+    cameraError.value = ''
+    cameraNoDevice.value = false
+
     if (barcodeSupported.value === null) {
       if ('BarcodeDetector' in window) {
-        try { barcodeDetector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e'] }); barcodeSupported.value = true; startBarcodeScanning() }
-        catch { barcodeSupported.value = false }
-      } else { barcodeSupported.value = false }
+        try {
+          barcodeDetector = new BarcodeDetector({
+            formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e'],
+          })
+          barcodeSupported.value = true
+          startBarcodeScanning()
+        } catch {
+          barcodeSupported.value = false
+        }
+      } else {
+        barcodeSupported.value = false
+      }
     }
-  } catch(err) {
-    cameraLoading.value = false; cameraActive.value = false
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') cameraError.value = t.value.cameraPermissionDenied
-    else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') cameraError.value = t.value.cameraNotAvailable
-    else cameraError.value = err.message || t.value.cameraNotAvailable
+  } catch (err) {
+    cameraLoading.value = false
+    cameraActive.value = false
+
+    cameraError.value = err?.message || t.value.cameraNotAvailable
+    cameraNoDevice.value = false
+
+    if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+      cameraError.value = t.value.cameraPermissionDenied
+      return
+    }
+
+    if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
+      cameraNoDevice.value = true
+      cameraError.value = t.value.cameraNotAvailable
+      return
+    }
+
+    if (cameraNoDevice.value) {
+      cameraError.value = t.value.cameraNotAvailable
+    }
   }
 }
 
@@ -484,7 +574,10 @@ function stopCamera() {
   cameraActive.value = false; stopBarcodeScanning()
 }
 
-function toggleCamera() { cameraActive.value ? stopCamera() : startCamera() }
+function toggleCamera() {
+  if (cameraNoDevice.value) return
+  cameraActive.value ? stopCamera() : startCamera()
+}
 
 function startBarcodeScanning() {
   if (scanInterval || !barcodeDetector) return
@@ -498,7 +591,7 @@ function startBarcodeScanning() {
         const code = barcodes[0].rawValue; scanCooldown = true; onBarcodeScanned(code)
         setTimeout(() => { scanCooldown = false }, 1500)
       }
-    } catch { /* balsdasd*/ }
+    } catch { /* asdasd */ }
   }, 250)
 }
 
@@ -523,29 +616,26 @@ html, body {
 body {
   background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
 }
+
+:root {
+  --stroke: rgba(255,255,255,0.12);
+  --stroke-md: rgba(255,255,255,0.17);
+  --stroke-hover: rgba(24,231,242,0.35);
+  --text: rgba(255,255,255,0.96);
+  --muted: rgba(255,255,255,0.65);
+  --muted2: rgba(255,255,255,0.42);
+  --cyan: #18E7F2;
+  --cyan2: #1BC7FF;
+  --shadow: 0 20px 60px rgba(0,0,0,0.50);
+  --glow: 0 18px 45px rgba(24,231,242,0.26);
+  --glow-sm: 0 0 16px rgba(24,231,242,0.20);
+  --panel: rgba(11, 32, 49, 0.88);
+  --panel-strong: rgba(10, 28, 44, 0.95);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.32);
+}
 </style>
 
 <style scoped>
-:root {
-  --navy-0: #071A2A;
-  --navy-1: #0B2C44;
-  --navy-2: #092538;
-
-  --panel-bg:     rgba(10, 30, 45, 0.70);
-  --panel-strong: rgba(10, 30, 45, 0.85);
-  --stroke:       rgba(255, 255, 255, 0.10);
-  --stroke-hover: rgba(24, 231, 242, 0.30);
-
-  --text:   rgba(255, 255, 255, 0.92);
-  --muted:  rgba(255, 255, 255, 0.60);
-  --muted2: rgba(255, 255, 255, 0.40);
-
-  --cyan:  #18E7F2;
-  --cyan2: #1BC7FF;
-
-  --glow:   0 18px 45px rgba(24, 231, 242, 0.22);
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-}
 
 .checkout-page {
   position: fixed;
@@ -561,9 +651,20 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
-  background-size: 36px 36px;
+  background-image: radial-gradient(rgba(255,255,255,0.013) 1px, transparent 1px);
+  background-size: 44px 44px;
   z-index: 0;
+}
+
+.layout::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(600px 400px at 65% 45%, rgba(24,231,242,0.18), transparent 60%);
+  pointer-events:none;
+  z-index:-1;
+  filter: blur(8px);
 }
 
 .layout {
@@ -577,20 +678,28 @@ body {
   box-sizing: border-box;
   max-width: 1600px;
   margin: 0 auto;
+  align-items: stretch;
 }
 
 .panel {
-  background: var(--panel-bg);
-  border: 1px solid var(--stroke);
+  background: var(--panel);
+  border: 1px solid var(--stroke-md);
   border-radius: 28px;
-  backdrop-filter: blur(14px);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+  backdrop-filter: blur(16px);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255,255,255,0.07);
+  outline: 1px solid rgba(255,255,255,0.04);
+  outline-offset: -1px;
 }
 
 .cart-panel {
+  background:
+    radial-gradient(1200px 600px at 30% 20%, rgba(24,231,242,0.06), transparent 60%),
+    var(--panel);
   width: 30%;
   min-width: 280px;
+  height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
   padding: 36px 32px;
@@ -608,19 +717,22 @@ body {
   gap: 12px;
 }
 
-.empty-icon { font-size: 48px; opacity: 0.7; }
+.empty-icon { font-size: 48px; opacity: 0.65; }
 
 .empty-title {
   margin: 0;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .empty-hint {
   margin: 0;
   font-size: 13px;
   color: var(--muted2);
+  line-height: 1.55;
+  max-width: 220px;
 }
 
 .cart {
@@ -641,20 +753,41 @@ body {
 
 .cart-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--muted);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
 }
 
 .scan-badge {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--cyan);
-  background: rgba(24, 231, 242, 0.10);
-  border: 1px solid rgba(24, 231, 242, 0.25);
-  padding: 4px 12px;
+  background: rgba(24, 231, 242, 0.09);
+  border: 1px solid rgba(24, 231, 242, 0.28);
+  padding: 5px 12px;
   border-radius: 999px;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.scan-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan);
+  flex-shrink: 0;
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.65); }
 }
 
 .cart-items {
@@ -673,29 +806,58 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 14px;
-  background: rgba(0,0,0,0.18);
+  background: rgba(0,0,0,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   border: 1px solid var(--stroke);
   border-radius: 16px;
-  transition: border-color 0.15s;
+  transition: border-color 0.2s, background 0.2s, transform 0.18s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
-.cart-item:hover { border-color: var(--stroke-hover); }
+.ci-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--cyan), var(--cyan2));
+  border-radius: 16px 0 0 16px;
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.cart-item:hover .ci-accent {
+  opacity: 0.7;
+  transform: scaleY(1);
+}
+
+.cart-item:hover {
+  border-color: rgba(24,231,242,0.28);
+  background: rgba(24,231,242,0.045);
+  transform: translateX(2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), -4px 0 20px rgba(24,231,242,0.08), 0 8px 24px rgba(0,0,0,0.22);
+}
 
 .ci-left { flex: 1; min-width: 0; }
 
 .ci-name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 650;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .ci-meta {
   font-size: 11px;
   color: var(--muted2);
-  margin-top: 2px;
+  margin-top: 3px;
+  line-height: 1.2;
 }
 
 .ci-right {
@@ -708,20 +870,21 @@ body {
 
 .ci-price {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text);
   min-width: 52px;
   text-align: right;
+  letter-spacing: -0.01em;
 }
 
 .ci-qty {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: rgba(255,255,255,0.07);
-  border: 1px solid var(--stroke);
+  border: 1px solid var(--stroke-md);
   border-radius: 10px;
-  padding: 3px 8px;
+  padding: 4px 8px;
 }
 
 .qty-btn {
@@ -732,17 +895,26 @@ body {
   font-weight: 700;
   color: var(--muted);
   padding: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  transition: color 0.13s;
+  border-radius: 5px;
+  transition: color 0.13s, background 0.13s;
 }
 
-.qty-btn:hover { color: var(--text); }
+.qty-btn:hover {
+  color: var(--cyan);
+  background: rgba(24,231,242,0.12);
+}
 
 .qty-val {
   min-width: 18px;
   text-align: center;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text);
 }
 
@@ -751,7 +923,6 @@ body {
   background: transparent;
   cursor: pointer;
   color: var(--muted2);
-  font-size: 13px;
   width: 28px;
   height: 28px;
   border-radius: 8px;
@@ -759,10 +930,11 @@ body {
   align-items: center;
   justify-content: center;
   transition: background 0.13s, color 0.13s;
+  flex-shrink: 0;
 }
 
 .remove-btn:hover {
-  background: rgba(248,113,113,0.12);
+  background: rgba(248,113,113,0.14);
   color: #fca5a5;
 }
 
@@ -772,45 +944,62 @@ body {
   padding-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .totals-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 13px;
   color: var(--muted);
   padding: 3px 0;
+  line-height: 1.5;
 }
 
 .totals-vat { color: var(--muted2); font-size: 12px; }
 
 .totals-total {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  margin-top: 6px;
-  padding-top: 10px;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 18px rgba(24,231,242,0.25);
+  margin-top: 8px;
+  padding-top: 12px;
   border-top: 1px solid var(--stroke);
+  letter-spacing: -0.03em;
+}
+
+.totals-total-value {
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(24,231,242,0.50);
 }
 
 .scan-panel {
+  height: calc(100vh - 64px);
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 36px 40px;
+  padding: 0 40px 32px;
   box-sizing: border-box;
   position: relative;
 }
 
 .top-actions {
   position: absolute;
-  top: 28px;
+  top: 24px;
   right: 32px;
   display: flex;
   gap: 10px;
   z-index: 10;
+}
+
+.action-pill:focus-visible,
+.btn:focus-visible,
+.category-btn:focus-visible,
+.retry-btn:focus-visible {
+  outline: 3px solid rgba(24,231,242,0.32);
+  outline-offset: 3px;
 }
 
 .action-pill {
@@ -821,60 +1010,122 @@ body {
   font-size: 13px;
   font-weight: 600;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.87);
+  border: 1px solid var(--stroke-md);
+  background: rgba(255,255,255,0.04);
+  color: var(--muted);
   cursor: pointer;
   letter-spacing: 0.01em;
   transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.13s, box-shadow 0.18s;
 }
 
 .action-pill:hover {
-  color: #fff;
-  background: rgba(0, 212, 232, 0.08);
-  border-color: rgba(24, 231, 242, 0.30);
-  box-shadow: 0 0 12px rgba(24, 231, 242, 0.12);
+  color: var(--text);
+  background: rgba(24, 231, 242, 0.08);
+  border-color: rgba(24, 231, 242, 0.32);
+  box-shadow: var(--glow-sm);
   transform: translateY(-1px);
 }
 
 .action-pill--active {
-  border-color: rgba(24, 231, 242, 0.55);
-  box-shadow: var(--glow);
+  border-color: rgba(24, 231, 242, 0.58);
+  box-shadow: var(--glow-sm), inset 0 0 12px rgba(24,231,242,0.07);
   color: var(--cyan);
+  background: rgba(24,231,242,0.08);
 }
 
-.status-text {
+.hero-block {
   text-align: center;
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text);
-  margin-top: 52px;
-  margin-bottom: 20px;
+  margin-top: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  opacity: 0.7;
+}
+
+.hero-eyebrow img {
+  width: 88px;
+  display: block;
+  filter: brightness(1.1);
+}
+
+.status-text{
+  font-size: 34px;
+  font-weight: 900;
+  margin-bottom: 14px;
   letter-spacing: 0.01em;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.95),
+    rgba(24,231,242,0.9)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-sub {
+  font-size: 13px;
+  color: var(--muted2);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.status--scanning { color: var(--cyan); }
+.status--paying   { color: #a78bfa; }
+.status--paid     { color: #4ade80; }
+.status--cancelled { color: var(--muted2); }
+
+.flow-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
 }
 
 .camera-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  width: 72%;
+  margin-top: -10px;
+  gap: 18px;
+  width: 78%;
   margin: 0 auto;
 }
 
 .camera-window {
   width: 100%;
-  height: 260px;
+  height: 50vh;
   background: rgba(0,0,0,0.35);
   border-radius: 24px;
   overflow: hidden;
   position: relative;
-  border: 1px solid var(--stroke);
-  box-shadow: 0 18px 55px rgba(0,0,0,0.40);
+  border: 1px solid var(--stroke-md);
+  box-shadow:
+    0 32px 90px rgba(0,0,0,0.55),
+    0 0 60px rgba(24,231,242,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.06);
   transition: border-color 0.2s;
 }
 
-.camera-window--error { border-color: rgba(248,113,113,0.45); }
+.camera-window--error {
+  border-color: rgba(248,113,113,0.40);
+  box-shadow: 0 18px 55px rgba(0,0,0,0.42), 0 0 20px rgba(248,113,113,0.12);
+}
+
+.camera-window--nodevice {
+  border-color: rgba(255,255,255,0.09);
+}
 
 .camera-window video {
   width: 100%;
@@ -902,6 +1153,24 @@ body {
 .guide--bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
 .guide--br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
 
+.scan-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  box-shadow: 0 0 8px rgba(24,231,242,0.65);
+  animation: scan-sweep 2.4s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+  0%   { top: 14%; opacity: 0.9; }
+  45%  { top: 82%; opacity: 0.9; }
+  50%  { top: 82%; opacity: 0; }
+  55%  { top: 14%; opacity: 0; }
+  100% { top: 14%; opacity: 0.9; }
+}
+
 .cam-overlay {
   position: absolute;
   inset: 0;
@@ -913,13 +1182,26 @@ body {
   font-size: 14px;
   font-weight: 500;
   color: var(--muted);
+  padding: 20px;
+  text-align: center;
 }
 
-.cam-overlay--loading { background: rgba(7,26,42,0.95); }
-.cam-overlay--error   { background: rgba(42,18,18,0.96); color: #fca5a5; }
-.cam-overlay--inactive { background: rgba(7,26,42,0.88); }
+.cam-overlay--loading  { background: rgba(7,26,42,0.96); }
+.cam-overlay--error    { background: rgba(0,0,0,0.55); color: rgba(255,255,255,0.90); }
+.cam-overlay--inactive { background: rgba(7,26,42,0.90); }
+.cam-overlay--neutral  { background: rgba(7,26,42,0.90); color: rgba(255,255,255,0.84); }
 
-.cam-error-icon { font-size: 36px; }
+.cam-nodevice-icon { font-size: 40px; opacity: 0.7; margin-bottom: 2px; }
+.cam-nodevice-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.cam-off-icon { font-size: 32px; opacity: 0.5; }
+.cam-error-icon { font-size: 32px; }
+
+.cam-subhint {
+  font-size: 12px;
+  color: var(--muted2);
+  max-width: 300px;
+  line-height: 1.5;
+}
 
 .spinner-ring {
   width: 28px;
@@ -951,24 +1233,26 @@ body {
   right: 10px;
   padding: 6px 13px;
   border-radius: 999px;
-  border: 1px solid var(--stroke);
-  background: rgba(0,0,0,0.40);
-  color: var(--text);
+  border: 1px solid var(--stroke-md);
+  background: rgba(0,0,0,0.44);
+  color: var(--muted);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   backdrop-filter: blur(10px);
-  transition: border-color 0.15s, transform 0.13s, box-shadow 0.15s;
+  transition: border-color 0.15s, transform 0.13s, box-shadow 0.15s, color 0.15s;
   z-index: 10;
 }
 
-.cam-toggle:hover { transform: translateY(-1px); border-color: var(--stroke-hover); }
-.cam-toggle--active { border-color: rgba(24,231,242,0.55); box-shadow: 0 0 14px rgba(24,231,242,0.18); }
+.cam-toggle:hover { transform: translateY(-1px); border-color: var(--stroke-hover); color: var(--text); }
+.cam-toggle--active { border-color: rgba(24,231,242,0.55); color: var(--cyan); box-shadow: var(--glow-sm); }
+.cam-toggle:disabled { opacity: 0.42; cursor: not-allowed; transform: none; }
 
 .barcode-warning {
   padding: 9px 16px;
-  background: rgba(245,158,11,0.12);
+  background: rgba(245,158,11,0.11);
   color: #d97706;
+  border: 1px solid rgba(245,158,11,0.22);
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
@@ -1009,36 +1293,47 @@ body {
 .category-btn {
   flex: 1;
   max-width: 240px;
-  height: 120px;
-  border-radius: 24px;
-  border: 1px solid var(--stroke);
-  background: rgba(0,0,0,0.20);
+  height: 128px;
+  transform: scale(1.02);
+  border-radius: 22px;
+  border: 1px solid var(--stroke-md);
+  background: rgba(255,255,255,0.04);
   color: var(--text);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 14px 40px rgba(0,0,0,0.28);
-  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: transform 0.15s, border-color 0.18s, box-shadow 0.18s, background 0.18s;
 }
 
 .category-btn:hover {
-  transform: translateY(-2px);
-  border-color: var(--stroke-hover);
-  box-shadow: 0 18px 52px rgba(0,0,0,0.38);
+  transform: translateY(-3px);
+  border-color: rgba(24,231,242,0.38);
+  background: rgba(24,231,242,0.055);
+  box-shadow: 0 18px 52px rgba(0,0,0,0.38), 0 0 20px rgba(24,231,242,0.14);
 }
 
 .category-btn:active { transform: scale(0.98); }
 
-.category-emoji { font-size: 30px; }
+.category-emoji { font-size: 38px; line-height: 1; }
 
 .category-label {
   font-size: 15px;
-  font-weight: 700;
-  color: var(--muted);
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.category-hint {
+  font-size: 11px;
+  color: var(--muted2);
+  font-weight: 500;
 }
 
 .action-row {
@@ -1052,41 +1347,61 @@ body {
   font-size: 15px;
   font-weight: 800;
   border-radius: 16px;
-  border: 1px solid var(--stroke);
+  border: 1px solid var(--stroke-md);
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(0,0,0,0.18);
+  background: rgba(255,255,255,0.04);
   color: var(--text);
   letter-spacing: 0.02em;
+  font-family: inherit;
 }
 
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:disabled { opacity: 0.40; cursor: not-allowed; }
 
 .btn--cancel {
   color: var(--muted);
-  border-color: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.13);
 }
 
 .btn--cancel:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(248,113,113,0.40);
+  color: #fca5a5;
+  background: rgba(248,113,113,0.06);
 }
 
 .btn--pay {
   border: none;
   background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan2) 100%);
-  color: rgba(0,0,0,0.80);
-  box-shadow: var(--glow);
-  min-width: 120px;
+  color: rgba(0,0,0,0.88);
+  min-width: 160px;
+  font-weight: 900;
+  font-size: 16px;
+  padding: 15px 38px;
+  box-shadow:
+  0 18px 40px rgba(24,231,242,0.25),
+  0 0 18px rgba(24,231,242,0.15);
+  animation: pay-pulse 3s ease-in-out infinite;
 }
 
+@keyframes pay-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(24,231,242,0.30), 0 8px 24px rgba(24,231,242,0.35), 0 24px 55px rgba(24,231,242,0.22); }
+  50% { box-shadow: 0 0 0 1px rgba(24,231,242,0.45), 0 8px 32px rgba(24,231,242,0.48), 0 28px 65px rgba(24,231,242,0.30); }
+}
+
+.btn--pay:disabled { animation: none; }
+
 .btn--pay:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.015);
-  box-shadow: 0 22px 55px rgba(24,231,242,0.30);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 0 0 1px rgba(24,231,242,0.50),
+    0 12px 36px rgba(24,231,242,0.55),
+    0 32px 70px rgba(24,231,242,0.32);
+  animation: none;
 }
 
 .btn:active:not(:disabled) { transform: scale(0.98); }
@@ -1105,25 +1420,25 @@ body {
 .modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.58);
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 28px;
   padding: 20px;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(5px);
 }
 
 .modal-card {
   width: min(900px, 95%);
   max-height: 82vh;
   background: var(--panel-strong);
-  border: 1px solid var(--stroke);
+  border: 1px solid var(--stroke-md);
   border-radius: 26px;
   padding: 28px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow), 0 0 60px rgba(0,0,0,0.50);
+  backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1139,12 +1454,12 @@ body {
 }
 
 .modal-icon {
-  font-size: 36px;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--stroke);
+  font-size: 32px;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--stroke-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1153,9 +1468,16 @@ body {
 
 .modal-title {
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.modal-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--muted2);
 }
 
 .product-grid {
@@ -1173,7 +1495,7 @@ body {
   aspect-ratio: 1;
   border-radius: 18px;
   border: 1px solid var(--stroke);
-  background: rgba(0,0,0,0.20);
+  background: rgba(255,255,255,0.035);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -1182,18 +1504,20 @@ body {
   gap: 6px;
   padding: 14px;
   transition: border-color 0.15s, transform 0.13s, background 0.15s, box-shadow 0.15s;
+  font-family: inherit;
 }
 
 .product-card:hover {
   border-color: var(--stroke-hover);
   transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.30);
+  background: rgba(24,231,242,0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .product-card--selected {
   border-color: var(--cyan);
-  background: rgba(24,231,242,0.08);
-  box-shadow: 0 0 0 1px rgba(24,231,242,0.35), var(--glow);
+  background: rgba(24,231,242,0.09);
+  box-shadow: 0 0 0 1px rgba(24,231,242,0.35), var(--glow-sm);
 }
 
 .product-card:active { transform: scale(0.96); }
@@ -1203,21 +1527,28 @@ body {
   font-weight: 700;
   color: var(--text);
   text-align: center;
+  line-height: 1.2;
 }
 
 .product-price {
   font-size: 12px;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 650;
+}
+
+.price-unit {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted2);
 }
 
 .weight-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  background: rgba(0,0,0,0.18);
-  border: 1px solid var(--stroke);
+  padding: 13px 16px;
+  background: rgba(24,231,242,0.05);
+  border: 1px solid rgba(24,231,242,0.18);
   border-radius: 14px;
   margin-top: 14px;
 }
@@ -1240,10 +1571,22 @@ body {
   font-weight: 600;
   outline: none;
   font-family: inherit;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.weight-input:focus { border-color: rgba(24,231,242,0.45); }
+.weight-input:focus {
+  border-color: rgba(24,231,242,0.50);
+  box-shadow: 0 0 0 3px rgba(24,231,242,0.10);
+}
+
+.weight-preview {
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--cyan);
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: right;
+}
 
 .modal-actions {
   display: flex;
@@ -1264,12 +1607,12 @@ body {
 }
 
 .modal-btn--back {
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.06);
   color: var(--muted);
-  border: 1px solid var(--stroke);
+  border: 1px solid var(--stroke-md);
 }
 
-.modal-btn--back:hover { background: rgba(255,255,255,0.11); transform: translateY(-1px); }
+.modal-btn--back:hover { background: rgba(255,255,255,0.10); transform: translateY(-1px); }
 
 .modal-btn--done {
   background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan2) 100%);
@@ -1277,15 +1620,15 @@ body {
   box-shadow: var(--glow);
 }
 
-.modal-btn--done:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 22px 50px rgba(24,231,242,0.28); }
-.modal-btn--done:disabled { opacity: 0.4; cursor: not-allowed; }
+.modal-btn--done:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 22px 50px rgba(24,231,242,0.30); }
+.modal-btn--done:disabled { opacity: 0.40; cursor: not-allowed; }
 .modal-btn:active:not(:disabled) { transform: scale(0.98); }
 
 .help-list {
   margin: 12px 0 0;
   padding-left: 18px;
   color: var(--muted);
-  line-height: 1.8;
+  line-height: 2;
   font-size: 14px;
 }
 
@@ -1301,19 +1644,27 @@ body {
 .lang-btn {
   padding: 14px;
   border-radius: 14px;
-  border: 1px solid var(--stroke);
-  background: rgba(0,0,0,0.20);
+  border: 1px solid var(--stroke-md);
+  background: rgba(255,255,255,0.04);
   color: var(--text);
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.15s, transform 0.13s, background 0.15s;
+  transition: border-color 0.15s, transform 0.13s, background 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.01em;
 }
 
 .lang-btn:hover {
   border-color: var(--stroke-hover);
   background: rgba(24,231,242,0.07);
   transform: translateY(-1px);
+}
+
+.lang-btn--active {
+  border-color: rgba(24,231,242,0.52);
+  background: rgba(24,231,242,0.09);
+  color: var(--cyan);
+  box-shadow: var(--glow-sm);
 }
 </style>

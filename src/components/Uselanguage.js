@@ -2,10 +2,8 @@ import { ref, computed } from 'vue'
 
 const LANG_KEY = 'checkout_lang'
 
-// ── Singleton reactive state ──────────────────────────────────────────────────
 const currentLang = ref(localStorage.getItem(LANG_KEY) ?? 'de')
 
-// ── Available languages ───────────────────────────────────────────────────────
 export const languages = [
   {
     code: 'de',
@@ -29,10 +27,8 @@ export const languages = [
   },
 ]
 
-// ── All translations (single source of truth for both pages) ──────────────────
 export const translations = {
   de: {
-    // Landing page
     help: 'Hilfe',
     welcomePrefix: 'Bereit zum',
     welcomeAccent: 'Scannen?',
@@ -49,7 +45,6 @@ export const translations = {
     helpModalCta: 'Verstanden',
     close: 'Schließen',
 
-    // Checkout page — cart panel
     emptyTitle: 'Noch keine Artikel gescannt',
     emptyHint: 'Scanne ein Produkt, um es hier anzuzeigen.',
     cartTitle: 'Warenkorb',
@@ -58,7 +53,6 @@ export const translations = {
     vat: (rate) => `MwSt (${rate}%)`,
     total: 'Gesamt',
 
-    // Checkout page — scan panel
     scanPrompt: 'Bitte scannen Sie Ihre Artikel ein',
     scanning: 'Scanne...',
     paying: 'Zahlung wird verarbeitet...',
@@ -93,7 +87,6 @@ export const translations = {
       'Abbrechen: Warenkorb wird geleert.',
     ],
 
-    // Camera
     cameraLoading: 'Kamera startet...',
     cameraOff: 'Kamera aus',
     cameraOn: 'Kamera an',
@@ -299,19 +292,16 @@ export const translations = {
   },
 }
 
-// ── Composable ────────────────────────────────────────────────────────────────
 export function useLanguage() {
   function setLanguage(code) {
     currentLang.value = code
     localStorage.setItem(LANG_KEY, code)
   }
 
-  // t(key) — returns string or calls function translation with no arg
   function t(key) {
     return translations[currentLang.value]?.[key] ?? translations['de']?.[key] ?? key
   }
 
-  // tFn(key, ...args) — for translations that are functions (e.g. vat rate)
   function tFn(key, ...args) {
     const val = translations[currentLang.value]?.[key] ?? translations['de']?.[key]
     if (typeof val === 'function') return val(...args)

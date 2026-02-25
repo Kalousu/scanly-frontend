@@ -74,14 +74,14 @@ export const translations = {
     add: 'Hinzufügen',
     done: 'Fertig',
     helpScanner: (key) => key === 'scanner'
-      ? 'Scanner: einfach scannen, <strong>Enter</strong> beendet den Barcode.'
+      ? 'Scanner: einfach scannen'
       : key === 'produce'
         ? 'Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.'
         : key === 'bakery'
           ? 'Backwaren: antippen zum Hinzufügen.'
           : 'Abbrechen: Warenkorb wird geleert.',
     helpItems: [
-      'Scanner: einfach scannen, <b>Enter</b> beendet den Barcode.',
+      'Scanner: einfach scannen',
       'Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.',
       'Backwaren: antippen zum Hinzufügen.',
       'Abbrechen: Warenkorb wird geleert.',
@@ -145,7 +145,7 @@ export const translations = {
     add: 'Add',
     done: 'Done',
     helpItems: [
-      'Scanner: just scan, <b>Enter</b> finishes the barcode.',
+      'Scanner: just scan',
       'Produce: select, enter weight, add.',
       'Bakery: tap to add.',
       'Cancel: empties the cart.',
@@ -273,7 +273,7 @@ export const translations = {
     add: 'Добавить',
     done: 'Готово',
     helpItems: [
-      'Сканер: просто сканируйте, <b>Enter</b> завершает штрих-код.',
+      'Сканер: просто сканируйте',
       'Овощи/фрукты: выберите, введите вес, добавьте.',
       'Выпечка: нажмите для добавления.',
       'Отмена: очищает корзину.',

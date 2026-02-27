@@ -106,14 +106,6 @@
                 muted
               ></video>
 
-              <div v-if="cameraActive && !cameraError" class="scan-guides" aria-hidden="true">
-                <span class="guide guide--tl"></span>
-                <span class="guide guide--tr"></span>
-                <span class="guide guide--bl"></span>
-                <span class="guide guide--br"></span>
-                <span class="scan-line"></span>
-              </div>
-
               <div v-if="cameraLoading" class="cam-overlay cam-overlay--loading">
                 <div class="spinner-ring"></div>
                 <span>{{ t('cameraLoading') }}</span>
@@ -143,10 +135,6 @@
               >
                 {{ cameraNoDevice ? t('noCamera') : (cameraActive ? t('cameraOn') : t('cameraOff')) }}
               </button>
-            </div>
-
-            <div v-if="barcodeSupported === false" class="barcode-warning">
-              {{ t('barcodeNotSupported') }}
             </div>
           </div>
 
@@ -1109,23 +1097,6 @@ body {
 .camera-window--nodevice { border-color: rgba(255,255,255,0.09); }
 .camera-window video { width: 100%; height: 100%; object-fit: cover; }
 
-.scan-guides { position: absolute; inset: 0; pointer-events: none; }
-
-.guide { position: absolute; width: 22px; height: 22px; border-color: var(--cyan); border-style: solid; opacity: 0.7; }
-.guide--tl { top: 12px; left: 12px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
-.guide--tr { top: 12px; right: 12px; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
-.guide--bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
-.guide--br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
-
-.scan-line {
-  position: absolute;
-  left: 10%; right: 10%;
-  height: 1.5px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  box-shadow: 0 0 8px rgba(24,231,242,0.65);
-  animation: scan-sweep 2.4s ease-in-out infinite;
-}
-
 @keyframes scan-sweep {
   0%   { top: 14%; opacity: 0.9; }
   45%  { top: 82%; opacity: 0.9; }
@@ -1183,13 +1154,6 @@ body {
 .cam-toggle:hover { transform: translateY(-1px); border-color: var(--stroke-hover); color: var(--text); }
 .cam-toggle--active { border-color: rgba(24,231,242,0.55); color: var(--cyan); box-shadow: var(--glow-sm); }
 .cam-toggle:disabled { opacity: 0.42; cursor: not-allowed; transform: none; }
-
-.barcode-warning {
-  padding: 9px 16px; background: rgba(245,158,11,0.11);
-  color: #d97706; border: 1px solid rgba(245,158,11,0.22);
-  border-radius: 12px; font-size: 12px; font-weight: 500;
-  text-align: center; width: 100%; box-sizing: border-box;
-}
 
 .error-toast {
   position: absolute; top: 80px; left: 50%; transform: translateX(-50%);

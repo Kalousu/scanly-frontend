@@ -3,162 +3,168 @@
     <div class="bg-grid" aria-hidden="true"></div>
     <div class="main-glow" aria-hidden="true"></div>
 
-  <div v-if="!showScanner" class="container">
-    <div class="wrapper">
-      <div class="payback">
+    <div v-if="!showScanner" class="container">
+      <div class="wrapper">
+        <div class="payback">
 
-        <div class="brand-badge">
-          <img src="../assets/logo-removebg-preview.png" />
-        </div>
-
-        <h1 class="title">Zahlen Sie mit<br><span class="accent">Payback?</span></h1>
-        <p class="subtitle">Scannen Sie jetzt Ihre Payback-Karte oder fahren Sie ohne fort.</p>
-
-        <img
-          src="https://www.payback.de/resource/blob/327670/bb5914260838b67b1e398db1622a0d92/image-center-data.png"
-          class="payback-logo"
-        />
-
-        <div class="payback-actions">
-          <button class="payback-btn primary" @click="openScanner">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
-            </svg>
-            Payback scannen
-          </button>
-          <button class="payback-btn ghost" @click="skipPayback">Ohne Payback</button>
-        </div>
-
-        <div class="payback-hint">
-          Tipp: Alternativ Kartennummer manuell eingeben.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div v-else class="modal-overlay" @click.self="close">
-    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-
-      <div class="modal-header">
-        <div class="modal-logo">
-          <img src="../assets/logo-removebg-preview.png">
-        </div>
-        <button class="close-btn" @click="close" aria-label="Schließen">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <transition name="fade" mode="out-in">
-        <div v-if="mode === 'scanner'" key="scanner" class="scanner-view">
-          <h2 id="modal-title" class="modal-title">Payback-Karte scannen</h2>
-          <p class="modal-subtitle">Halten Sie den QR-Code vor die Kamera</p>
-
-          <div class="camera-container">
-            <div v-if="!cameraActive" class="camera-placeholder">
-              <div class="camera-icon-wrap">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-              </div>
-              <p>Kamera wird aktiviert…</p>
-            </div>
-            <video ref="videoRef" class="camera-video" autoplay playsinline></video>
-
-            <div class="scan-overlay">
-              <div class="scan-frame" :class="{ success: scanSuccess, error: scanError }">
-                <div class="corner tl"></div>
-                <div class="corner tr"></div>
-                <div class="corner bl"></div>
-                <div class="corner br"></div>
-                <div class="scan-line" v-if="cameraActive && !scanSuccess"></div>
-                <div v-if="scanSuccess" class="success-icon">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1fd6d6" stroke-width="3">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
+          <div class="brand-badge">
+            <img src="../assets/logo-removebg-preview.png" />
           </div>
 
-          <div class="manual-entry">
-            <button class="link-btn" @click="switchToManual" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>
-              </svg>
-              Kartennummer manuell eingeben
-            </button>
-          </div>
-        </div>
+          <h1 class="title">
+            {{ t('paybackTitle') }}<br>
+            <span class="accent">{{ t('paybackAccent') }}</span>
+          </h1>
+          <p class="subtitle">{{ t('paybackSubtitle') }}</p>
 
-        <div v-else key="manual" class="manual-view">
-          <h2 id="modal-title" class="modal-title">Kartennummer eingeben</h2>
-          <p class="modal-subtitle">10 bis 16 Ziffern von Ihrer Payback-Karte</p>
+          <img
+            src="https://www.payback.de/resource/blob/327670/bb5914260838b67b1e398db1622a0d92/image-center-data.png"
+            class="payback-logo"
+          />
 
-          <div class="input-container">
-            <div class="input-wrap" :class="{ focused: inputFocused, error: inputError }">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
-              </svg>
-              <input
-                ref="inputRef"
-                v-model="cardNumber"
-                type="tel"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                placeholder="0000 0000 0000 0000"
-                class="card-input"
-                @input="validateInput"
-                @keydown.enter="confirm"
-                @focus="inputFocused = true"
-                @blur="inputFocused = false"
-                aria-label="Payback-Kartennummer"
-                :aria-invalid="inputError"
-                maxlength="16"
-              />
-            </div>
-            <p v-if="inputError" class="error-message" role="alert">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-              </svg>
-              {{ errorMessage }}
-            </p>
-          </div>
-
-          <div v-if="showKeyboard" class="numeric-keyboard">
-            <button
-              v-for="key in numericKeys"
-              :key="key"
-              class="key-btn"
-              @click="appendDigit(key)"
-              type="button"
-            >{{ key }}</button>
-            <button class="key-btn key-backspace" @click="backspace" type="button" aria-label="Löschen">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/>
-              </svg>
-            </button>
-          </div>
-
-          <div class="actions">
-            <button class="btn primary" @click="confirm" type="button" :disabled="!isValid">
-              Bestätigen
-            </button>
-            <button class="btn secondary" @click="switchToScanner" type="button">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <div class="payback-actions">
+            <button class="payback-btn primary" @click="openScanner">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
               </svg>
-              Zurück zum Scanner
+              {{ t('paybackScan') }}
+            </button>
+            <button class="payback-btn ghost" @click="skipPayback">
+              {{ t('paybackSkip') }}
             </button>
           </div>
+
+          <div class="payback-hint">{{ t('paybackHint') }}</div>
+
         </div>
-      </transition>
+      </div>
     </div>
-  </div>
+
+    <div v-else class="modal-overlay" @click.self="close">
+      <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+        <div class="modal-header">
+          <div class="modal-logo">
+            <img src="../assets/logo-removebg-preview.png">
+          </div>
+          <button class="close-btn" @click="close" :aria-label="t('close')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <transition name="fade" mode="out-in">
+
+          <div v-if="mode === 'scanner'" key="scanner" class="scanner-view">
+            <h2 id="modal-title" class="modal-title">{{ t('paybackScanTitle') }}</h2>
+            <p class="modal-subtitle">{{ t('paybackScanSubtitle') }}</p>
+
+            <div class="camera-container">
+              <div v-if="!cameraActive" class="camera-placeholder">
+                <div class="camera-icon-wrap">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </div>
+                <p>{{ t('paybackCameraActivating') }}</p>
+              </div>
+              <video ref="videoRef" class="camera-video" autoplay playsinline></video>
+
+              <div class="scan-overlay">
+                <div class="scan-frame" :class="{ success: scanSuccess, error: scanError }">
+                  <div class="corner tl"></div>
+                  <div class="corner tr"></div>
+                  <div class="corner bl"></div>
+                  <div class="corner br"></div>
+                  <div class="scan-line" v-if="cameraActive && !scanSuccess"></div>
+                  <div v-if="scanSuccess" class="success-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1fd6d6" stroke-width="3">
+                      <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-entry">
+              <button class="link-btn" @click="switchToManual" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>
+                </svg>
+                {{ t('paybackManualSwitch') }}
+              </button>
+            </div>
+          </div>
+
+          <div v-else key="manual" class="manual-view">
+            <h2 id="modal-title" class="modal-title">{{ t('paybackManualTitle') }}</h2>
+            <p class="modal-subtitle">{{ t('paybackManualSubtitle') }}</p>
+
+            <div class="input-container">
+              <div class="input-wrap" :class="{ focused: inputFocused, error: inputError }">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+                </svg>
+                <input
+                  ref="inputRef"
+                  v-model="cardNumber"
+                  type="tel"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  :placeholder="t('paybackInputPlaceholder')"
+                  class="card-input"
+                  @input="validateInput"
+                  @keydown.enter="confirm"
+                  @focus="inputFocused = true"
+                  @blur="inputFocused = false"
+                  :aria-label="t('paybackManualTitle')"
+                  :aria-invalid="inputError"
+                  maxlength="16"
+                />
+              </div>
+              <p v-if="inputError" class="error-message" role="alert">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+                {{ errorMessage }}
+              </p>
+            </div>
+
+            <div v-if="showKeyboard" class="numeric-keyboard">
+              <button
+                v-for="key in numericKeys"
+                :key="key"
+                class="key-btn"
+                @click="appendDigit(key)"
+                type="button"
+              >{{ key }}</button>
+              <button class="key-btn key-backspace" @click="backspace" type="button" :aria-label="t('back')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="actions">
+              <button class="btn primary" @click="confirm" type="button" :disabled="!isValid">
+                {{ t('paybackConfirm') }}
+              </button>
+              <button class="btn secondary" @click="switchToScanner" type="button">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                {{ t('paybackBackToScanner') }}
+              </button>
+            </div>
+          </div>
+
+        </transition>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -166,8 +172,11 @@
 <script setup>
 import { ref, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useLanguage } from '../components/Uselanguage'
 
 const router = useRouter()
+
+const { currentLang, languages, t, setLanguage } = useLanguage()
 
 const showScanner = ref(false)
 const mode = ref('scanner')
@@ -186,6 +195,7 @@ const showKeyboard = ref(false)
 const numericKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 
 let stream = null
+
 
 function openScanner() {
   showScanner.value = true
@@ -223,7 +233,7 @@ function validateInput() {
   if (cardNumber.value.length === 0) { inputError.value = false; isValid.value = false; return }
   if (cardNumber.value.length < 10 || cardNumber.value.length > 16) {
     inputError.value = true
-    errorMessage.value = 'Kartennummer muss zwischen 10 und 16 Ziffern liegen.'
+    errorMessage.value = t('paybackInputError')
     isValid.value = false
   } else {
     inputError.value = false
@@ -243,7 +253,7 @@ function backspace() {
 function confirm() {
   if (!isValid.value) {
     inputError.value = true
-    errorMessage.value = 'Bitte geben Sie eine gültige Kartennummer ein.'
+    errorMessage.value = t('paybackInputInvalid')
     return
   }
   router.push('/payment')
@@ -349,9 +359,9 @@ html, body, #app {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 65vh;
+  height: 70vh;
   width: min(860px, 92vw);
-  padding: 64px 80px;
+  padding: 56px 80px 44px;
   background: linear-gradient(180deg, rgba(10,35,55,0.93) 0%, rgba(7,26,42,0.93) 100%);
   border-radius: 32px;
   border: 1px solid rgba(255,255,255,0.07);
@@ -427,15 +437,15 @@ html, body, #app {
 }
 
 .payback-logo {
-  width: 240px;
-  margin: 28px auto 6px;
+  width: 200px;
+  margin: 20px auto 4px;
   display: block;
   opacity: 0.92;
   filter: saturate(0.95) brightness(1.05);
 }
 
 .payback-actions {
-  margin-top: 28px;
+  margin-top: 24px;
   display: flex;
   justify-content: center;
   gap: 16px;
@@ -464,15 +474,9 @@ html, body, #app {
 .payback-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 .payback-btn.primary {
-  gap: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   color: #071A2A;
   background: var(--btn-grad);
-  box-shadow:
-    0 14px 40px rgba(30, 195, 255, 0.35),
-    0 0 30px rgba(0, 212, 232, 0.15);
+  box-shadow: 0 14px 40px rgba(30,195,255,0.35), 0 0 30px rgba(0,212,232,0.15);
 }
 
 .payback-btn.primary:hover {
@@ -494,7 +498,7 @@ html, body, #app {
 }
 
 .payback-hint {
-  margin-top: 20px;
+  margin-top: 16px;
   font-size: 12.5px;
   color: rgba(255,255,255,0.48);
   display: inline-flex;
@@ -558,10 +562,7 @@ html, body, #app {
   letter-spacing: -0.01em;
 }
 
-.modal-logo img {
-  width: 80px;
-  margin-left: 10%;
-}
+.modal-logo img { width: 80px; margin-left: 10%; }
 
 .close-btn {
   width: 36px;
@@ -621,13 +622,8 @@ html, body, #app {
   max-width: 300px;
   border-radius: 20px;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.04),
-    rgba(255,255,255,0.02)
-  );
-  box-shadow:
-    inset 0 0 60px rgba(0,212,232,0.05);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  box-shadow: inset 0 0 60px rgba(0,212,232,0.05);
   border: 1px solid var(--stroke);
 }
 
@@ -641,9 +637,7 @@ html, body, #app {
   gap: 14px;
 }
 
-.camera-placeholder svg {
-  filter: drop-shadow(0 0 12px rgba(0,212,232,0.35));
-}
+.camera-placeholder svg { filter: drop-shadow(0 0 12px rgba(0,212,232,0.35)); }
 
 .camera-icon-wrap {
   width: 56px;
@@ -656,18 +650,9 @@ html, body, #app {
   color: var(--accent);
 }
 
-.camera-placeholder p {
-  color: var(--muted);
-  font-size: 13px;
-  margin: 0;
-  letter-spacing: 0.03em;
-}
+.camera-placeholder p { color: var(--muted); font-size: 13px; margin: 0; letter-spacing: 0.03em; }
 
-.camera-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.camera-video { width: 100%; height: 100%; object-fit: cover; }
 
 .scan-overlay {
   position: absolute;
@@ -687,15 +672,7 @@ html, body, #app {
   overflow: hidden;
 }
 
-.corner {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: var(--accent);
-  border-style: solid;
-  opacity: 0.95;
-}
-
+.corner { position: absolute; width: 18px; height: 18px; border-color: var(--accent); border-style: solid; opacity: 0.95; }
 .corner.tl { top: -2px; left: -2px; border-width: 2.5px 0 0 2.5px; border-radius: 8px 0 0 0; }
 .corner.tr { top: -2px; right: -2px; border-width: 2.5px 2.5px 0 0; border-radius: 0 8px 0 0; }
 .corner.bl { bottom: -2px; left: -2px; border-width: 0 0 2.5px 2.5px; border-radius: 0 0 0 8px; }
@@ -703,8 +680,7 @@ html, body, #app {
 
 .scan-line {
   position: absolute;
-  left: 8%;
-  right: 8%;
+  left: 8%; right: 8%;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   border-radius: 2px;
@@ -718,15 +694,8 @@ html, body, #app {
   100% { top: 10%; opacity: 1; }
 }
 
-.scan-frame.success {
-  border-color: rgba(31,214,214,0.7);
-  box-shadow: 0 0 30px rgba(31,214,214,0.22);
-}
-
-.scan-frame.error {
-  border-color: rgba(255,77,77,0.7);
-  box-shadow: 0 0 24px rgba(255,77,77,0.16);
-}
+.scan-frame.success { border-color: rgba(31,214,214,0.7); box-shadow: 0 0 30px rgba(31,214,214,0.22); }
+.scan-frame.error   { border-color: rgba(255,77,77,0.7); box-shadow: 0 0 24px rgba(255,77,77,0.16); }
 
 .success-icon {
   position: absolute;
@@ -768,11 +737,7 @@ html, body, #app {
 
 .link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.input-container {
-  width: 100%;
-  max-width: 360px;
-  margin-bottom: 16px;
-}
+.input-container { width: 100%; max-width: 360px; margin-bottom: 16px; }
 
 .input-wrap {
   display: flex;
@@ -786,17 +751,8 @@ html, body, #app {
   color: var(--muted);
 }
 
-.input-wrap.focused {
-  border-color: rgba(0,212,232,0.35);
-  box-shadow: 0 0 0 4px rgba(0,212,232,0.08);
-  background: rgba(255,255,255,0.04);
-  color: var(--accent);
-}
-
-.input-wrap.error {
-  border-color: rgba(255,77,77,0.50);
-  box-shadow: 0 0 0 4px rgba(255,77,77,0.10);
-}
+.input-wrap.focused { border-color: rgba(0,212,232,0.35); box-shadow: 0 0 0 4px rgba(0,212,232,0.08); background: rgba(255,255,255,0.04); color: var(--accent); }
+.input-wrap.error { border-color: rgba(255,77,77,0.50); box-shadow: 0 0 0 4px rgba(255,77,77,0.10); }
 
 .card-input {
   flex: 1;
@@ -805,24 +761,13 @@ html, body, #app {
   font-weight: 600;
   letter-spacing: 3px;
   text-align: center;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.05),
-    rgba(255,255,255,0.025)
-  );
-  box-shadow:
-    inset 0 0 40px rgba(0,212,232,0.04);
+  background: transparent;
   border: none;
   color: var(--text);
   transition: color 0.2s;
 }
 
-.card-input::placeholder {
-  color: rgba(255,255,255,0.25);
-  letter-spacing: 2px;
-  font-weight: 400;
-}
-
+.card-input::placeholder { color: rgba(255,255,255,0.25); letter-spacing: 2px; font-weight: 400; }
 .card-input:focus { outline: none; }
 
 .error-message {
@@ -862,19 +807,9 @@ html, body, #app {
 
 .key-btn:hover { border-color: rgba(0,212,232,0.22); background: rgba(0,212,232,0.04); }
 .key-btn:active { transform: scale(0.95); }
+.key-backspace { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.65); }
 
-.key-backspace {
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.65);
-}
-
-.actions {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-}
+.actions { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; width: 100%; }
 
 .btn {
   width: 100%;
@@ -896,54 +831,20 @@ html, body, #app {
 .btn:active { transform: scale(0.98); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.btn.primary {
-  color: #071A2A;
-  background: var(--btn-grad);
-  box-shadow:
-    0 18px 45px rgba(30,195,255,0.35),
-    0 0 40px rgba(0,212,232,0.15);
-}
+.btn.primary { color: #071A2A; background: var(--btn-grad); box-shadow: 0 18px 45px rgba(30,195,255,0.35), 0 0 40px rgba(0,212,232,0.15); }
+.btn.primary:hover:not(:disabled) { background: linear-gradient(90deg, #3de0e0 0%, #3dd1ff 100%); transform: translateY(-2px); }
+.btn.primary:disabled { opacity: 0.45; box-shadow: none; }
 
-.btn.primary:hover:not(:disabled) {
-  background: linear-gradient(90deg, #3de0e0 0%, #3dd1ff 100%);
-  transform: translateY(-2px);
-}
-
-.btn.primary:disabled {
-  opacity: 0.45;
-  box-shadow: none;
-}
-
-.btn.secondary {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--stroke);
-  color: rgba(255,255,255,0.82);
-}
-
-.btn.secondary:hover {
-  background: rgba(0,212,232,0.07);
-  border-color: rgba(0,212,232,0.28);
-  box-shadow: 0 0 12px rgba(0,212,232,0.10);
-  transform: translateY(-2px);
-}
+.btn.secondary { background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); color: rgba(255,255,255,0.82); }
+.btn.secondary:hover { background: rgba(0,212,232,0.07); border-color: rgba(0,212,232,0.28); box-shadow: 0 0 12px rgba(0,212,232,0.10); transform: translateY(-2px); }
 
 .fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s ease;
-}
+.fade-leave-active { transition: opacity 0.22s ease, transform 0.22s ease; }
+.fade-enter-from { opacity: 0; transform: translateX(12px); }
+.fade-leave-to   { opacity: 0; transform: translateX(-12px); }
 
-.fade-enter-from {
-  opacity: 0;
-  transform: translateX(12px);
-}
-
-.fade-leave-to {
-  opacity: 0;
-  transform: translateX(-12px);
-}
-
-@media (max-width: 900px){
-  .wrapper{ padding: 48px 28px; }
-  .title{ font-size: 38px; }
+@media (max-width: 900px) {
+  .wrapper { padding: 40px 24px 32px; }
+  .title { font-size: 38px; }
 }
 </style>

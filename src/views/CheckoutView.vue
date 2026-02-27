@@ -3,7 +3,6 @@
     <div class="bg-grid" aria-hidden="true"></div>
 
     <div class="layout">
-
       <aside class="panel cart-panel">
         <div v-if="cart.length === 0" class="empty-state">
           <h2 class="empty-title">{{ t('emptyTitle') }}</h2>
@@ -25,7 +24,9 @@
               <div class="ci-left">
                 <div class="ci-name">{{ getLocalizedName(item) }}</div>
                 <div class="ci-meta">
-                  <span v-if="item.sku">SKU: {{ item.sku }} · {{ getLocalizedCategory(item) }}</span>
+                  <span v-if="item.sku"
+                    >SKU: {{ item.sku }} · {{ getLocalizedCategory(item) }}</span
+                  >
                   <span v-else>{{ getLocalizedCategory(item) }}</span>
                 </div>
               </div>
@@ -39,9 +40,18 @@
                   <button class="qty-btn" @click="inc(item)">+</button>
                 </div>
 
-                <button class="remove-btn" @click="removeLine(item.lineId)" :aria-label="t('cancel')">
+                <button
+                  class="remove-btn"
+                  @click="removeLine(item.lineId)"
+                  :aria-label="t('cancel')"
+                >
                   <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <path d="M1 1l9 9M10 1L1 10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <path
+                      d="M1 1l9 9M10 1L1 10"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                    />
                   </svg>
                 </button>
               </div>
@@ -66,7 +76,6 @@
       </aside>
 
       <main class="panel scan-panel">
-
         <div class="top-actions">
           <button class="action-pill" @click="toggleLanguage">{{ t('language') }}</button>
           <button class="action-pill" @click="openHelp">{{ t('help') }}</button>
@@ -80,24 +89,28 @@
         </div>
 
         <div class="hero-block">
-          <div class="hero-eyebrow"><img src="../assets/logo-removebg-preview.png"></div>
+          <div class="hero-eyebrow"><img src="../assets/logo-removebg-preview.png" /></div>
           <div class="status-text">
             <span v-if="status === 'idle'">{{ t('scanPrompt') }}</span>
-            <span v-else-if="status === 'scanning'" class="status--scanning">{{ t('scanning') }}</span>
-            <span v-else-if="status === 'paying'" class="status--paying">{{ t('paying') }}</span>
-            <span v-else-if="status === 'paid'" class="status--paid">{{ t('paid') }}</span>
-            <span v-else-if="status === 'cancelled'" class="status--cancelled">{{ t('cancelled') }}</span>
+            <span v-else-if="status === 'scanning'" class="status--scanning">{{
+              t('scanning')
+            }}</span>
+            <span v-else-if="status === 'cancelled'" class="status--cancelled">{{
+              t('cancelled')
+            }}</span>
           </div>
           <div class="hero-sub" v-if="status === 'idle'">{{ t('heroSub') }}</div>
         </div>
 
         <div class="flow-block">
-
           <div class="camera-wrap">
-            <div class="camera-window" :class="{
-              'camera-window--error': cameraError && !cameraNoDevice,
-              'camera-window--nodevice': cameraNoDevice
-            }">
+            <div
+              class="camera-window"
+              :class="{
+                'camera-window--error': cameraError && !cameraNoDevice,
+                'camera-window--nodevice': cameraNoDevice,
+              }"
+            >
               <video
                 v-show="cameraActive && !cameraError"
                 ref="videoRef"
@@ -133,7 +146,7 @@
                 :disabled="cameraNoDevice"
                 @click="toggleCamera"
               >
-                {{ cameraNoDevice ? t('noCamera') : (cameraActive ? t('cameraOn') : t('cameraOff')) }}
+                {{ cameraNoDevice ? t('noCamera') : cameraActive ? t('cameraOn') : t('cameraOff') }}
               </button>
             </div>
           </div>
@@ -162,12 +175,9 @@
               <span v-else>{{ t('pay') }}</span>
             </button>
           </div>
-
         </div>
 
-        <div v-if="errorMessage" class="error-toast" role="alert">
-          ⚠️ {{ errorMessage }}
-        </div>
+        <div v-if="errorMessage" class="error-toast" role="alert">⚠️ {{ errorMessage }}</div>
 
         <div v-if="modal === 'produce'" class="modal-backdrop" @click.self="closeModal">
           <div class="modal-card">
@@ -188,7 +198,9 @@
                 @click="addWeighted(p)"
               >
                 <div class="product-name">{{ getItemName(p) }}</div>
-                <div class="product-price">{{ formatPrice(p.pricePerKg) }}<span class="price-unit">/kg</span></div>
+                <div class="product-price">
+                  {{ formatPrice(p.pricePerKg) }}<span class="price-unit">/kg</span>
+                </div>
               </button>
             </div>
 
@@ -201,14 +213,23 @@
                 step="0.01"
                 class="weight-input"
               />
-              <span class="weight-preview">= {{ formatPrice(selectedProduce.pricePerKg * weightKg) }}</span>
+              <span class="weight-preview"
+                >= {{ formatPrice(selectedProduce.pricePerKg * weightKg) }}</span
+              >
             </div>
 
             <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="selectedProduce ? (selectedProduce = null) : closeModal()">
+              <button
+                class="modal-btn modal-btn--back"
+                @click="selectedProduce ? (selectedProduce = null) : closeModal()"
+              >
                 {{ t('back') }}
               </button>
-              <button class="modal-btn modal-btn--done" :disabled="!selectedProduce" @click="confirmWeighted">
+              <button
+                class="modal-btn modal-btn--done"
+                :disabled="!selectedProduce"
+                @click="confirmWeighted"
+              >
                 {{ t('add') }}
               </button>
             </div>
@@ -251,7 +272,9 @@
               <li v-for="(item, i) in helpItems" :key="i" v-html="item"></li>
             </ul>
             <div class="modal-actions">
-              <button class="modal-btn modal-btn--done" @click="closeModal">{{ t('close') }}</button>
+              <button class="modal-btn modal-btn--done" @click="closeModal">
+                {{ t('close') }}
+              </button>
             </div>
           </div>
         </div>
@@ -265,7 +288,9 @@
                 :key="lang.code"
                 class="lang-btn"
                 :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="setLanguage(lang.code); closeModal()"
+                @click="
+                  setLanguage(lang.code); closeModal()
+                "
               >
                 <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
                 <span class="lang-label">{{ lang.label }}</span>
@@ -273,11 +298,12 @@
               </button>
             </div>
             <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">{{ t('close') }}</button>
+              <button class="modal-btn modal-btn--back" @click="closeModal">
+                {{ t('close') }}
+              </button>
             </div>
           </div>
         </div>
-
       </main>
     </div>
   </div>
@@ -325,36 +351,144 @@ let scanInterval = null
 let scanCooldown = false
 
 const catalogByBarcode = {
-  123456789: { sku: '123456789', name: { de: 'Wasser', en: 'Water', it: 'Acqua', ru: 'Вода' }, price: 0.79, category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' } },
-  123450000: { sku: '123450000', name: { de: 'Schokolade', en: 'Chocolate', it: 'Cioccolato', ru: 'Шоколад' }, price: 1.29, category: { de: 'Süßwaren', en: 'Sweets', it: 'Dolci', ru: 'Сладости' } },
-  129999999: { sku: '129999999', name: { de: 'Milch', en: 'Milk', it: 'Latte', ru: 'Молоко' }, price: 1.19, category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' } },
-  111111111: { sku: '111111111', name: { de: 'Brot', en: 'Bread', it: 'Pane', ru: 'Хлеб' }, price: 1.99, category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' } },
-  222222222: { sku: '222222222', name: { de: 'Butter', en: 'Butter', it: 'Burro', ru: 'Масло' }, price: 1.49, category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' } },
-  333333333: { sku: '333333333', name: { de: 'Käse', en: 'Cheese', it: 'Formaggio', ru: 'Сыр' }, price: 2.99, category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' } },
-  444444444: { sku: '444444444', name: { de: 'Joghurt', en: 'Yogurt', it: 'Yogurt', ru: 'Йогурт' }, price: 0.99, category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' } },
-  555555555: { sku: '555555555', name: { de: 'Apfelsaft', en: 'Apple Juice', it: 'Succo di Mela', ru: 'Яблочный сок' }, price: 1.79, category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' } },
-  666666666: { sku: '666666666', name: { de: 'Chips', en: 'Chips', it: 'Patatine', ru: 'Чипсы' }, price: 1.99, category: { de: 'Snacks', en: 'Snacks', it: 'Snack', ru: 'Снеки' } },
-  777777777: { sku: '777777777', name: { de: 'Cola', en: 'Cola', it: 'Cola', ru: 'Кола' }, price: 1.59, category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' } },
+  123456789: {
+    sku: '123456789',
+    name: { de: 'Wasser', en: 'Water', it: 'Acqua', ru: 'Вода' },
+    price: 0.79,
+    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
+  },
+  123450000: {
+    sku: '123450000',
+    name: { de: 'Schokolade', en: 'Chocolate', it: 'Cioccolato', ru: 'Шоколад' },
+    price: 1.29,
+    category: { de: 'Süßwaren', en: 'Sweets', it: 'Dolci', ru: 'Сладости' },
+  },
+  129999999: {
+    sku: '129999999',
+    name: { de: 'Milch', en: 'Milk', it: 'Latte', ru: 'Молоко' },
+    price: 1.19,
+    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
+  },
+  111111111: {
+    sku: '111111111',
+    name: { de: 'Brot', en: 'Bread', it: 'Pane', ru: 'Хлеб' },
+    price: 1.99,
+    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
+  },
+  222222222: {
+    sku: '222222222',
+    name: { de: 'Butter', en: 'Butter', it: 'Burro', ru: 'Масло' },
+    price: 1.49,
+    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
+  },
+  333333333: {
+    sku: '333333333',
+    name: { de: 'Käse', en: 'Cheese', it: 'Formaggio', ru: 'Сыр' },
+    price: 2.99,
+    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
+  },
+  444444444: {
+    sku: '444444444',
+    name: { de: 'Joghurt', en: 'Yogurt', it: 'Yogurt', ru: 'Йогурт' },
+    price: 0.99,
+    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
+  },
+  555555555: {
+    sku: '555555555',
+    name: { de: 'Apfelsaft', en: 'Apple Juice', it: 'Succo di Mela', ru: 'Яблочный сок' },
+    price: 1.79,
+    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
+  },
+  666666666: {
+    sku: '666666666',
+    name: { de: 'Chips', en: 'Chips', it: 'Patatine', ru: 'Чипсы' },
+    price: 1.99,
+    category: { de: 'Snacks', en: 'Snacks', it: 'Snack', ru: 'Снеки' },
+  },
+  777777777: {
+    sku: '777777777',
+    name: { de: 'Cola', en: 'Cola', it: 'Cola', ru: 'Кола' },
+    price: 1.59,
+    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
+  },
 }
 
 const produceCatalog = ref([
-  { sku: 'PLU-APL', name: { de: 'Apfel', en: 'Apple', it: 'Mela', ru: 'Яблоко' }, pricePerKg: 2.49 },
-  { sku: 'PLU-BAN', name: { de: 'Banane', en: 'Banana', it: 'Banana', ru: 'Банан' }, pricePerKg: 1.99 },
-  { sku: 'PLU-TOM', name: { de: 'Tomate', en: 'Tomato', it: 'Pomodoro', ru: 'Помидор' }, pricePerKg: 3.29 },
-  { sku: 'PLU-GUR', name: { de: 'Gurke', en: 'Cucumber', it: 'Cetriolo', ru: 'Огурец' }, pricePerKg: 1.79 },
-  { sku: 'PLU-MOE', name: { de: 'Möhren', en: 'Carrots', it: 'Carote', ru: 'Морковь' }, pricePerKg: 2.19 },
-  { sku: 'PLU-PAP', name: { de: 'Paprika', en: 'Pepper', it: 'Peperone', ru: 'Перец' }, pricePerKg: 4.49 },
+  {
+    sku: 'PLU-APL',
+    name: { de: 'Apfel', en: 'Apple', it: 'Mela', ru: 'Яблоко' },
+    pricePerKg: 2.49,
+  },
+  {
+    sku: 'PLU-BAN',
+    name: { de: 'Banane', en: 'Banana', it: 'Banana', ru: 'Банан' },
+    pricePerKg: 1.99,
+  },
+  {
+    sku: 'PLU-TOM',
+    name: { de: 'Tomate', en: 'Tomato', it: 'Pomodoro', ru: 'Помидор' },
+    pricePerKg: 3.29,
+  },
+  {
+    sku: 'PLU-GUR',
+    name: { de: 'Gurke', en: 'Cucumber', it: 'Cetriolo', ru: 'Огурец' },
+    pricePerKg: 1.79,
+  },
+  {
+    sku: 'PLU-MOE',
+    name: { de: 'Möhren', en: 'Carrots', it: 'Carote', ru: 'Морковь' },
+    pricePerKg: 2.19,
+  },
+  {
+    sku: 'PLU-PAP',
+    name: { de: 'Paprika', en: 'Pepper', it: 'Peperone', ru: 'Перец' },
+    pricePerKg: 4.49,
+  },
   { sku: 'PLU-BIR', name: { de: 'Birne', en: 'Pear', it: 'Pera', ru: 'Груша' }, pricePerKg: 2.99 },
-  { sku: 'PLU-ORI', name: { de: 'Orange', en: 'Orange', it: 'Arancia', ru: 'Апельсин' }, pricePerKg: 2.29 },
+  {
+    sku: 'PLU-ORI',
+    name: { de: 'Orange', en: 'Orange', it: 'Arancia', ru: 'Апельсин' },
+    pricePerKg: 2.29,
+  },
 ])
 
 const bakeryCatalog = ref([
-  { sku: 'BAK-CRO', name: { de: 'Croissant', en: 'Croissant', it: 'Cornetto', ru: 'Круассан' }, price: 0.99, category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' } },
-  { sku: 'BAK-BRO', name: { de: 'Brötchen', en: 'Roll', it: 'Panino', ru: 'Булочка' }, price: 0.39, category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' } },
-  { sku: 'BAK-BRE', name: { de: 'Brezel', en: 'Pretzel', it: 'Bretzel', ru: 'Крендель' }, price: 0.89, category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' } },
-  { sku: 'BAK-SEM', name: { de: 'Semmel', en: 'Bread Roll', it: 'Semola', ru: 'Семмель' }, price: 0.35, category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' } },
-  { sku: 'BAK-MI',  name: { de: 'Milchbrötchen', en: 'Milk Roll', it: 'Panino al latte', ru: 'Молочная булочка' }, price: 0.65, category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' } },
-  { sku: 'BAK-WE',  name: { de: 'Weizenbrot', en: 'Wheat Bread', it: 'Pane di frumento', ru: 'Пшеничный хлеб' }, price: 2.49, category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' } },
+  {
+    sku: 'BAK-CRO',
+    name: { de: 'Croissant', en: 'Croissant', it: 'Cornetto', ru: 'Круассан' },
+    price: 0.99,
+    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
+  },
+  {
+    sku: 'BAK-BRO',
+    name: { de: 'Brötchen', en: 'Roll', it: 'Panino', ru: 'Булочка' },
+    price: 0.39,
+    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
+  },
+  {
+    sku: 'BAK-BRE',
+    name: { de: 'Brezel', en: 'Pretzel', it: 'Bretzel', ru: 'Крендель' },
+    price: 0.89,
+    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
+  },
+  {
+    sku: 'BAK-SEM',
+    name: { de: 'Semmel', en: 'Bread Roll', it: 'Semola', ru: 'Семмель' },
+    price: 0.35,
+    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
+  },
+  {
+    sku: 'BAK-MI',
+    name: { de: 'Milchbrötchen', en: 'Milk Roll', it: 'Panino al latte', ru: 'Молочная булочка' },
+    price: 0.65,
+    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
+  },
+  {
+    sku: 'BAK-WE',
+    name: { de: 'Weizenbrot', en: 'Wheat Bread', it: 'Pane di frumento', ru: 'Пшеничный хлеб' },
+    price: 2.49,
+    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
+  },
 ])
 
 const selectedProduce = ref(null)
@@ -363,16 +497,22 @@ const errorMessage = ref('')
 let errorTimeout = null
 
 const subtotal = computed(() => cartStore.subtotal)
-const vatAmount = computed(() => vatEnabled.value ? subtotal.value * (vatRate.value / 100) : 0)
+const vatAmount = computed(() => (vatEnabled.value ? subtotal.value * (vatRate.value / 100) : 0))
 const total = computed(() => subtotal.value + vatAmount.value)
 
-function round2(n) { return Math.round(n * 100) / 100 }
+function round2(n) {
+  return Math.round(n * 100) / 100
+}
 
 function formatPrice(n) {
-  const locale = currentLang.value === 'de' ? 'de-DE'
-    : currentLang.value === 'it' ? 'it-IT'
-    : currentLang.value === 'ru' ? 'ru-RU'
-    : 'en-US'
+  const locale =
+    currentLang.value === 'de'
+      ? 'de-DE'
+      : currentLang.value === 'it'
+        ? 'it-IT'
+        : currentLang.value === 'ru'
+          ? 'ru-RU'
+          : 'en-US'
   return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
 }
 
@@ -383,7 +523,9 @@ function getLocalizedName(item) {
   return item.name
 }
 
-function getItemName(item) { return getLocalizedName(item) }
+function getItemName(item) {
+  return getLocalizedName(item)
+}
 
 function getLocalizedCategory(item) {
   if (typeof item.category === 'object') {
@@ -403,7 +545,10 @@ function addItem(item) {
   })
 }
 
-function addWeighted(p) { selectedProduce.value = p; weightKg.value = 0.25 }
+function addWeighted(p) {
+  selectedProduce.value = p
+  weightKg.value = 0.25
+}
 
 function confirmWeighted() {
   if (!selectedProduce.value) return
@@ -414,17 +559,28 @@ function confirmWeighted() {
   const itemName = getLocalizedName(selectedProduce.value)
   const categoryName = t('produceCategory')
   cartStore.addWeighted(
-    { sku: selectedProduce.value.sku, name: `${itemName} (${kg.toFixed(2)} kg)`, category: categoryName, price: round2(linePrice) },
-    kg
+    {
+      sku: selectedProduce.value.sku,
+      name: `${itemName} (${kg.toFixed(2)} kg)`,
+      category: categoryName,
+      price: round2(linePrice),
+    },
+    kg,
   )
   selectedProduce.value = null
   weightKg.value = 0.25
   closeModal()
 }
 
-function removeLine(lineId) { cartStore.removeLine(lineId) }
-function inc(line) { cartStore.inc(line) }
-function dec(line) { cartStore.dec(line) }
+function removeLine(lineId) {
+  cartStore.removeLine(lineId)
+}
+function inc(line) {
+  cartStore.inc(line)
+}
+function dec(line) {
+  cartStore.dec(line)
+}
 
 function handleKeydown(e) {
   const tag = (e.target?.tagName || '').toLowerCase()
@@ -449,32 +605,55 @@ function handleKeydown(e) {
   }
 
   if (e.key.length === 1) scanBuffer.value += e.key
-  scanTimer = window.setTimeout(() => { scanBuffer.value = '' }, 120)
+  scanTimer = window.setTimeout(() => {
+    scanBuffer.value = ''
+  }, 120)
 }
 
 function onBarcodeScanned(code) {
   status.value = 'scanning'
   const item = catalogByBarcode[code]
-  if (!item) { showError(`${t('error')} (${code})`); status.value = 'idle'; return }
-  setTimeout(() => { addItem(item); status.value = 'idle' }, 300)
+  if (!item) {
+    showError(`${t('error')} (${code})`)
+    status.value = 'idle'
+    return
+  }
+  setTimeout(() => {
+    addItem(item)
+    status.value = 'idle'
+  }, 300)
 }
 
 function showError(msg) {
   if (errorTimeout) clearTimeout(errorTimeout)
   errorMessage.value = msg
-  errorTimeout = setTimeout(() => { errorMessage.value = '' }, 3000)
+  errorTimeout = setTimeout(() => {
+    errorMessage.value = ''
+  }, 3000)
 }
 
-function openHelp() { modal.value = 'help' }
-function toggleLanguage() { modal.value = 'lang' }
-function openProduce() { modal.value = 'produce' }
-function openBakery() { modal.value = 'bakery' }
-function closeModal() { modal.value = null }
+function openHelp() {
+  modal.value = 'help'
+}
+function toggleLanguage() {
+  modal.value = 'lang'
+}
+function openProduce() {
+  modal.value = 'produce'
+}
+function openBakery() {
+  modal.value = 'bakery'
+}
+function closeModal() {
+  modal.value = null
+}
 
 function cancel() {
   cartStore.clearCart()
   scanBuffer.value = ''
-  setTimeout(() => { status.value = 'idle' }, 1200)
+  setTimeout(() => {
+    status.value = 'idle'
+  }, 1200)
   closeModal()
 }
 
@@ -484,9 +663,9 @@ async function pay() {
   closeModal()
   stopCamera()
 
-  await new Promise(r => setTimeout(r, 900))
+  await new Promise((r) => setTimeout(r, 900))
   status.value = 'paid'
-  await new Promise(r => setTimeout(r, 900))
+  await new Promise((r) => setTimeout(r, 900))
 
   status.value = 'idle'
   router.push('/payback')
@@ -504,7 +683,11 @@ async function startCamera() {
     }
 
     const constraints = {
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
       audio: false,
     }
 
@@ -515,53 +698,57 @@ async function startCamera() {
       await videoRef.value.play()
     }
 
-cameraActive.value = true
-cameraLoading.value = false
-cameraError.value = ''
-cameraNoDevice.value = false
+    cameraActive.value = true
+    cameraLoading.value = false
+    cameraError.value = ''
+    cameraNoDevice.value = false
 
-if (barcodeSupported.value === null) {
-  if ('BarcodeDetector' in window) {
-    try {
-      barcodeDetector = new BarcodeDetector({
-        formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e'],
-      })
-      barcodeSupported.value = true
-    } catch {
-      barcodeSupported.value = false
-      barcodeDetector = null
+    if (barcodeSupported.value === null) {
+      if ('BarcodeDetector' in window) {
+        try {
+          barcodeDetector = new BarcodeDetector({
+            formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e'],
+          })
+          barcodeSupported.value = true
+        } catch {
+          barcodeSupported.value = false
+          barcodeDetector = null
+        }
+      } else {
+        barcodeSupported.value = false
+        barcodeDetector = null
+      }
     }
-  } else {
-    barcodeSupported.value = false
-    barcodeDetector = null
-  }
-}
 
-if (barcodeSupported.value === true && barcodeDetector) {
-  startBarcodeScanning()
-}
-} catch (err) {
-  cameraLoading.value = false
-  cameraActive.value = false
-  cameraError.value = err?.message || t('cameraNotAvailable')
+    if (barcodeSupported.value === true && barcodeDetector) {
+      startBarcodeScanning()
+    }
+  } catch (err) {
+    cameraLoading.value = false
+    cameraActive.value = false
+    cameraError.value = err?.message || t('cameraNotAvailable')
 
-  if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
-    cameraError.value = t('cameraPermissionDenied')
-    return
-  }
+    if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+      cameraError.value = t('cameraPermissionDenied')
+      return
+    }
 
-  if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
-    cameraNoDevice.value = true
-    cameraError.value = t('cameraNotAvailable')
-    return
+    if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
+      cameraNoDevice.value = true
+      cameraError.value = t('cameraNotAvailable')
+      return
+    }
   }
-}
 }
 
 function stopCamera() {
-  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null }
+  if (mediaStream) {
+    mediaStream.getTracks().forEach((t) => t.stop())
+    mediaStream = null
+  }
   if (videoRef.value) videoRef.value.srcObject = null
-  cameraActive.value = false; stopBarcodeScanning()
+  cameraActive.value = false
+  stopBarcodeScanning()
 }
 
 function toggleCamera() {
@@ -578,16 +765,30 @@ function startBarcodeScanning() {
       if (video.readyState !== video.HAVE_ENOUGH_DATA) return
       const barcodes = await barcodeDetector.detect(video)
       if (barcodes.length > 0) {
-        const code = barcodes[0].rawValue; scanCooldown = true; onBarcodeScanned(code)
-        setTimeout(() => { scanCooldown = false }, 1500)
+        const code = barcodes[0].rawValue
+        scanCooldown = true
+        onBarcodeScanned(code)
+        setTimeout(() => {
+          scanCooldown = false
+        }, 1500)
       }
-    } catch { /* xycyxcyxv */ }
+    } catch {
+      /* xycyxcyxv */
+    }
   }, 250)
 }
 
-function stopBarcodeScanning() { if (scanInterval) { clearInterval(scanInterval); scanInterval = null } }
+function stopBarcodeScanning() {
+  if (scanInterval) {
+    clearInterval(scanInterval)
+    scanInterval = null
+  }
+}
 
-onMounted(() => { window.addEventListener('keydown', handleKeydown); startCamera() })
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+  startCamera()
+})
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
   stopCamera()
@@ -597,36 +798,40 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-html, body {
+html,
+body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 body {
-  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
+  background: linear-gradient(160deg, #071a2a 0%, #0b2c44 60%, #092538 100%);
 }
 
 :root {
-  --stroke: rgba(255,255,255,0.12);
-  --stroke-md: rgba(255,255,255,0.17);
-  --stroke-hover: rgba(24,231,242,0.35);
-  --text: rgba(255,255,255,0.96);
-  --muted: rgba(255,255,255,0.65);
-  --muted2: rgba(255,255,255,0.42);
-  --cyan: #18E7F2;
-  --cyan2: #1BC7FF;
-  --shadow: 0 20px 60px rgba(0,0,0,0.50);
-  --glow: 0 18px 45px rgba(24,231,242,0.26);
-  --glow-sm: 0 0 16px rgba(24,231,242,0.20);
+  --stroke: rgba(255, 255, 255, 0.12);
+  --stroke-md: rgba(255, 255, 255, 0.17);
+  --stroke-hover: rgba(24, 231, 242, 0.35);
+  --text: rgba(255, 255, 255, 0.96);
+  --muted: rgba(255, 255, 255, 0.65);
+  --muted2: rgba(255, 255, 255, 0.42);
+  --cyan: #18e7f2;
+  --cyan2: #1bc7ff;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --glow: 0 18px 45px rgba(24, 231, 242, 0.26);
+  --glow-sm: 0 0 16px rgba(24, 231, 242, 0.2);
   --panel: rgba(11, 32, 49, 0.88);
   --panel-strong: rgba(10, 28, 44, 0.95);
-  --shadow-card: 0 8px 32px rgba(0,0,0,0.32);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
 }
 </style>
 
 <style scoped>
-
 .checkout-page {
   position: fixed;
   inset: 0;
@@ -634,23 +839,23 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
+  background: linear-gradient(160deg, #071a2a 0%, #0b2c44 60%, #092538 100%);
 }
 
 .bg-grid {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.013) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.013) 1px, transparent 1px);
   background-size: 44px 44px;
   z-index: 0;
 }
 
 .layout::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(600px 400px at 65% 45%, rgba(24,231,242,0.18), transparent 60%);
+  background: radial-gradient(600px 400px at 65% 45%, rgba(24, 231, 242, 0.18), transparent 60%);
   pointer-events: none;
   z-index: -1;
   filter: blur(8px);
@@ -675,13 +880,17 @@ body {
   border: 1px solid var(--stroke-md);
   border-radius: 28px;
   backdrop-filter: blur(16px);
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.07);
-  outline: 1px solid rgba(255,255,255,0.04);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  outline: 1px solid rgba(255, 255, 255, 0.04);
   outline-offset: -1px;
 }
 
 .cart-panel {
-  background: radial-gradient(1200px 600px at 30% 20%, rgba(24,231,242,0.06), transparent 60%), var(--panel);
+  background:
+    radial-gradient(1200px 600px at 30% 20%, rgba(24, 231, 242, 0.06), transparent 60%),
+    var(--panel);
   width: 30%;
   min-width: 280px;
   height: calc(100vh - 64px);
@@ -739,7 +948,7 @@ body {
   font-size: 13px;
   font-weight: 700;
   color: var(--muted);
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -769,19 +978,27 @@ body {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.45; transform: scale(0.65); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.65);
+  }
 }
 
 .cart-items {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 0;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.10) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 .cart-item {
@@ -789,11 +1006,15 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 14px;
-  background: rgba(0,0,0,0.14);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: rgba(0, 0, 0, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   border: 1px solid var(--stroke);
   border-radius: 16px;
-  transition: border-color 0.2s, background 0.2s, transform 0.18s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    transform 0.18s,
+    box-shadow 0.2s;
   position: relative;
   overflow: hidden;
 }
@@ -808,7 +1029,9 @@ body {
   border-radius: 16px 0 0 16px;
   opacity: 0;
   transform: scaleY(0.4);
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 }
 
 .cart-item:hover .ci-accent {
@@ -817,13 +1040,19 @@ body {
 }
 
 .cart-item:hover {
-  border-color: rgba(24,231,242,0.28);
-  background: rgba(24,231,242,0.045);
+  border-color: rgba(24, 231, 242, 0.28);
+  background: rgba(24, 231, 242, 0.045);
   transform: translateX(2px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), -4px 0 20px rgba(24,231,242,0.08), 0 8px 24px rgba(0,0,0,0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    -4px 0 20px rgba(24, 231, 242, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.22);
 }
 
-.ci-left { flex: 1; min-width: 0; }
+.ci-left {
+  flex: 1;
+  min-width: 0;
+}
 
 .ci-name {
   font-size: 13.5px;
@@ -864,7 +1093,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
   border: 1px solid var(--stroke-md);
   border-radius: 10px;
   padding: 4px 8px;
@@ -885,12 +1114,14 @@ body {
   justify-content: center;
   line-height: 1;
   border-radius: 5px;
-  transition: color 0.13s, background 0.13s;
+  transition:
+    color 0.13s,
+    background 0.13s;
 }
 
 .qty-btn:hover {
   color: var(--cyan);
-  background: rgba(24,231,242,0.12);
+  background: rgba(24, 231, 242, 0.12);
 }
 
 .qty-val {
@@ -912,12 +1143,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.13s, color 0.13s;
+  transition:
+    background 0.13s,
+    color 0.13s;
   flex-shrink: 0;
 }
 
 .remove-btn:hover {
-  background: rgba(248,113,113,0.14);
+  background: rgba(248, 113, 113, 0.14);
   color: #fca5a5;
 }
 
@@ -940,13 +1173,16 @@ body {
   line-height: 1.5;
 }
 
-.totals-vat { color: var(--muted2); font-size: 12px; }
+.totals-vat {
+  color: var(--muted2);
+  font-size: 12px;
+}
 
 .totals-total {
   font-size: 20px;
   font-weight: 900;
   color: var(--cyan);
-  text-shadow: 0 0 18px rgba(24,231,242,0.25);
+  text-shadow: 0 0 18px rgba(24, 231, 242, 0.25);
   margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--stroke);
@@ -955,7 +1191,7 @@ body {
 
 .totals-total-value {
   color: var(--cyan);
-  text-shadow: 0 0 20px rgba(24,231,242,0.50);
+  text-shadow: 0 0 20px rgba(24, 231, 242, 0.5);
 }
 
 .scan-panel {
@@ -981,7 +1217,7 @@ body {
 .btn:focus-visible,
 .category-btn:focus-visible,
 .retry-btn:focus-visible {
-  outline: 3px solid rgba(24,231,242,0.32);
+  outline: 3px solid rgba(24, 231, 242, 0.32);
   outline-offset: 3px;
 }
 
@@ -994,11 +1230,16 @@ body {
   font-weight: 600;
   border-radius: 999px;
   border: 1px solid var(--stroke-md);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--muted);
   cursor: pointer;
   letter-spacing: 0.01em;
-  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.13s, box-shadow 0.18s;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s,
+    transform 0.13s,
+    box-shadow 0.18s;
 }
 
 .action-pill:hover {
@@ -1011,9 +1252,11 @@ body {
 
 .action-pill--active {
   border-color: rgba(24, 231, 242, 0.58);
-  box-shadow: var(--glow-sm), inset 0 0 12px rgba(24,231,242,0.07);
+  box-shadow:
+    var(--glow-sm),
+    inset 0 0 12px rgba(24, 231, 242, 0.07);
   color: var(--cyan);
-  background: rgba(24,231,242,0.08);
+  background: rgba(24, 231, 242, 0.08);
 }
 
 .hero-block {
@@ -1045,7 +1288,7 @@ body {
   font-weight: 900;
   margin-bottom: 14px;
   letter-spacing: 0.01em;
-  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(24,231,242,0.9));
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(24, 231, 242, 0.9));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1058,10 +1301,18 @@ body {
   letter-spacing: 0.01em;
 }
 
-.status--scanning { color: var(--cyan); }
-.status--paying   { color: #a78bfa; }
-.status--paid     { color: #4ade80; }
-.status--cancelled { color: var(--muted2); }
+.status--scanning {
+  color: var(--cyan);
+}
+.status--paying {
+  color: #a78bfa;
+}
+.status--paid {
+  color: #4ade80;
+}
+.status--cancelled {
+  color: var(--muted2);
+}
 
 .flow-block {
   flex: 1;
@@ -1084,248 +1335,587 @@ body {
 .camera-window {
   width: 100%;
   height: 47vh;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.35);
   border-radius: 24px;
   overflow: hidden;
   position: relative;
   border: 1px solid var(--stroke-md);
-  box-shadow: 0 32px 90px rgba(0,0,0,0.55), 0 0 60px rgba(24,231,242,0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.55),
+    0 0 60px rgba(24, 231, 242, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition: border-color 0.2s;
 }
 
-.camera-window--error { border-color: rgba(248,113,113,0.40); box-shadow: 0 18px 55px rgba(0,0,0,0.42), 0 0 20px rgba(248,113,113,0.12); }
-.camera-window--nodevice { border-color: rgba(255,255,255,0.09); }
-.camera-window video { width: 100%; height: 100%; object-fit: cover; }
+.camera-window--error {
+  border-color: rgba(248, 113, 113, 0.4);
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.42),
+    0 0 20px rgba(248, 113, 113, 0.12);
+}
+.camera-window--nodevice {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+.camera-window video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 @keyframes scan-sweep {
-  0%   { top: 14%; opacity: 0.9; }
-  45%  { top: 82%; opacity: 0.9; }
-  50%  { top: 82%; opacity: 0; }
-  55%  { top: 14%; opacity: 0; }
-  100% { top: 14%; opacity: 0.9; }
+  0% {
+    top: 14%;
+    opacity: 0.9;
+  }
+  45% {
+    top: 82%;
+    opacity: 0.9;
+  }
+  50% {
+    top: 82%;
+    opacity: 0;
+  }
+  55% {
+    top: 14%;
+    opacity: 0;
+  }
+  100% {
+    top: 14%;
+    opacity: 0.9;
+  }
 }
 
 .cam-overlay {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 12px; font-size: 14px; font-weight: 500;
-  color: var(--muted); padding: 20px; text-align: center;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 20px;
+  text-align: center;
 }
 
-.cam-overlay--loading  { background: rgba(7,26,42,0.96); }
-.cam-overlay--error    { background: rgba(0,0,0,0.55); color: rgba(255,255,255,0.90); }
-.cam-overlay--inactive { background: rgba(7,26,42,0.90); }
-.cam-overlay--neutral  { background: rgba(7,26,42,0.90); color: rgba(255,255,255,0.84); }
+.cam-overlay--loading {
+  background: rgba(7, 26, 42, 0.96);
+}
+.cam-overlay--error {
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.9);
+}
+.cam-overlay--inactive {
+  background: rgba(7, 26, 42, 0.9);
+}
+.cam-overlay--neutral {
+  background: rgba(7, 26, 42, 0.9);
+  color: rgba(255, 255, 255, 0.84);
+}
 
-.cam-nodevice-icon { font-size: 40px; opacity: 0.7; margin-bottom: 2px; }
-.cam-nodevice-title { font-size: 15px; font-weight: 700; color: var(--text); }
-.cam-error-icon { font-size: 32px; }
-.cam-subhint { font-size: 12px; color: var(--muted2); max-width: 300px; line-height: 1.5; }
+.cam-nodevice-icon {
+  font-size: 40px;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+.cam-nodevice-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.cam-error-icon {
+  font-size: 32px;
+}
+.cam-subhint {
+  font-size: 12px;
+  color: var(--muted2);
+  max-width: 300px;
+  line-height: 1.5;
+}
 
 .spinner-ring {
-  width: 28px; height: 28px;
-  border: 3px solid rgba(255,255,255,0.12);
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.12);
   border-top-color: var(--cyan);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .retry-btn {
-  padding: 10px 22px; border-radius: 999px;
-  border: 1px solid rgba(24,231,242,0.35);
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(24, 231, 242, 0.35);
   background: linear-gradient(90deg, var(--cyan), var(--cyan2));
-  color: rgba(0,0,0,0.80); font-weight: 800; font-size: 13px;
-  cursor: pointer; box-shadow: var(--glow);
-  transition: transform 0.15s, box-shadow 0.15s;
+  color: rgba(0, 0, 0, 0.8);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: var(--glow);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
-.retry-btn:hover { transform: translateY(-1px) scale(1.01); }
+.retry-btn:hover {
+  transform: translateY(-1px) scale(1.01);
+}
 
 .cam-toggle {
-  position: absolute; top: 10px; right: 10px;
-  padding: 6px 13px; border-radius: 999px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 13px;
+  border-radius: 999px;
   border: 1px solid var(--stroke-md);
-  background: rgba(0,0,0,0.44); color: var(--muted);
-  font-size: 11px; font-weight: 700; cursor: pointer;
+  background: rgba(0, 0, 0, 0.44);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
   backdrop-filter: blur(10px);
-  transition: border-color 0.15s, transform 0.13s, box-shadow 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.13s,
+    box-shadow 0.15s,
+    color 0.15s;
   z-index: 10;
 }
-.cam-toggle:hover { transform: translateY(-1px); border-color: var(--stroke-hover); color: var(--text); }
-.cam-toggle--active { border-color: rgba(24,231,242,0.55); color: var(--cyan); box-shadow: var(--glow-sm); }
-.cam-toggle:disabled { opacity: 0.42; cursor: not-allowed; transform: none; }
+.cam-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--stroke-hover);
+  color: var(--text);
+}
+.cam-toggle--active {
+  border-color: rgba(24, 231, 242, 0.55);
+  color: var(--cyan);
+  box-shadow: var(--glow-sm);
+}
+.cam-toggle:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+}
 
 .error-toast {
-  position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
-  background: rgba(248,113,113,0.14); color: var(--text);
-  padding: 14px 28px; border-radius: 14px; font-weight: 600; font-size: 16px;
-  border: 1px solid rgba(248,113,113,0.35); box-shadow: 0 18px 60px rgba(0,0,0,0.45);
-  z-index: 100; white-space: nowrap; animation: slideDown 0.3s ease;
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(248, 113, 113, 0.14);
+  color: var(--text);
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 16px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  white-space: nowrap;
+  animation: slideDown 0.3s ease;
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateX(-50%) translateY(-16px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
-.category-row { display: flex; gap: 20px; justify-content: center; }
+.category-row {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
 
 .category-btn {
-  flex: 1; max-width: 240px; height: 128px; transform: scale(1.02);
-  border-radius: 22px; border: 1px solid var(--stroke-md);
-  background: rgba(255,255,255,0.04); color: var(--text);
-  cursor: pointer; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 6px;
+  flex: 1;
+  max-width: 240px;
+  height: 128px;
+  transform: scale(1.02);
+  border-radius: 22px;
+  border: 1px solid var(--stroke-md);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.06);
-  transition: transform 0.15s, border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    transform 0.15s,
+    border-color 0.18s,
+    box-shadow 0.18s,
+    background 0.18s;
 }
 
 .category-btn:hover {
-  transform: translateY(-3px); border-color: rgba(24,231,242,0.38);
-  background: rgba(24,231,242,0.055);
-  box-shadow: 0 18px 52px rgba(0,0,0,0.38), 0 0 20px rgba(24,231,242,0.14);
+  transform: translateY(-3px);
+  border-color: rgba(24, 231, 242, 0.38);
+  background: rgba(24, 231, 242, 0.055);
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.38),
+    0 0 20px rgba(24, 231, 242, 0.14);
 }
-.category-btn:active { transform: scale(0.98); }
+.category-btn:active {
+  transform: scale(0.98);
+}
 
-.category-label { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: 0.01em; }
-.category-hint { font-size: 11px; color: var(--muted2); font-weight: 500; }
+.category-label {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.category-hint {
+  font-size: 11px;
+  color: var(--muted2);
+  font-weight: 500;
+}
 
-.action-row { display: flex; justify-content: flex-end; gap: 14px; }
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
 
 .btn {
-  padding: 14px 32px; font-size: 15px; font-weight: 800;
-  border-radius: 16px; border: 1px solid var(--stroke-md);
+  padding: 14px 32px;
+  font-size: 15px;
+  font-weight: 800;
+  border-radius: 16px;
+  border: 1px solid var(--stroke-md);
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  background: rgba(255,255,255,0.04); color: var(--text);
-  letter-spacing: 0.02em; font-family: inherit;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  letter-spacing: 0.02em;
+  font-family: inherit;
 }
-.btn:disabled { opacity: 0.40; cursor: not-allowed; }
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-.btn--cancel { color: var(--muted); border-color: rgba(255,255,255,0.13); }
+.btn--cancel {
+  color: var(--muted);
+  border-color: rgba(255, 255, 255, 0.13);
+}
 .btn--cancel:hover:not(:disabled) {
-  transform: translateY(-1px); border-color: rgba(248,113,113,0.40);
-  color: #fca5a5; background: rgba(248,113,113,0.06);
+  transform: translateY(-1px);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
+  background: rgba(248, 113, 113, 0.06);
 }
 
 .btn--pay {
   border: none;
   background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan2) 100%);
-  color: rgba(0,0,0,0.88); min-width: 160px;
-  font-weight: 900; font-size: 16px; padding: 15px 38px;
-  box-shadow: 0 18px 40px rgba(24,231,242,0.25), 0 0 18px rgba(24,231,242,0.15);
+  color: rgba(0, 0, 0, 0.88);
+  min-width: 160px;
+  font-weight: 900;
+  font-size: 16px;
+  padding: 15px 38px;
+  box-shadow:
+    0 18px 40px rgba(24, 231, 242, 0.25),
+    0 0 18px rgba(24, 231, 242, 0.15);
   animation: pay-pulse 3s ease-in-out infinite;
 }
 
 @keyframes pay-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(24,231,242,0.30), 0 8px 24px rgba(24,231,242,0.35), 0 24px 55px rgba(24,231,242,0.22); }
-  50%       { box-shadow: 0 0 0 1px rgba(24,231,242,0.45), 0 8px 32px rgba(24,231,242,0.48), 0 28px 65px rgba(24,231,242,0.30); }
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(24, 231, 242, 0.3),
+      0 8px 24px rgba(24, 231, 242, 0.35),
+      0 24px 55px rgba(24, 231, 242, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(24, 231, 242, 0.45),
+      0 8px 32px rgba(24, 231, 242, 0.48),
+      0 28px 65px rgba(24, 231, 242, 0.3);
+  }
 }
 
-.btn--pay:disabled { animation: none; }
-.btn--pay:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 0 0 1px rgba(24,231,242,0.50), 0 12px 36px rgba(24,231,242,0.55), 0 32px 70px rgba(24,231,242,0.32);
+.btn--pay:disabled {
   animation: none;
 }
-.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn--pay:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 0 0 1px rgba(24, 231, 242, 0.5),
+    0 12px 36px rgba(24, 231, 242, 0.55),
+    0 32px 70px rgba(24, 231, 242, 0.32);
+  animation: none;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
 .spinner {
-  width: 18px; height: 18px;
-  border: 3px solid rgba(0,0,0,0.25); border-top-color: rgba(0,0,0,0.70);
-  border-radius: 50%; animation: spin 0.8s linear infinite;
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  border-top-color: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .modal-backdrop {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.58);
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 28px; padding: 20px; z-index: 1000;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  padding: 20px;
+  z-index: 1000;
   backdrop-filter: blur(5px);
 }
 
 .modal-card {
-  width: min(900px, 95%); max-height: 82vh;
+  width: min(900px, 95%);
+  max-height: 82vh;
   background: var(--panel-strong);
-  border: 1px solid var(--stroke-md); border-radius: 26px;
-  padding: 28px; box-shadow: var(--shadow), 0 0 60px rgba(0,0,0,0.50);
+  border: 1px solid var(--stroke-md);
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow:
+    var(--shadow),
+    0 0 60px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(18px);
-  display: flex; flex-direction: column; overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-.modal-card--sm { width: min(480px, 95%); }
+.modal-card--sm {
+  width: min(480px, 95%);
+}
 
-.modal-head { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
 
 .modal-icon {
-  font-size: 32px; width: 60px; height: 60px; border-radius: 16px;
-  background: rgba(255,255,255,0.05); border: 1px solid var(--stroke-md);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 32px;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--stroke-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.modal-title { margin: 0; font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
-.modal-subtitle { margin: 3px 0 0; font-size: 12px; color: var(--muted2); }
+.modal-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.modal-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--muted2);
+}
 
 .product-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-  overflow-y: auto; max-height: 45vh; padding: 4px 2px;
-  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 45vh;
+  padding: 4px 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
 }
 
 .product-card {
-  aspect-ratio: 1; border-radius: 18px; border: 1px solid var(--stroke);
-  background: rgba(255,255,255,0.035); cursor: pointer;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 6px; padding: 14px;
-  transition: border-color 0.15s, transform 0.13s, background 0.15s, box-shadow 0.15s;
+  aspect-ratio: 1;
+  border-radius: 18px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  transition:
+    border-color 0.15s,
+    transform 0.13s,
+    background 0.15s,
+    box-shadow 0.15s;
   font-family: inherit;
 }
-.product-card:hover { border-color: var(--stroke-hover); transform: translateY(-2px); background: rgba(24,231,242,0.05); box-shadow: var(--shadow-card); }
-.product-card--selected { border-color: var(--cyan); background: rgba(24,231,242,0.09); box-shadow: 0 0 0 1px rgba(24,231,242,0.35), var(--glow-sm); }
-.product-card:active { transform: scale(0.96); }
+.product-card:hover {
+  border-color: var(--stroke-hover);
+  transform: translateY(-2px);
+  background: rgba(24, 231, 242, 0.05);
+  box-shadow: var(--shadow-card);
+}
+.product-card--selected {
+  border-color: var(--cyan);
+  background: rgba(24, 231, 242, 0.09);
+  box-shadow:
+    0 0 0 1px rgba(24, 231, 242, 0.35),
+    var(--glow-sm);
+}
+.product-card:active {
+  transform: scale(0.96);
+}
 
-.product-name { font-size: 14px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.2; }
-.product-price { font-size: 12px; color: var(--muted); font-weight: 650; }
-.price-unit { font-size: 10px; font-weight: 500; color: var(--muted2); }
+.product-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.2;
+}
+.product-price {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 650;
+}
+.price-unit {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted2);
+}
 
 .weight-row {
-  display: flex; align-items: center; gap: 14px; padding: 13px 16px;
-  background: rgba(24,231,242,0.05); border: 1px solid rgba(24,231,242,0.18);
-  border-radius: 14px; margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: rgba(24, 231, 242, 0.05);
+  border: 1px solid rgba(24, 231, 242, 0.18);
+  border-radius: 14px;
+  margin-top: 14px;
 }
-.weight-label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.weight-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
 .weight-input {
-  flex: 1; background: rgba(0,0,0,0.28); color: var(--text);
-  border: 1px solid rgba(255,255,255,0.12); padding: 10px 14px;
-  border-radius: 10px; font-size: 15px; font-weight: 600;
-  outline: none; font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  flex: 1;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  font-family: inherit;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
-.weight-input:focus { border-color: rgba(24,231,242,0.50); box-shadow: 0 0 0 3px rgba(24,231,242,0.10); }
-.weight-preview { font-size: 14px; font-weight: 750; color: var(--cyan); white-space: nowrap; min-width: 70px; text-align: right; }
+.weight-input:focus {
+  border-color: rgba(24, 231, 242, 0.5);
+  box-shadow: 0 0 0 3px rgba(24, 231, 242, 0.1);
+}
+.weight-preview {
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--cyan);
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: right;
+}
 
-.modal-actions { display: flex; gap: 12px; margin-top: 18px; }
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
 
 .modal-btn {
-  flex: 1; padding: 14px; border: none; border-radius: 14px;
-  font-size: 16px; font-weight: 700; cursor: pointer;
-  font-family: inherit; transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
 }
-.modal-btn--back { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--stroke-md); }
-.modal-btn--back:hover { background: rgba(255,255,255,0.10); transform: translateY(-1px); }
-.modal-btn--done { background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan2) 100%); color: rgba(0,0,0,0.80); box-shadow: var(--glow); }
-.modal-btn--done:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 22px 50px rgba(24,231,242,0.30); }
-.modal-btn--done:disabled { opacity: 0.40; cursor: not-allowed; }
-.modal-btn:active:not(:disabled) { transform: scale(0.98); }
+.modal-btn--back {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  border: 1px solid var(--stroke-md);
+}
+.modal-btn--back:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+.modal-btn--done {
+  background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan2) 100%);
+  color: rgba(0, 0, 0, 0.8);
+  box-shadow: var(--glow);
+}
+.modal-btn--done:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 50px rgba(24, 231, 242, 0.3);
+}
+.modal-btn--done:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.modal-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
 .help-list {
-  margin: 12px 0 0; padding-left: 18px;
-  color: var(--muted); line-height: 2; font-size: 14px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 2;
+  font-size: 14px;
 }
-.help-list :deep(b) { color: var(--text); font-weight: 700; }
+.help-list :deep(b) {
+  color: var(--text);
+  font-weight: 700;
+}
 
 .lang-grid {
   display: grid;
@@ -1338,7 +1928,7 @@ body {
   padding: 14px 16px;
   border-radius: 14px;
   border: 1px solid var(--stroke-md);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   font-size: 14px;
   font-weight: 700;
@@ -1347,19 +1937,23 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: border-color 0.15s, transform 0.13s, background 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.13s,
+    background 0.15s,
+    box-shadow 0.15s;
   letter-spacing: 0.01em;
 }
 
 .lang-btn:hover {
   border-color: var(--stroke-hover);
-  background: rgba(24,231,242,0.07);
+  background: rgba(24, 231, 242, 0.07);
   transform: translateY(-1px);
 }
 
 .lang-btn--active {
-  border-color: rgba(24,231,242,0.52);
-  background: rgba(24,231,242,0.09);
+  border-color: rgba(24, 231, 242, 0.52);
+  background: rgba(24, 231, 242, 0.09);
   color: var(--cyan);
   box-shadow: var(--glow-sm);
 }

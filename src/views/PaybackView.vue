@@ -176,7 +176,7 @@ import { useLanguage } from '../components/Uselanguage'
 
 const router = useRouter()
 
-const { currentLang, languages, t, setLanguage } = useLanguage()
+const { t } = useLanguage()
 
 const showScanner = ref(false)
 const mode = ref('scanner')
@@ -359,7 +359,7 @@ html, body, #app {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 70vh;
+  height: 65vh;
   width: min(860px, 92vw);
   padding: 56px 80px 44px;
   background: linear-gradient(180deg, rgba(10,35,55,0.93) 0%, rgba(7,26,42,0.93) 100%);

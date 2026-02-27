@@ -34,6 +34,8 @@ export const translations = {
     welcomeAccent: 'Scannen?',
     instruction: 'Einfach Scannen. Das ist Scanly.',
     start: 'Start',
+    payText: 'Bitte zahlen Sie die folgenden Artikel',
+    paySub: 'Akzeptierte Methoden: Maestro, Mastercard, Visa usw.',
     helpModalTitle: 'Über Scanly',
     helpModalBody:
       'Scanly ist Ihr persönlicher Self-Checkout-Assistent. Scannen Sie Ihre Artikel einfach selbst, legen Sie sie in Ihre Tasche und bezahlen Sie – ganz ohne Kassenschlange.',
@@ -73,15 +75,16 @@ export const translations = {
     back: 'Zurück',
     add: 'Hinzufügen',
     done: 'Fertig',
-    helpScanner: (key) => key === 'scanner'
-      ? 'Scanner: einfach scannen, <strong>Enter</strong> beendet den Barcode.'
-      : key === 'produce'
-        ? 'Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.'
-        : key === 'bakery'
-          ? 'Backwaren: antippen zum Hinzufügen.'
-          : 'Abbrechen: Warenkorb wird geleert.',
+    helpScanner: (key) =>
+      key === 'scanner'
+        ? 'Scanner: einfach scannen'
+        : key === 'produce'
+          ? 'Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.'
+          : key === 'bakery'
+            ? 'Backwaren: antippen zum Hinzufügen.'
+            : 'Abbrechen: Warenkorb wird geleert.',
     helpItems: [
-      'Scanner: einfach scannen, <b>Enter</b> beendet den Barcode.',
+      'Scanner: einfach scannen',
       'Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.',
       'Backwaren: antippen zum Hinzufügen.',
       'Abbrechen: Warenkorb wird geleert.',
@@ -115,6 +118,12 @@ export const translations = {
     paybackInputInvalid: 'Bitte geben Sie eine gültige Kartennummer ein.',
     paybackConfirm: 'Bestätigen',
     paybackBackToScanner: 'Zurück zum Scanner',
+    dialogLabel: 'Checkout abgeschlossen',
+    thankYou: 'Vielen Dank für Ihren',
+    thankYouAccent: 'Einkauf!',
+    subtitle: 'Ihr Einkauf wurde erfolgreich abgeschlossen.',
+    countdownLabel: (n) => `Automatische Weiterleitung in ${n} Sekunden`,
+    hint: 'Sie werden automatisch weitergeleitet.',
   },
 
   en: {
@@ -123,14 +132,12 @@ export const translations = {
     welcomeAccent: 'Scan?',
     instruction: "Just scan. That's Scanly.",
     start: 'Start',
+    paySub: 'Accepted methods: Maestro, Mastercard, Visa, etc.',
+    payText: 'Please pay for the following items',
     helpModalTitle: 'About Scanly',
     helpModalBody:
       'Scanly is your personal self-checkout assistant. Simply scan your items, place them in your bag, and pay – no queuing at the checkout required.',
-    helpSteps: [
-      'Scan items with the scanner',
-      'Place items in your bag',
-      'Print receipt & pay',
-    ],
+    helpSteps: ['Scan items with the scanner', 'Place items in your bag', 'Print receipt & pay'],
     helpModalCta: 'Got it',
     close: 'Close',
 
@@ -163,7 +170,7 @@ export const translations = {
     add: 'Add',
     done: 'Done',
     helpItems: [
-      'Scanner: just scan, <b>Enter</b> finishes the barcode.',
+      'Scanner: just scan',
       'Produce: select, enter weight, add.',
       'Bakery: tap to add.',
       'Cancel: empties the cart.',
@@ -175,12 +182,10 @@ export const translations = {
     retry: 'Retry',
     cameraPermissionDenied: 'Camera access denied',
     cameraNotAvailable: 'No camera detected',
-    barcodeNotSupported:
-      'Barcode scanning not supported in browser – please use hardware scanner.',
+    barcodeNotSupported: 'Barcode scanning not supported in browser – please use hardware scanner.',
     noCamera: 'No camera',
     produceCategory: 'Produce',
 
-    // Payback page
     paybackTitle: 'Pay with',
     paybackAccent: 'Payback?',
     paybackSubtitle: 'Scan your Payback card now or continue without.',
@@ -198,6 +203,12 @@ export const translations = {
     paybackInputInvalid: 'Please enter a valid card number.',
     paybackConfirm: 'Confirm',
     paybackBackToScanner: 'Back to scanner',
+    dialogLabel: 'Checkout complete',
+    thankYou: 'Thank you for your',
+    thankYouAccent: 'purchase!',
+    subtitle: 'Your purchase has been completed successfully.',
+    countdownLabel: (n) => `Automatic redirect in ${n} seconds`,
+    hint: 'You will be redirected automatically.',
   },
 
   it: {
@@ -206,6 +217,8 @@ export const translations = {
     welcomeAccent: 'Scansionare?',
     instruction: 'Scansiona e basta. Questo è Scanly.',
     start: 'Inizia',
+    payText: 'Si prega di pagare i seguenti articoli',
+    paySub: 'Metodi accettati: Maestro, Mastercard, Visa, ecc.',
     helpModalTitle: 'Informazioni su Scanly',
     helpModalBody:
       'Scanly è il Suo assistente personale per il self-checkout. Scansioni i Suoi articoli, li metta nella borsa e paghi – senza fare la fila alla cassa.',
@@ -246,7 +259,7 @@ export const translations = {
     add: 'Aggiungi',
     done: 'Fatto',
     helpItems: [
-      'Scanner: scansioni semplicemente, <b>Invio</b> termina il codice a barre.',
+      'Scanner: scansioni semplicemente',
       'Frutta/Verdura: selezionare, inserire il peso, aggiungere.',
       'Panetteria: toccare per aggiungere.',
       'Annulla: svuota il carrello.',
@@ -280,6 +293,12 @@ export const translations = {
     paybackInputInvalid: 'Inserire un numero di carta valido.',
     paybackConfirm: 'Conferma',
     paybackBackToScanner: 'Torna allo scanner',
+    dialogLabel: 'Pagamento completato',
+    thankYou: 'Grazie per il tuo',
+    thankYouAccent: 'acquisto!',
+    subtitle: 'Il tuo acquisto è stato completato con successo.',
+    countdownLabel: (n) => `Reindirizzamento automatico tra ${n} secondi`,
+    hint: 'Verrai reindirizzato automaticamente.',
   },
 
   ru: {
@@ -288,6 +307,8 @@ export const translations = {
     welcomeAccent: 'Сканированию?',
     instruction: 'Просто сканируйте. Это Scanly.',
     start: 'Старт',
+    payText: 'Пожалуйста, оплатите следующие товары',
+    paySub: 'Принимаемые способы оплаты: Maestro, Mastercard, Visa и др.',
     helpModalTitle: 'О приложении Scanly',
     helpModalBody:
       'Scanly — ваш персональный помощник для самостоятельной оплаты. Просто отсканируйте товары, положите их в пакет и оплатите покупку — без очереди на кассе.',
@@ -328,7 +349,7 @@ export const translations = {
     add: 'Добавить',
     done: 'Готово',
     helpItems: [
-      'Сканер: просто сканируйте, <b>Enter</b> завершает штрих-код.',
+      'Сканер: просто сканируйте',
       'Овощи/фрукты: выберите, введите вес, добавьте.',
       'Выпечка: нажмите для добавления.',
       'Отмена: очищает корзину.',
@@ -362,6 +383,12 @@ export const translations = {
     paybackInputInvalid: 'Введите корректный номер карты.',
     paybackConfirm: 'Подтвердить',
     paybackBackToScanner: 'Вернуться к сканеру',
+    dialogLabel: 'Оплата завершена',
+    thankYou: 'Спасибо за вашу',
+    thankYouAccent: 'покупку!',
+    subtitle: 'Ваша покупка успешно завершена.',
+    countdownLabel: (n) => `Автоматическое перенаправление через ${n} сек.`,
+    hint: 'Вы будете перенаправлены автоматически.',
   },
 }
 
@@ -381,8 +408,8 @@ export function useLanguage() {
     return val ?? key
   }
 
-  const currentLanguage = computed(() =>
-    languages.find((l) => l.code === currentLang.value) ?? languages[0]
+  const currentLanguage = computed(
+    () => languages.find((l) => l.code === currentLang.value) ?? languages[0],
   )
 
   return { currentLang, languages, t, tFn, setLanguage, currentLanguage }

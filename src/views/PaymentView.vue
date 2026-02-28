@@ -123,7 +123,7 @@
           <div class="modal-card modal-card--sm">
             <h3 class="modal-title">{{ t('helpTitle') }}</h3>
             <ul class="help-list">
-              <li v-for="(item, i) in helpItems" :key="i" v-html="item"></li>
+              <li v-for="(item, i) in helpPayment" :key="i">{{ item }}</li>
             </ul>
             <div class="modal-actions">
               <button class="modal-btn modal-btn--done" @click="closeModal">
@@ -174,9 +174,9 @@ const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
 
 const translations_local = allTranslations
 
-const helpItems = computed(() => {
-  const items = translations_local[currentLang.value]?.helpItems
-  return items ?? translations_local.de.helpItems
+const helpPayment = computed(() => {
+  const items = translations_local[currentLang.value]?.helpPayment
+  return items ?? translations_local.de.helpPayment
 })
 
 const status = ref('idle')
@@ -354,6 +354,8 @@ function showError(msg) {
 }
 
 function openHelp() {
+  console.log('lang', currentLang.value)
+  console.log('helpPayment', helpPayment.value)
   modal.value = 'help'
 }
 function toggleLanguage() {
@@ -459,8 +461,8 @@ body {
   position: absolute;
   inset: 0;
   background:
-  radial-gradient(600px 400px at 65% 45%, rgba(24,231,242,0.14), transparent 60%),
-  radial-gradient(900px 600px at 50% 70%, rgba(24,231,242,0.08), transparent 70%);
+    radial-gradient(600px 400px at 65% 45%, rgba(24, 231, 242, 0.14), transparent 60%),
+    radial-gradient(900px 600px at 50% 70%, rgba(24, 231, 242, 0.08), transparent 70%);
   pointer-events: none;
   z-index: -1;
   filter: blur(8px);
@@ -657,9 +659,9 @@ body {
 
 .cart-item:hover {
   border-color: var(--stroke);
-  background: rgba(0,0,0,0.14);
+  background: rgba(0, 0, 0, 0.14);
   transform: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .ci-left {
@@ -917,7 +919,7 @@ body {
 
 .hero-sub {
   font-size: 14px;
-  color: rgba(255,255,255,0.78);
+  color: rgba(255, 255, 255, 0.78);
   font-weight: 600;
   margin-top: 8px;
   gap: 4px;
@@ -1036,24 +1038,25 @@ body {
   font-size: 16px;
   padding: 15px 38px;
   box-shadow:
-  0 0 0 1px rgba(24,231,242,0.35),
-  0 12px 28px rgba(24,231,242,0.28),
-  0 30px 60px rgba(24,231,242,0.18);
+    0 0 0 1px rgba(24, 231, 242, 0.35),
+    0 12px 28px rgba(24, 231, 242, 0.28),
+    0 30px 60px rgba(24, 231, 242, 0.18);
   animation: pay-pulse 3s ease-in-out infinite;
 }
 
 @keyframes pay-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
-      0 0 0 1px rgba(24,231,242,0.35),
-      0 12px 28px rgba(24,231,242,0.28),
-      0 30px 60px rgba(24,231,242,0.18);
+      0 0 0 1px rgba(24, 231, 242, 0.35),
+      0 12px 28px rgba(24, 231, 242, 0.28),
+      0 30px 60px rgba(24, 231, 242, 0.18);
   }
   50% {
     box-shadow:
-      0 0 0 1px rgba(24,231,242,0.45),
-      0 16px 36px rgba(24,231,242,0.35),
-      0 36px 70px rgba(24,231,242,0.22);
+      0 0 0 1px rgba(24, 231, 242, 0.45),
+      0 16px 36px rgba(24, 231, 242, 0.35),
+      0 36px 70px rgba(24, 231, 242, 0.22);
   }
 }
 
@@ -1097,7 +1100,7 @@ body {
   padding: 25px 51px;
   font-size: 14px;
   border-radius: 20px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   opacity: 0.85;
 }
 

@@ -663,9 +663,9 @@ async function pay() {
   closeModal()
   stopCamera()
 
-  await new Promise((r) => setTimeout(r, 900))
+  await new Promise((r) => setTimeout(r, 400))
   status.value = 'paid'
-  await new Promise((r) => setTimeout(r, 900))
+  await new Promise((r) => setTimeout(r, 400))
 
   status.value = 'idle'
   router.push('/payback')

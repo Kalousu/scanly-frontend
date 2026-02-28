@@ -64,7 +64,7 @@ export const translations = {
     produce: 'Gemüse / Obst',
     bakery: 'Backwaren',
     cancel: 'Abbrechen',
-    pay: 'Zahlen',
+    pay: 'Weiter',
     weightLabel: 'Gewicht (kg)',
     helpTitle: 'Hilfe',
     langTitle: 'Sprache wählen',
@@ -88,6 +88,13 @@ export const translations = {
       'Gemüse/Obst: auswählen, Gewicht eingeben, hinzufügen.',
       'Backwaren: antippen zum Hinzufügen.',
       'Abbrechen: Warenkorb wird geleert.',
+    ],
+
+    helpPayment: [
+      'Warenkorb: Übersicht der ausgewählten Produkte',
+      'Weiter: Auf Weiter drücken um fortzufahren',
+      'Akzeptiert wird: Maestro, MasterCard, Visa, Alipay etc.',
+      'Abbrechen: Warenkorb wird geleert',
     ],
 
     cameraLoading: 'Kamera startet...',
@@ -158,7 +165,7 @@ export const translations = {
     produce: 'Produce',
     bakery: 'Bakery',
     cancel: 'Cancel',
-    pay: 'Pay',
+    pay: 'Continue',
     weightLabel: 'Weight (kg)',
     helpTitle: 'Help',
     langTitle: 'Select Language',
@@ -174,6 +181,13 @@ export const translations = {
       'Produce: select, enter weight, add.',
       'Bakery: tap to add.',
       'Cancel: empties the cart.',
+    ],
+
+    helpPayment: [
+      'Cart: Overview of the selected products',
+      'Continue: Press Continue to proceed',
+      'Accepted: Maestro, MasterCard, Visa, Alipay etc.',
+      'Cancel: The cart will be emptied',
     ],
 
     cameraLoading: 'Starting camera...',
@@ -247,7 +261,7 @@ export const translations = {
     produce: 'Frutta e Verdura',
     bakery: 'Panetteria',
     cancel: 'Annulla',
-    pay: 'Paga',
+    pay: 'Continua',
     weightLabel: 'Peso (kg)',
     helpTitle: 'Assistenza',
     langTitle: 'Seleziona lingua',
@@ -263,6 +277,13 @@ export const translations = {
       'Frutta/Verdura: selezionare, inserire il peso, aggiungere.',
       'Panetteria: toccare per aggiungere.',
       'Annulla: svuota il carrello.',
+    ],
+
+    helpPayment: [
+      'Carrello: Panoramica dei prodotti selezionati',
+      'Continua: Premere Continua per procedere',
+      'Accettati: Maestro, MasterCard, Visa, Alipay ecc.',
+      'Annulla: Il carrello viene svuotato',
     ],
 
     cameraLoading: 'Avvio fotocamera...',
@@ -337,7 +358,7 @@ export const translations = {
     produce: 'Овощи и фрукты',
     bakery: 'Выпечка',
     cancel: 'Отмена',
-    pay: 'Оплатить',
+    pay: 'Продолжить',
     weightLabel: 'Вес (кг)',
     helpTitle: 'Помощь',
     langTitle: 'Выбор языка',
@@ -353,6 +374,13 @@ export const translations = {
       'Овощи/фрукты: выберите, введите вес, добавьте.',
       'Выпечка: нажмите для добавления.',
       'Отмена: очищает корзину.',
+    ],
+
+    helpPayment: [
+      'Корзина: Обзор выбранных товаров',
+      'Продолжить: Нажмите Продолжить, чтобы перейти далее',
+      'Принимаются: Maestro, MasterCard, Visa, Alipay и т.д.',
+      'Отмена: Корзина будет очищена',
     ],
 
     cameraLoading: 'Запуск камеры...',

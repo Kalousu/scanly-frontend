@@ -39,9 +39,13 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useLanguage } from '../components/Uselanguage'
+import { useCartStore } from '../stores/cart'
 
 const router = useRouter();
+const cartStore = useCartStore();
 const { t, tFn } = useLanguage()
+
+cartStore.clearCart();
 const countdown = ref(5);
 
 let timer = null;

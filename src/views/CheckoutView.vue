@@ -251,7 +251,7 @@
                 v-for="b in bakeryCatalog"
                 :key="b.sku"
                 class="product-card"
-                @click="addItem(b); closeModal()"
+                @click="(addItem(b), closeModal())"
               >
                 <div class="product-name">{{ getItemName(b) }}</div>
                 <div class="product-price">{{ formatPrice(b.price) }}</div>
@@ -288,9 +288,7 @@
                 :key="lang.code"
                 class="lang-btn"
                 :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="
-                  setLanguage(lang.code); closeModal()
-                "
+                @click="(setLanguage(lang.code), closeModal())"
               >
                 <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
                 <span class="lang-label">{{ lang.label }}</span>
@@ -351,25 +349,25 @@ let scanInterval = null
 let scanCooldown = false
 
 const catalogByBarcode = {
-  123456789: {
+  4004980401907: {
     sku: '123456789',
     name: { de: 'Wasser', en: 'Water', it: 'Acqua', ru: 'Вода' },
     price: 0.79,
     category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
   },
-  123450000: {
+  4066447439120: {
     sku: '123450000',
     name: { de: 'Schokolade', en: 'Chocolate', it: 'Cioccolato', ru: 'Шоколад' },
     price: 1.29,
     category: { de: 'Süßwaren', en: 'Sweets', it: 'Dolci', ru: 'Сладости' },
   },
-  129999999: {
+  9783551317322: {
     sku: '129999999',
     name: { de: 'Milch', en: 'Milk', it: 'Latte', ru: 'Молоко' },
     price: 1.19,
     category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
   },
-  111111111: {
+  4014663831433: {
     sku: '111111111',
     name: { de: 'Brot', en: 'Bread', it: 'Pane', ru: 'Хлеб' },
     price: 1.99,
@@ -593,21 +591,20 @@ function handleKeydown(e) {
   if (tag === 'input' || tag === 'textarea') return
   if (modal.value) return
 
-  if (cameraActive.value && barcodeSupported.value === true) return
-
   if (scanTimer) window.clearTimeout(scanTimer)
 
   if (e.key === 'Enter') {
-    const code = scanBuffer.value.trim()
+    const code = scanBuffer.value.trim().replace(/\D/g, '')
     scanBuffer.value = ''
     if (code) onBarcodeScanned(code)
     return
   }
 
   if (e.key.length === 1) scanBuffer.value += e.key
+
   scanTimer = window.setTimeout(() => {
     scanBuffer.value = ''
-  }, 120)
+  }, 350)
 }
 
 function onBarcodeScanned(code) {
@@ -773,7 +770,7 @@ function startBarcodeScanning() {
         }, 1500)
       }
     } catch {
-      /* xycyxcyxv */
+      /* ignore detection errors */
     }
   }, 250)
 }

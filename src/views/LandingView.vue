@@ -78,13 +78,23 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import HelpModal from '../components/HelpModal.vue'
 import { useLanguage, translations } from '../components/Uselanguage'
+import { useCartStore } from '../stores/cart'
+import api from '@/services/api'
 
 const router = useRouter()
+const cartStore = useCartStore()
 const { currentLang, languages, t, setLanguage } = useLanguage()
 
 const isHelpOpen = ref(false)
 
-function onStart() {
+async function onStart() {
+  try {
+    const response = await api.post('/orders')
+    console.log('POST /api/orders Response:', response.data)
+    cartStore.orderId = response.data.id ?? response.data.orderId ?? response.data
+  } catch (error) {
+    console.error('POST /api/orders Error:', error)
+  }
   router.push('/checkout')
 }
 </script>

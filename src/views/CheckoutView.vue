@@ -4,7 +4,7 @@
 
     <div class="layout">
       <aside class="panel cart-panel">
-        <div v-if="cart.length === 0" class="empty-state">
+        <div v-if="orderItems.length === 0" class="empty-state">
           <h2 class="empty-title">{{ t('emptyTitle') }}</h2>
           <p class="empty-hint">{{ t('emptyHint') }}</p>
         </div>
@@ -19,57 +19,29 @@
           </div>
 
           <div class="cart-items">
-            <div v-for="item in cart" :key="item.lineId" class="cart-item">
+            <div v-for="item in orderItems" :key="item.id" class="cart-item">
               <div class="ci-accent"></div>
               <div class="ci-left">
-                <div class="ci-name">{{ getLocalizedName(item) }}</div>
+                <div class="ci-name">{{ item.productName }}</div>
                 <div class="ci-meta">
-                  <span v-if="item.sku"
-                    >SKU: {{ item.sku }} · {{ getLocalizedCategory(item) }}</span
-                  >
-                  <span v-else>{{ getLocalizedCategory(item) }}</span>
+                  <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round((item.taxRate - 1) * 100) }}%</span>
                 </div>
               </div>
 
               <div class="ci-right">
-                <div class="ci-price">{{ formatPrice(item.price) }}</div>
+                <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
 
                 <div class="ci-qty">
-                  <button class="qty-btn" @click="dec(item)">−</button>
-                  <span class="qty-val">{{ item.qty }}</span>
-                  <button class="qty-btn" @click="inc(item)">+</button>
+                  <span class="qty-val">{{ item.amount }}×</span>
                 </div>
-
-                <button
-                  class="remove-btn"
-                  @click="removeLine(item.lineId)"
-                  :aria-label="t('cancel')"
-                >
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <path
-                      d="M1 1l9 9M10 1L1 10"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"
-                    />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>
 
           <div class="totals">
-            <div class="totals-row">
-              <span>{{ t('subtotal') }}</span>
-              <span>{{ formatPrice(subtotal) }}</span>
-            </div>
-            <div class="totals-row totals-vat" v-if="vatEnabled">
-              <span>{{ tFn('vat', vatRate) }}</span>
-              <span>{{ formatPrice(vatAmount) }}</span>
-            </div>
             <div class="totals-row totals-total">
               <span>{{ t('total') }}</span>
-              <span class="totals-total-value">{{ formatPrice(total) }}</span>
+              <span class="totals-total-value">{{ formatPrice(orderTotalPrice) }}</span>
             </div>
           </div>
         </div>
@@ -168,7 +140,7 @@
             </button>
             <button
               class="btn btn--pay"
-              :disabled="cart.length === 0 || status === 'paying'"
+              :disabled="orderItems.length === 0 || status === 'paying'"
               @click="pay"
             >
               <span v-if="status === 'paying'" class="spinner"></span>
@@ -251,7 +223,7 @@
                 v-for="b in bakeryCatalog"
                 :key="b.sku"
                 class="product-card"
-                @click="(addItem(b), closeModal())"
+                @click="addItem(b); closeModal()"
               >
                 <div class="product-name">{{ getItemName(b) }}</div>
                 <div class="product-price">{{ formatPrice(b.price) }}</div>
@@ -288,7 +260,9 @@
                 :key="lang.code"
                 class="lang-btn"
                 :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="(setLanguage(lang.code), closeModal())"
+                @click="
+                  setLanguage(lang.code); closeModal()
+                "
               >
                 <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
                 <span class="lang-label">{{ lang.label }}</span>
@@ -313,6 +287,7 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
+import api from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -332,7 +307,8 @@ const cameraNoDevice = ref(false)
 const vatEnabled = ref(false)
 const vatRate = ref(19)
 
-const { items: cart } = storeToRefs(cartStore)
+const orderItems = ref([])
+const orderTotalPrice = ref(0)
 
 const scanBuffer = ref('')
 let scanTimer = null
@@ -348,68 +324,6 @@ let barcodeDetector = null
 let scanInterval = null
 let scanCooldown = false
 
-const catalogByBarcode = {
-  4004980401907: {
-    sku: '123456789',
-    name: { de: 'Wasser', en: 'Water', it: 'Acqua', ru: 'Вода' },
-    price: 0.79,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-  4066447439120: {
-    sku: '123450000',
-    name: { de: 'Schokolade', en: 'Chocolate', it: 'Cioccolato', ru: 'Шоколад' },
-    price: 1.29,
-    category: { de: 'Süßwaren', en: 'Sweets', it: 'Dolci', ru: 'Сладости' },
-  },
-  9783551317322: {
-    sku: '129999999',
-    name: { de: 'Milch', en: 'Milk', it: 'Latte', ru: 'Молоко' },
-    price: 1.19,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  4014663831433: {
-    sku: '111111111',
-    name: { de: 'Brot', en: 'Bread', it: 'Pane', ru: 'Хлеб' },
-    price: 1.99,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  222222222: {
-    sku: '222222222',
-    name: { de: 'Butter', en: 'Butter', it: 'Burro', ru: 'Масло' },
-    price: 1.49,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  333333333: {
-    sku: '333333333',
-    name: { de: 'Käse', en: 'Cheese', it: 'Formaggio', ru: 'Сыр' },
-    price: 2.99,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  444444444: {
-    sku: '444444444',
-    name: { de: 'Joghurt', en: 'Yogurt', it: 'Yogurt', ru: 'Йогурт' },
-    price: 0.99,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  555555555: {
-    sku: '555555555',
-    name: { de: 'Apfelsaft', en: 'Apple Juice', it: 'Succo di Mela', ru: 'Яблочный сок' },
-    price: 1.79,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-  666666666: {
-    sku: '666666666',
-    name: { de: 'Chips', en: 'Chips', it: 'Patatine', ru: 'Чипсы' },
-    price: 1.99,
-    category: { de: 'Snacks', en: 'Snacks', it: 'Snack', ru: 'Снеки' },
-  },
-  777777777: {
-    sku: '777777777',
-    name: { de: 'Cola', en: 'Cola', it: 'Cola', ru: 'Кола' },
-    price: 1.59,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-}
 
 const produceCatalog = ref([
   {
@@ -494,9 +408,6 @@ const weightKg = ref(0.25)
 const errorMessage = ref('')
 let errorTimeout = null
 
-const subtotal = computed(() => cartStore.subtotal)
-const vatAmount = computed(() => (vatEnabled.value ? subtotal.value * (vatRate.value / 100) : 0))
-const total = computed(() => subtotal.value + vatAmount.value)
 
 function round2(n) {
   return Math.round(n * 100) / 100
@@ -591,34 +502,60 @@ function handleKeydown(e) {
   if (tag === 'input' || tag === 'textarea') return
   if (modal.value) return
 
+  if (cameraActive.value && barcodeSupported.value === true) return
+
   if (scanTimer) window.clearTimeout(scanTimer)
 
   if (e.key === 'Enter') {
-    const code = scanBuffer.value.trim().replace(/\D/g, '')
+    const code = scanBuffer.value.trim()
     scanBuffer.value = ''
     if (code) onBarcodeScanned(code)
     return
   }
 
   if (e.key.length === 1) scanBuffer.value += e.key
-
   scanTimer = window.setTimeout(() => {
     scanBuffer.value = ''
   }, 350)
 }
 
-function onBarcodeScanned(code) {
+async function fetchOrder() {
+  if (!cartStore.orderId) return
+  try {
+    const response = await api.get(`/orders/${cartStore.orderId}`)
+    console.log(`GET /api/orders/${cartStore.orderId} Response:`, response.data)
+    orderItems.value = response.data.orderItems || []
+    orderTotalPrice.value = response.data.totalPrice || 0
+  } catch (error) {
+    console.error(`GET /api/orders/${cartStore.orderId} Error:`, error)
+  }
+}
+
+async function onBarcodeScanned(code) {
   status.value = 'scanning'
-  const item = catalogByBarcode[code]
-  if (!item) {
-    showError(`${t('error')} (${code})`)
+
+  if (!cartStore.orderId) {
+    showError(`${t('error')} - Keine Order vorhanden`)
     status.value = 'idle'
     return
   }
-  setTimeout(() => {
-    addItem(item)
+
+  try {
+    await api.post(`/orders/${cartStore.orderId}/items`, {
+      code: code,
+      amount: 1,
+    })
+    console.log(`POST /api/orders/${cartStore.orderId}/items - code: ${code}`)
+
+    // Order neu laden um aktuelle Items und Preise zu bekommen
+    await fetchOrder()
     status.value = 'idle'
-  }, 300)
+  } catch (error) {
+    console.error(`POST /api/orders/${cartStore.orderId}/items Error:`, error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`${t('error')} (${code}): ${errorMsg}`)
+    status.value = 'idle'
+  }
 }
 
 function showError(msg) {
@@ -655,7 +592,7 @@ function cancel() {
 }
 
 async function pay() {
-  if (cart.value.length === 0) return
+  if (orderItems.value.length === 0) return
   status.value = 'paying'
   closeModal()
   stopCamera()

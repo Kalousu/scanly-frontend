@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
+  const orderId = ref(null)
   const vatEnabled = ref(false)
   const vatRate = ref(19)
   const language = ref('de')
@@ -74,6 +75,7 @@ export const useCartStore = defineStore('cart', () => {
 
   return {
     items,
+    orderId,
     vatEnabled,
     vatRate,
     language,

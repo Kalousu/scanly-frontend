@@ -8,4 +8,14 @@ const api = axios.create({
   },
 })
 
+export const fetchBakeryProducts = async () => {
+  const response = await api.get('/products/category/BAKERY')
+  return response.data
+}
+
+export const fetchFruitsAndVegetables = async () => {
+  const response = await api.get('/products/category/FRUITS_VEGETABLES')
+  return response.data
+}
+
 export default api

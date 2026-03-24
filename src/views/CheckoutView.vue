@@ -161,7 +161,10 @@
               </div>
             </div>
 
-            <div class="product-grid">
+            <div v-if="produceLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
+              <div class="spinner-ring"></div>
+            </div>
+            <div v-else class="product-grid">
               <button
                 v-for="p in produceCatalog"
                 :key="p.sku"
@@ -218,21 +221,46 @@
               </div>
             </div>
 
-            <div class="product-grid">
+            <div v-if="bakeryLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
+              <div class="spinner-ring"></div>
+            </div>
+            <div v-else class="product-grid">
               <button
                 v-for="b in bakeryCatalog"
                 :key="b.sku"
                 class="product-card"
-                @click="addItem(b); closeModal()"
+                :class="{ 'product-card--selected': selectedBakery?.sku === b.sku }"
+                @click="selectBakeryItem(b)"
               >
                 <div class="product-name">{{ getItemName(b) }}</div>
                 <div class="product-price">{{ formatPrice(b.price) }}</div>
               </button>
             </div>
 
+            <div v-if="selectedBakery" class="weight-row">
+              <label class="weight-label">{{ t('amount') }}</label>
+              <div class="bakery-qty-picker">
+                <button class="qty-btn" @click="bakeryAmount > 1 && bakeryAmount--">−</button>
+                <span class="qty-val bakery-qty-val">{{ bakeryAmount }}</span>
+                <button class="qty-btn" @click="bakeryAmount++">+</button>
+              </div>
+              <span class="weight-preview">= {{ formatPrice(selectedBakery.price * bakeryAmount) }}</span>
+            </div>
+
             <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">{{ t('back') }}</button>
-              <button class="modal-btn modal-btn--done" @click="closeModal">{{ t('done') }}</button>
+              <button
+                class="modal-btn modal-btn--back"
+                @click="selectedBakery ? (selectedBakery = null) : closeModal()"
+              >
+                {{ t('back') }}
+              </button>
+              <button
+                class="modal-btn modal-btn--done"
+                :disabled="!selectedBakery"
+                @click="confirmBakeryItem"
+              >
+                {{ t('add') }}
+              </button>
             </div>
           </div>
         </div>
@@ -287,7 +315,7 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
-import api from '@/services/api'
+import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -325,83 +353,13 @@ let scanInterval = null
 let scanCooldown = false
 
 
-const produceCatalog = ref([
-  {
-    sku: 'PLU-APL',
-    name: { de: 'Apfel', en: 'Apple', it: 'Mela', ru: 'Яблоко' },
-    pricePerKg: 2.49,
-  },
-  {
-    sku: 'PLU-BAN',
-    name: { de: 'Banane', en: 'Banana', it: 'Banana', ru: 'Банан' },
-    pricePerKg: 1.99,
-  },
-  {
-    sku: 'PLU-TOM',
-    name: { de: 'Tomate', en: 'Tomato', it: 'Pomodoro', ru: 'Помидор' },
-    pricePerKg: 3.29,
-  },
-  {
-    sku: 'PLU-GUR',
-    name: { de: 'Gurke', en: 'Cucumber', it: 'Cetriolo', ru: 'Огурец' },
-    pricePerKg: 1.79,
-  },
-  {
-    sku: 'PLU-MOE',
-    name: { de: 'Möhren', en: 'Carrots', it: 'Carote', ru: 'Морковь' },
-    pricePerKg: 2.19,
-  },
-  {
-    sku: 'PLU-PAP',
-    name: { de: 'Paprika', en: 'Pepper', it: 'Peperone', ru: 'Перец' },
-    pricePerKg: 4.49,
-  },
-  { sku: 'PLU-BIR', name: { de: 'Birne', en: 'Pear', it: 'Pera', ru: 'Груша' }, pricePerKg: 2.99 },
-  {
-    sku: 'PLU-ORI',
-    name: { de: 'Orange', en: 'Orange', it: 'Arancia', ru: 'Апельсин' },
-    pricePerKg: 2.29,
-  },
-])
+const produceCatalog = ref([])
+const produceLoading = ref(false)
 
-const bakeryCatalog = ref([
-  {
-    sku: 'BAK-CRO',
-    name: { de: 'Croissant', en: 'Croissant', it: 'Cornetto', ru: 'Круассан' },
-    price: 0.99,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-BRO',
-    name: { de: 'Brötchen', en: 'Roll', it: 'Panino', ru: 'Булочка' },
-    price: 0.39,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-BRE',
-    name: { de: 'Brezel', en: 'Pretzel', it: 'Bretzel', ru: 'Крендель' },
-    price: 0.89,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-SEM',
-    name: { de: 'Semmel', en: 'Bread Roll', it: 'Semola', ru: 'Семмель' },
-    price: 0.35,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-MI',
-    name: { de: 'Milchbrötchen', en: 'Milk Roll', it: 'Panino al latte', ru: 'Молочная булочка' },
-    price: 0.65,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-WE',
-    name: { de: 'Weizenbrot', en: 'Wheat Bread', it: 'Pane di frumento', ru: 'Пшеничный хлеб' },
-    price: 2.49,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-])
+const bakeryCatalog = ref([])
+const bakeryLoading = ref(false)
+const selectedBakery = ref(null)
+const bakeryAmount = ref(1)
 
 const selectedProduce = ref(null)
 const weightKg = ref(0.25)
@@ -454,28 +412,57 @@ function addItem(item) {
   })
 }
 
+function selectBakeryItem(item) {
+  selectedBakery.value = item
+  bakeryAmount.value = 1
+}
+
+async function confirmBakeryItem() {
+  if (!selectedBakery.value) return
+  if (!cartStore.orderId) {
+    showError('Keine Order vorhanden')
+    return
+  }
+  try {
+    await api.post(`/orders/${cartStore.orderId}/items`, {
+      code: selectedBakery.value.sku,
+      amount: bakeryAmount.value,
+    })
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Hinzufügen der Backware:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
+  selectedBakery.value = null
+  bakeryAmount.value = 1
+  closeModal()
+}
+
 function addWeighted(p) {
   selectedProduce.value = p
   weightKg.value = 0.25
 }
 
-function confirmWeighted() {
+async function confirmWeighted() {
   if (!selectedProduce.value) return
   const kg = Number(weightKg.value)
   if (!Number.isFinite(kg) || kg <= 0) return
-  status.value = 'idle'
-  const linePrice = selectedProduce.value.pricePerKg * kg
-  const itemName = getLocalizedName(selectedProduce.value)
-  const categoryName = t('produceCategory')
-  cartStore.addWeighted(
-    {
-      sku: selectedProduce.value.sku,
-      name: `${itemName} (${kg.toFixed(2)} kg)`,
-      category: categoryName,
-      price: round2(linePrice),
-    },
-    kg,
-  )
+  if (!cartStore.orderId) {
+    showError('Keine Order vorhanden')
+    return
+  }
+  try {
+    await api.post(`/orders/${cartStore.orderId}/items`, {
+      code: selectedProduce.value.sku,
+      amount: kg,
+    })
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Hinzufügen des Produkts:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
   selectedProduce.value = null
   weightKg.value = 0.25
   closeModal()
@@ -572,11 +559,49 @@ function openHelp() {
 function toggleLanguage() {
   modal.value = 'lang'
 }
-function openProduce() {
+async function openProduce() {
   modal.value = 'produce'
+  selectedProduce.value = null
+  weightKg.value = 0.25
+  if (produceCatalog.value.length === 0) {
+    produceLoading.value = true
+    try {
+      const products = await fetchFruitsAndVegetables()
+      produceCatalog.value = products.map((p) => ({
+        sku: p.code,
+        name: p.name,
+        pricePerKg: p.price,
+        category: p.category,
+      }))
+    } catch (err) {
+      console.error('Fehler beim Laden der Produkte:', err)
+      showError('Produkte konnten nicht geladen werden.')
+    } finally {
+      produceLoading.value = false
+    }
+  }
 }
-function openBakery() {
+async function openBakery() {
   modal.value = 'bakery'
+  selectedBakery.value = null
+  bakeryAmount.value = 1
+  if (bakeryCatalog.value.length === 0) {
+    bakeryLoading.value = true
+    try {
+      const products = await fetchBakeryProducts()
+      bakeryCatalog.value = products.map((p) => ({
+        sku: p.code,
+        name: p.name,
+        price: p.price,
+        category: p.category,
+      }))
+    } catch (err) {
+      console.error('Fehler beim Laden der Backwaren:', err)
+      showError('Backwaren konnten nicht geladen werden.')
+    } finally {
+      bakeryLoading.value = false
+    }
+  }
 }
 function closeModal() {
   modal.value = null
@@ -1914,5 +1939,38 @@ body {
 
 .lang-btn--active .lang-code {
   color: var(--cyan);
+}
+
+.bakery-qty-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+
+.bakery-qty-picker .qty-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--stroke);
+}
+
+.bakery-qty-picker .qty-btn:hover {
+  color: var(--cyan);
+  background: rgba(24, 231, 242, 0.12);
+  border-color: rgba(24, 231, 242, 0.3);
+}
+
+.bakery-qty-val {
+  min-width: 32px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
 }
 </style>

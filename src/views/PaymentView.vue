@@ -268,15 +268,25 @@ function cancel() {
 async function pay() {
   if (orderItems.value.length === 0) return
   if (status.value === 'paying') return
+  if (!cartStore.orderId) {
+    showError('Keine Order vorhanden')
+    return
+  }
 
   status.value = 'paying'
   closeModal()
 
-  await new Promise((r) => setTimeout(r, 900))
-  status.value = 'paid'
-
-  await new Promise((r) => setTimeout(r, 900))
-  router.push('/summary')
+  try {
+    await api.post(`/orders/${cartStore.orderId}/checkout`, { paymentMethod: 'Card' })
+    status.value = 'paid'
+    await new Promise((r) => setTimeout(r, 900))
+    router.push('/summary')
+  } catch (error) {
+    console.error('Checkout-Fehler:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Checkout fehlgeschlagen: ${errorMsg}`)
+    status.value = 'idle'
+  }
 }
 
 async function fetchOrder() {

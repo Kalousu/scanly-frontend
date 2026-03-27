@@ -4,7 +4,7 @@
 
     <div class="layout">
       <aside class="panel cart-panel">
-        <div v-if="cart.length === 0" class="empty-state">
+        <div v-if="orderItems.length === 0" class="empty-state">
           <h2 class="empty-title">{{ t('emptyTitle') }}</h2>
           <p class="empty-hint">{{ t('emptyHint') }}</p>
         </div>
@@ -19,39 +19,30 @@
           </div>
 
           <div class="cart-items">
-            <div v-for="item in cart" :key="item.lineId" class="cart-item">
+            <div v-for="item in orderItems" :key="item.id" class="cart-item">
               <div class="ci-accent"></div>
               <div class="ci-left">
-                <div class="ci-name">{{ getLocalizedName(item) }}</div>
+                <div class="ci-name">{{ item.productName }}</div>
                 <div class="ci-meta">
-                  <span v-if="item.sku"
-                    >SKU: {{ item.sku }} · {{ getLocalizedCategory(item) }}</span
-                  >
-                  <span v-else>{{ getLocalizedCategory(item) }}</span>
+                  <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round((item.taxRate - 1) * 100) }}%</span>
                 </div>
               </div>
 
               <div class="ci-right">
-                <div class="ci-price">{{ formatPrice(item.price) }}</div>
+                <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
 
                 <div class="ci-qty">
-                  <button class="qty-btn" @click="dec(item)">−</button>
-                  <span class="qty-val">{{ item.qty }}</span>
-                  <button class="qty-btn" @click="inc(item)">+</button>
+                  <button class="qty-btn" @click="updateItemQuantity(item, -1)">−</button>
+                  <span class="qty-val">{{ item.amount }}</span>
+                  <button class="qty-btn" @click="updateItemQuantity(item, 1)">+</button>
                 </div>
 
-                <button
-                  class="remove-btn"
-                  @click="removeLine(item.lineId)"
-                  :aria-label="t('cancel')"
-                >
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <path
-                      d="M1 1l9 9M10 1L1 10"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"
-                    />
+                <button class="delete-btn" title="Artikel entfernen" @click="confirmDeleteItem = item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
                   </svg>
                 </button>
               </div>
@@ -59,17 +50,9 @@
           </div>
 
           <div class="totals">
-            <div class="totals-row">
-              <span>{{ t('subtotal') }}</span>
-              <span>{{ formatPrice(subtotal) }}</span>
-            </div>
-            <div class="totals-row totals-vat" v-if="vatEnabled">
-              <span>{{ tFn('vat', vatRate) }}</span>
-              <span>{{ formatPrice(vatAmount) }}</span>
-            </div>
             <div class="totals-row totals-total">
               <span>{{ t('total') }}</span>
-              <span class="totals-total-value">{{ formatPrice(total) }}</span>
+              <span class="totals-total-value">{{ formatPrice(orderTotalPrice) }}</span>
             </div>
           </div>
         </div>
@@ -168,7 +151,7 @@
             </button>
             <button
               class="btn btn--pay"
-              :disabled="cart.length === 0 || status === 'paying'"
+              :disabled="orderItems.length === 0 || status === 'paying'"
               @click="pay"
             >
               <span v-if="status === 'paying'" class="spinner"></span>
@@ -189,7 +172,10 @@
               </div>
             </div>
 
-            <div class="product-grid">
+            <div v-if="produceLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
+              <div class="spinner-ring"></div>
+            </div>
+            <div v-else class="product-grid">
               <button
                 v-for="p in produceCatalog"
                 :key="p.sku"
@@ -246,21 +232,46 @@
               </div>
             </div>
 
-            <div class="product-grid">
+            <div v-if="bakeryLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
+              <div class="spinner-ring"></div>
+            </div>
+            <div v-else class="product-grid">
               <button
                 v-for="b in bakeryCatalog"
                 :key="b.sku"
                 class="product-card"
-                @click="(addItem(b), closeModal())"
+                :class="{ 'product-card--selected': selectedBakery?.sku === b.sku }"
+                @click="selectBakeryItem(b)"
               >
                 <div class="product-name">{{ getItemName(b) }}</div>
                 <div class="product-price">{{ formatPrice(b.price) }}</div>
               </button>
             </div>
 
+            <div v-if="selectedBakery" class="weight-row">
+              <label class="weight-label">{{ t('amount') }}</label>
+              <div class="bakery-qty-picker">
+                <button class="qty-btn" @click="bakeryAmount > 1 && bakeryAmount--">−</button>
+                <span class="qty-val bakery-qty-val">{{ bakeryAmount }}</span>
+                <button class="qty-btn" @click="bakeryAmount++">+</button>
+              </div>
+              <span class="weight-preview">= {{ formatPrice(selectedBakery.price * bakeryAmount) }}</span>
+            </div>
+
             <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">{{ t('back') }}</button>
-              <button class="modal-btn modal-btn--done" @click="closeModal">{{ t('done') }}</button>
+              <button
+                class="modal-btn modal-btn--back"
+                @click="selectedBakery ? (selectedBakery = null) : closeModal()"
+              >
+                {{ t('back') }}
+              </button>
+              <button
+                class="modal-btn modal-btn--done"
+                :disabled="!selectedBakery"
+                @click="confirmBakeryItem"
+              >
+                {{ t('add') }}
+              </button>
             </div>
           </div>
         </div>
@@ -288,7 +299,9 @@
                 :key="lang.code"
                 class="lang-btn"
                 :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="(setLanguage(lang.code), closeModal())"
+                @click="
+                  setLanguage(lang.code); closeModal()
+                "
               >
                 <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
                 <span class="lang-label">{{ lang.label }}</span>
@@ -304,6 +317,33 @@
         </div>
       </main>
     </div>
+
+    <Teleport to="body">
+      <div v-if="confirmDeleteItem" class="delete-overlay" @click.self="confirmDeleteItem = null">
+        <div class="delete-confirm-card">
+          <div class="delete-confirm-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </div>
+          <h3 class="delete-confirm-title">Produkt löschen</h3>
+          <p class="delete-confirm-text">
+            Wollen Sie <strong>{{ confirmDeleteItem.productName }}</strong> wirklich löschen?
+          </p>
+          <div class="delete-confirm-actions">
+            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="confirmDeleteItem = null">
+              Abbrechen
+            </button>
+            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="deleteItem">
+              Löschen
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -313,6 +353,7 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
+import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -332,7 +373,8 @@ const cameraNoDevice = ref(false)
 const vatEnabled = ref(false)
 const vatRate = ref(19)
 
-const { items: cart } = storeToRefs(cartStore)
+const orderItems = ref([])
+const orderTotalPrice = ref(0)
 
 const scanBuffer = ref('')
 let scanTimer = null
@@ -348,155 +390,21 @@ let barcodeDetector = null
 let scanInterval = null
 let scanCooldown = false
 
-const catalogByBarcode = {
-  4004980401907: {
-    sku: '123456789',
-    name: { de: 'Wasser', en: 'Water', it: 'Acqua', ru: 'Вода' },
-    price: 0.79,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-  4066447439120: {
-    sku: '123450000',
-    name: { de: 'Schokolade', en: 'Chocolate', it: 'Cioccolato', ru: 'Шоколад' },
-    price: 1.29,
-    category: { de: 'Süßwaren', en: 'Sweets', it: 'Dolci', ru: 'Сладости' },
-  },
-  9783551317322: {
-    sku: '129999999',
-    name: { de: 'Milch', en: 'Milk', it: 'Latte', ru: 'Молоко' },
-    price: 1.19,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  4014663831433: {
-    sku: '111111111',
-    name: { de: 'Brot', en: 'Bread', it: 'Pane', ru: 'Хлеб' },
-    price: 1.99,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  222222222: {
-    sku: '222222222',
-    name: { de: 'Butter', en: 'Butter', it: 'Burro', ru: 'Масло' },
-    price: 1.49,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  333333333: {
-    sku: '333333333',
-    name: { de: 'Käse', en: 'Cheese', it: 'Formaggio', ru: 'Сыр' },
-    price: 2.99,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  444444444: {
-    sku: '444444444',
-    name: { de: 'Joghurt', en: 'Yogurt', it: 'Yogurt', ru: 'Йогурт' },
-    price: 0.99,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  555555555: {
-    sku: '555555555',
-    name: { de: 'Apfelsaft', en: 'Apple Juice', it: 'Succo di Mela', ru: 'Яблочный сок' },
-    price: 1.79,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-  666666666: {
-    sku: '666666666',
-    name: { de: 'Chips', en: 'Chips', it: 'Patatine', ru: 'Чипсы' },
-    price: 1.99,
-    category: { de: 'Snacks', en: 'Snacks', it: 'Snack', ru: 'Снеки' },
-  },
-  777777777: {
-    sku: '777777777',
-    name: { de: 'Cola', en: 'Cola', it: 'Cola', ru: 'Кола' },
-    price: 1.59,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-}
 
-const produceCatalog = ref([
-  {
-    sku: 'PLU-APL',
-    name: { de: 'Apfel', en: 'Apple', it: 'Mela', ru: 'Яблоко' },
-    pricePerKg: 2.49,
-  },
-  {
-    sku: 'PLU-BAN',
-    name: { de: 'Banane', en: 'Banana', it: 'Banana', ru: 'Банан' },
-    pricePerKg: 1.99,
-  },
-  {
-    sku: 'PLU-TOM',
-    name: { de: 'Tomate', en: 'Tomato', it: 'Pomodoro', ru: 'Помидор' },
-    pricePerKg: 3.29,
-  },
-  {
-    sku: 'PLU-GUR',
-    name: { de: 'Gurke', en: 'Cucumber', it: 'Cetriolo', ru: 'Огурец' },
-    pricePerKg: 1.79,
-  },
-  {
-    sku: 'PLU-MOE',
-    name: { de: 'Möhren', en: 'Carrots', it: 'Carote', ru: 'Морковь' },
-    pricePerKg: 2.19,
-  },
-  {
-    sku: 'PLU-PAP',
-    name: { de: 'Paprika', en: 'Pepper', it: 'Peperone', ru: 'Перец' },
-    pricePerKg: 4.49,
-  },
-  { sku: 'PLU-BIR', name: { de: 'Birne', en: 'Pear', it: 'Pera', ru: 'Груша' }, pricePerKg: 2.99 },
-  {
-    sku: 'PLU-ORI',
-    name: { de: 'Orange', en: 'Orange', it: 'Arancia', ru: 'Апельсин' },
-    pricePerKg: 2.29,
-  },
-])
+const produceCatalog = ref([])
+const produceLoading = ref(false)
 
-const bakeryCatalog = ref([
-  {
-    sku: 'BAK-CRO',
-    name: { de: 'Croissant', en: 'Croissant', it: 'Cornetto', ru: 'Круассан' },
-    price: 0.99,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-BRO',
-    name: { de: 'Brötchen', en: 'Roll', it: 'Panino', ru: 'Булочка' },
-    price: 0.39,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-BRE',
-    name: { de: 'Brezel', en: 'Pretzel', it: 'Bretzel', ru: 'Крендель' },
-    price: 0.89,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-SEM',
-    name: { de: 'Semmel', en: 'Bread Roll', it: 'Semola', ru: 'Семмель' },
-    price: 0.35,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-MI',
-    name: { de: 'Milchbrötchen', en: 'Milk Roll', it: 'Panino al latte', ru: 'Молочная булочка' },
-    price: 0.65,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  {
-    sku: 'BAK-WE',
-    name: { de: 'Weizenbrot', en: 'Wheat Bread', it: 'Pane di frumento', ru: 'Пшеничный хлеб' },
-    price: 2.49,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-])
+const bakeryCatalog = ref([])
+const bakeryLoading = ref(false)
+const selectedBakery = ref(null)
+const bakeryAmount = ref(1)
 
 const selectedProduce = ref(null)
 const weightKg = ref(0.25)
 const errorMessage = ref('')
+const confirmDeleteItem = ref(null)
 let errorTimeout = null
 
-const subtotal = computed(() => cartStore.subtotal)
-const vatAmount = computed(() => (vatEnabled.value ? subtotal.value * (vatRate.value / 100) : 0))
-const total = computed(() => subtotal.value + vatAmount.value)
 
 function round2(n) {
   return Math.round(n * 100) / 100
@@ -543,31 +451,87 @@ function addItem(item) {
   })
 }
 
+function selectBakeryItem(item) {
+  selectedBakery.value = item
+  bakeryAmount.value = 1
+}
+
+async function confirmBakeryItem() {
+  if (!selectedBakery.value) return
+  if (!cartStore.orderId) {
+    showError('Keine Order vorhanden')
+    return
+  }
+  try {
+    await api.post(`/orders/${cartStore.orderId}/items`, {
+      code: selectedBakery.value.sku,
+      amount: bakeryAmount.value,
+    })
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Hinzufügen der Backware:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
+  selectedBakery.value = null
+  bakeryAmount.value = 1
+  closeModal()
+}
+
 function addWeighted(p) {
   selectedProduce.value = p
   weightKg.value = 0.25
 }
 
-function confirmWeighted() {
+async function confirmWeighted() {
   if (!selectedProduce.value) return
   const kg = Number(weightKg.value)
   if (!Number.isFinite(kg) || kg <= 0) return
-  status.value = 'idle'
-  const linePrice = selectedProduce.value.pricePerKg * kg
-  const itemName = getLocalizedName(selectedProduce.value)
-  const categoryName = t('produceCategory')
-  cartStore.addWeighted(
-    {
-      sku: selectedProduce.value.sku,
-      name: `${itemName} (${kg.toFixed(2)} kg)`,
-      category: categoryName,
-      price: round2(linePrice),
-    },
-    kg,
-  )
+  if (!cartStore.orderId) {
+    showError('Keine Order vorhanden')
+    return
+  }
+  try {
+    await api.post(`/orders/${cartStore.orderId}/items`, {
+      code: selectedProduce.value.sku,
+      amount: kg,
+    })
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Hinzufügen des Produkts:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
   selectedProduce.value = null
   weightKg.value = 0.25
   closeModal()
+}
+
+async function updateItemQuantity(item, delta) {
+  if (!cartStore.orderId) return
+  try {
+    await api.patch(`/orders/${cartStore.orderId}/items/${item.id}`, {
+      delta: delta,
+    })
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Ändern der Menge:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
+}
+
+async function deleteItem() {
+  if (!confirmDeleteItem.value || !cartStore.orderId) return
+  try {
+    await api.delete(`/orders/${cartStore.orderId}/items/${confirmDeleteItem.value.id}`)
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Löschen des Artikels:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
+  confirmDeleteItem.value = null
 }
 
 function removeLine(lineId) {
@@ -591,34 +555,60 @@ function handleKeydown(e) {
   if (tag === 'input' || tag === 'textarea') return
   if (modal.value) return
 
+  if (cameraActive.value && barcodeSupported.value === true) return
+
   if (scanTimer) window.clearTimeout(scanTimer)
 
   if (e.key === 'Enter') {
-    const code = scanBuffer.value.trim().replace(/\D/g, '')
+    const code = scanBuffer.value.trim()
     scanBuffer.value = ''
     if (code) onBarcodeScanned(code)
     return
   }
 
   if (e.key.length === 1) scanBuffer.value += e.key
-
   scanTimer = window.setTimeout(() => {
     scanBuffer.value = ''
   }, 350)
 }
 
-function onBarcodeScanned(code) {
+async function fetchOrder() {
+  if (!cartStore.orderId) return
+  try {
+    const response = await api.get(`/orders/${cartStore.orderId}`)
+    console.log(`GET /api/orders/${cartStore.orderId} Response:`, response.data)
+    orderItems.value = response.data.orderItems || []
+    orderTotalPrice.value = response.data.totalPrice || 0
+  } catch (error) {
+    console.error(`GET /api/orders/${cartStore.orderId} Error:`, error)
+  }
+}
+
+async function onBarcodeScanned(code) {
   status.value = 'scanning'
-  const item = catalogByBarcode[code]
-  if (!item) {
-    showError(`${t('error')} (${code})`)
+
+  if (!cartStore.orderId) {
+    showError(`${t('error')} - Keine Order vorhanden`)
     status.value = 'idle'
     return
   }
-  setTimeout(() => {
-    addItem(item)
+
+  try {
+    await api.post(`/orders/${cartStore.orderId}/items`, {
+      code: code,
+      amount: 1,
+    })
+    console.log(`POST /api/orders/${cartStore.orderId}/items - code: ${code}`)
+
+    // Order neu laden um aktuelle Items und Preise zu bekommen
+    await fetchOrder()
     status.value = 'idle'
-  }, 300)
+  } catch (error) {
+    console.error(`POST /api/orders/${cartStore.orderId}/items Error:`, error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`${t('error')} (${code}): ${errorMsg}`)
+    status.value = 'idle'
+  }
 }
 
 function showError(msg) {
@@ -635,11 +625,49 @@ function openHelp() {
 function toggleLanguage() {
   modal.value = 'lang'
 }
-function openProduce() {
+async function openProduce() {
   modal.value = 'produce'
+  selectedProduce.value = null
+  weightKg.value = 0.25
+  if (produceCatalog.value.length === 0) {
+    produceLoading.value = true
+    try {
+      const products = await fetchFruitsAndVegetables()
+      produceCatalog.value = products.map((p) => ({
+        sku: p.code,
+        name: p.name,
+        pricePerKg: p.price,
+        category: p.category,
+      }))
+    } catch (err) {
+      console.error('Fehler beim Laden der Produkte:', err)
+      showError('Produkte konnten nicht geladen werden.')
+    } finally {
+      produceLoading.value = false
+    }
+  }
 }
-function openBakery() {
+async function openBakery() {
   modal.value = 'bakery'
+  selectedBakery.value = null
+  bakeryAmount.value = 1
+  if (bakeryCatalog.value.length === 0) {
+    bakeryLoading.value = true
+    try {
+      const products = await fetchBakeryProducts()
+      bakeryCatalog.value = products.map((p) => ({
+        sku: p.code,
+        name: p.name,
+        price: p.price,
+        category: p.category,
+      }))
+    } catch (err) {
+      console.error('Fehler beim Laden der Backwaren:', err)
+      showError('Backwaren konnten nicht geladen werden.')
+    } finally {
+      bakeryLoading.value = false
+    }
+  }
 }
 function closeModal() {
   modal.value = null
@@ -655,7 +683,7 @@ function cancel() {
 }
 
 async function pay() {
-  if (cart.value.length === 0) return
+  if (orderItems.value.length === 0) return
   status.value = 'paying'
   closeModal()
   stopCamera()
@@ -825,6 +853,122 @@ body {
   --panel: rgba(11, 32, 49, 0.88);
   --panel-strong: rgba(10, 28, 44, 0.95);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
+}
+
+.delete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.delete-overlay .delete-confirm-card {
+  width: min(420px, 90vw);
+  background: rgba(10, 28, 44, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 24px;
+  padding: 36px 32px 28px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: scaleIn 0.25s ease;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.delete-overlay .delete-confirm-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #f87171;
+}
+
+.delete-overlay .delete-confirm-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.96);
+  letter-spacing: -0.02em;
+}
+
+.delete-overlay .delete-confirm-text {
+  margin: 0 0 24px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+}
+
+.delete-overlay .delete-confirm-text strong {
+  color: rgba(255, 255, 255, 0.96);
+  font-weight: 700;
+}
+
+.delete-overlay .delete-confirm-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.delete-overlay .delete-confirm-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.delete-overlay .delete-confirm-btn:active {
+  transform: scale(0.97);
+}
+
+.delete-overlay .delete-confirm-btn--cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+}
+
+.delete-overlay .delete-confirm-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.delete-overlay .delete-confirm-btn--delete {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 30px rgba(248, 113, 113, 0.25);
+}
+
+.delete-overlay .delete-confirm-btn--delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(248, 113, 113, 0.35);
 }
 </style>
 
@@ -1149,6 +1293,37 @@ body {
 .remove-btn:hover {
   background: rgba(248, 113, 113, 0.14);
   color: #fca5a5;
+}
+
+.delete-btn {
+  border: none;
+  background: rgba(248, 113, 113, 0.08);
+  cursor: pointer;
+  color: var(--muted2);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(248, 113, 113, 0.15);
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    transform 0.13s;
+}
+
+.delete-btn:hover {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.35);
+  transform: scale(1.08);
+}
+
+.delete-btn:active {
+  transform: scale(0.95);
 }
 
 .totals {
@@ -1977,5 +2152,75 @@ body {
 
 .lang-btn--active .lang-code {
   color: var(--cyan);
+}
+
+.bakery-qty-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+
+.bakery-qty-picker .qty-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--stroke);
+}
+
+.bakery-qty-picker .qty-btn:hover {
+  color: var(--cyan);
+  background: rgba(24, 231, 242, 0.12);
+  border-color: rgba(24, 231, 242, 0.3);
+}
+
+.bakery-qty-val {
+  min-width: 32px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.delete-confirm-card {
+  text-align: center;
+  align-items: center;
+}
+
+.delete-confirm-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.delete-confirm-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.delete-confirm-text strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.modal-btn--delete {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 30px rgba(248, 113, 113, 0.25);
+}
+
+.modal-btn--delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(248, 113, 113, 0.35);
+}
+
+.modal-btn--delete:active {
+  transform: scale(0.98);
 }
 </style>

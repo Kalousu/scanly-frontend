@@ -4,7 +4,7 @@
 
     <div class="layout">
       <aside class="panel cart-panel">
-        <div v-if="cart.length === 0" class="empty-state">
+        <div v-if="orderItems.length === 0" class="empty-state">
           <h2 class="empty-title">{{ t('emptyTitle') }}</h2>
           <p class="empty-hint">{{ t('emptyHint') }}</p>
         </div>
@@ -15,40 +15,29 @@
           </div>
 
           <div class="cart-items">
-            <div v-for="item in cart" :key="item.lineId" class="cart-item">
+            <div v-for="item in orderItems" :key="item.id" class="cart-item">
               <div class="ci-accent"></div>
               <div class="ci-left">
-                <div class="ci-name">{{ getLocalizedName(item) }}</div>
+                <div class="ci-name">{{ item.productName }}</div>
                 <div class="ci-meta">
-                  <span v-if="item.sku"
-                    >SKU: {{ item.sku }} · {{ getLocalizedCategory(item) }}</span
-                  >
-                  <span v-else>{{ getLocalizedCategory(item) }}</span>
+                  <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round((item.taxRate - 1) * 100) }}%</span>
                 </div>
               </div>
 
               <div class="ci-right">
-                <div class="ci-price">{{ formatPrice(item.price) }}</div>
+                <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
 
                 <div class="ci-qty" aria-label="Menge">
-                  <span class="qty-val">× {{ item.qty }}</span>
+                  <span class="qty-val">{{ item.amount }}×</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="totals">
-            <div class="totals-row">
-              <span>{{ t('subtotal') }}</span>
-              <span>{{ formatPrice(subtotal) }}</span>
-            </div>
-            <div class="totals-row totals-vat" v-if="vatEnabled">
-              <span>{{ tFn('vat', vatRate) }}</span>
-              <span>{{ formatPrice(vatAmount) }}</span>
-            </div>
             <div class="totals-row totals-total">
               <span>{{ t('total') }}</span>
-              <span class="totals-total-value">{{ formatPrice(total) }}</span>
+              <span class="totals-total-value">{{ formatPrice(orderTotalPrice) }}</span>
             </div>
           </div>
         </div>
@@ -100,7 +89,7 @@
           <div class="action-row">
             <button
               class="btn btn--pay btn--pay--primary"
-              :disabled="cart.length === 0 || status === 'paying' || status === 'paid'"
+              :disabled="orderItems.length === 0 || status === 'paying' || status === 'paid'"
               @click="pay"
             >
               <span v-if="status === 'paying'" class="spinner"></span>
@@ -165,8 +154,8 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
-import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
+import api from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -185,7 +174,8 @@ const modal = ref(null)
 const vatEnabled = ref(false)
 const vatRate = ref(19)
 
-const { items: cart } = storeToRefs(cartStore)
+const orderItems = ref([])
+const orderTotalPrice = ref(0)
 
 const scanBuffer = ref('')
 let scanTimer = null
@@ -198,74 +188,6 @@ function selectLanguage(code) {
   closeModal()
 }
 
-const catalogByBarcode = {
-  123456789: {
-    sku: '123456789',
-    name: { de: 'Wasser', en: 'Water', it: 'Acqua', ru: 'Вода' },
-    price: 0.79,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-  123450000: {
-    sku: '123450000',
-    name: { de: 'Schokolade', en: 'Chocolate', it: 'Cioccolato', ru: 'Шоколад' },
-    price: 1.29,
-    category: { de: 'Süßwaren', en: 'Sweets', it: 'Dolci', ru: 'Сладости' },
-  },
-  129999999: {
-    sku: '129999999',
-    name: { de: 'Milch', en: 'Milk', it: 'Latte', ru: 'Молоко' },
-    price: 1.19,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  111111111: {
-    sku: '111111111',
-    name: { de: 'Brot', en: 'Bread', it: 'Pane', ru: 'Хлеб' },
-    price: 1.99,
-    category: { de: 'Backwaren', en: 'Bakery', it: 'Panetteria', ru: 'Выпечка' },
-  },
-  222222222: {
-    sku: '222222222',
-    name: { de: 'Butter', en: 'Butter', it: 'Burro', ru: 'Масло' },
-    price: 1.49,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  333333333: {
-    sku: '333333333',
-    name: { de: 'Käse', en: 'Cheese', it: 'Formaggio', ru: 'Сыр' },
-    price: 2.99,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  444444444: {
-    sku: '444444444',
-    name: { de: 'Joghurt', en: 'Yogurt', it: 'Yogurt', ru: 'Йогурт' },
-    price: 0.99,
-    category: { de: 'Kühlregal', en: 'Dairy', it: 'Latticini', ru: 'Молочные' },
-  },
-  555555555: {
-    sku: '555555555',
-    name: { de: 'Apfelsaft', en: 'Apple Juice', it: 'Succo di Mela', ru: 'Яблочный сок' },
-    price: 1.79,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-  666666666: {
-    sku: '666666666',
-    name: { de: 'Chips', en: 'Chips', it: 'Patatine', ru: 'Чипсы' },
-    price: 1.99,
-    category: { de: 'Snacks', en: 'Snacks', it: 'Snack', ru: 'Снеки' },
-  },
-  777777777: {
-    sku: '777777777',
-    name: { de: 'Cola', en: 'Cola', it: 'Cola', ru: 'Кола' },
-    price: 1.59,
-    category: { de: 'Getränke', en: 'Drinks', it: 'Bevande', ru: 'Напитки' },
-  },
-}
-
-const subtotal = computed(() => cartStore.subtotal)
-const vatAmount = computed(() => (vatEnabled.value ? subtotal.value * (vatRate.value / 100) : 0))
-const total = computed(() => subtotal.value + vatAmount.value)
-
-// function round2(n) { return Math.round(n * 100) / 100 }
 
 function formatPrice(n) {
   const locale =
@@ -279,30 +201,6 @@ function formatPrice(n) {
   return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
 }
 
-function getLocalizedName(item) {
-  if (typeof item.name === 'object') {
-    return item.name[currentLang.value] || item.name.de || Object.values(item.name)[0]
-  }
-  return item.name
-}
-
-function getLocalizedCategory(item) {
-  if (typeof item.category === 'object') {
-    return item.category[currentLang.value] || item.category.de || Object.values(item.category)[0]
-  }
-  return item.category || t('bakery')
-}
-
-function addItem(item) {
-  status.value = 'idle'
-  cartStore.addItem({
-    sku: item.sku,
-    name: item.name,
-    category: item.category,
-    price: item.price,
-    unit: 'each',
-  })
-}
 
 function handleKeydown(e) {
   const tag = (e.target?.tagName || '').toLowerCase()
@@ -331,18 +229,7 @@ function handleKeydown(e) {
 }
 
 function onBarcodeScanned(code) {
-  status.value = 'scanning'
-  const item = catalogByBarcode[code]
-  if (!item) {
-    showError(`${t('error')} (${code})`)
-    status.value = 'idle'
-    return
-  }
-
-  setTimeout(() => {
-    addItem(item)
-    status.value = 'idle'
-  }, 220)
+  status.value = 'idle'
 }
 
 function showError(msg) {
@@ -379,21 +266,44 @@ function cancel() {
 }
 
 async function pay() {
-  if (cart.value.length === 0) return
+  if (orderItems.value.length === 0) return
   if (status.value === 'paying') return
+  if (!cartStore.orderId) {
+    showError('Keine Order vorhanden')
+    return
+  }
 
   status.value = 'paying'
   closeModal()
 
-  await new Promise((r) => setTimeout(r, 900))
-  status.value = 'paid'
+  try {
+    await api.post(`/orders/${cartStore.orderId}/checkout`, { paymentMethod: 'Card' })
+    status.value = 'paid'
+    await new Promise((r) => setTimeout(r, 900))
+    router.push('/summary')
+  } catch (error) {
+    console.error('Checkout-Fehler:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Checkout fehlgeschlagen: ${errorMsg}`)
+    status.value = 'idle'
+  }
+}
 
-  await new Promise((r) => setTimeout(r, 900))
-  router.push('/summary')
+async function fetchOrder() {
+  if (!cartStore.orderId) return
+  try {
+    const response = await api.get(`/orders/${cartStore.orderId}`)
+    console.log(`GET /api/orders/${cartStore.orderId} Response:`, response.data)
+    orderItems.value = response.data.orderItems || []
+    orderTotalPrice.value = response.data.totalPrice || 0
+  } catch (error) {
+    console.error(`GET /api/orders/${cartStore.orderId} Error:`, error)
+  }
 }
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
+  fetchOrder()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
@@ -636,7 +546,6 @@ body {
   position: relative;
   overflow: hidden;
 }
-
 .ci-accent {
   position: absolute;
   left: 0;

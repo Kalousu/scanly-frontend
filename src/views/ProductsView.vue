@@ -53,7 +53,109 @@
           <h3 class="prod-action-title">Produkt entfernen</h3>
           <p class="prod-action-desc">Produkte aus dem Katalog löschen</p>
         </div>
+
+        <div class="prod-action-card prod-action-card--db" @click="loadAllProducts">
+          <div class="prod-action-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zM6 17v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V17c0 .5-2.13 2-6 2s-6-1.5-6-2zm0-5v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V12c0 .5-2.13 2-6 2s-6-1.5-6-2z"/>
+            </svg>
+          </div>
+          <h3 class="prod-action-title">Produktdatenbank</h3>
+          <p class="prod-action-desc">Komplette Produktliste anzeigen und durchsuchen</p>
+        </div>
       </div>
+
+      <!-- Product Database Section -->
+      <Transition name="db-fade">
+        <div v-if="showDatabase" class="prod-db-section">
+          <div class="prod-db-header">
+            <h2 class="prod-db-title">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="prod-db-title-icon">
+                <path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zM6 17v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V17c0 .5-2.13 2-6 2s-6-1.5-6-2zm0-5v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V12c0 .5-2.13 2-6 2s-6-1.5-6-2z"/>
+              </svg>
+              Produktdatenbank
+              <span class="prod-db-count">{{ filteredProducts.length }} Produkte</span>
+            </h2>
+            <button class="prod-btn prod-btn--secondary prod-db-close-btn" @click="showDatabase = false">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              Schließen
+            </button>
+          </div>
+
+          <!-- Filters -->
+          <div class="prod-db-filters">
+            <div class="prod-db-search">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="prod-db-search-icon"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              <input
+                v-model="dbSearchQuery"
+                type="text"
+                class="prod-db-search-input"
+                placeholder="Nach Produktname oder EAN suchen…"
+              />
+              <button v-if="dbSearchQuery" class="prod-db-search-clear" @click="dbSearchQuery = ''">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            </div>
+            <div class="prod-db-category-filter">
+              <button
+                v-for="cat in dbCategories"
+                :key="cat.value"
+                class="prod-db-cat-btn"
+                :class="{ 'prod-db-cat-btn--active': dbCategoryFilter === cat.value }"
+                @click="dbCategoryFilter = cat.value"
+              >
+                {{ cat.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="dbLoading" class="prod-db-loading">
+            <span class="prod-spinner prod-spinner--lg"></span>
+            <p>Produkte werden geladen…</p>
+          </div>
+
+          <!-- Error -->
+          <div v-else-if="dbError" class="prod-search-error" style="margin-top: 0;">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <p>{{ dbError }}</p>
+          </div>
+
+          <!-- Table -->
+          <div v-else-if="filteredProducts.length > 0" class="prod-db-table-wrap">
+            <table class="prod-db-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Produktname</th>
+                  <th>EAN / Barcode</th>
+                  <th>Kategorie</th>
+                  <th>Nettopreis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(product, idx) in filteredProducts" :key="product.id || product.ean || idx">
+                  <td class="prod-db-td-num">{{ idx + 1 }}</td>
+                  <td class="prod-db-td-name">{{ product.name }}</td>
+                  <td class="prod-db-td-ean">{{ product.code || product.ean || product.barcode}}</td>
+                  <td>
+                    <span class="prod-db-cat-tag" :class="'prod-db-cat-tag--' + (product.category || 'unknown')">
+                      {{ categoryLabelMap[product.category] || product.category}}
+                    </span>
+                  </td>
+                  <td class="prod-db-td-price">{{ (product.price ?? product.priceNet ?? 0).toFixed(2) }} €{{ product.category === 'FRUITS_VEGETABLES' ? '/kg' : '' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty -->
+          <div v-else class="prod-db-empty">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="prod-db-empty-icon"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <p>Keine Produkte gefunden.</p>
+          </div>
+        </div>
+      </Transition>
     </main>
 
     <!-- Modal Overlay -->
@@ -292,7 +394,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { fetchProductByBarcode } from '../services/api'
+import { fetchProductByBarcode, fetchAllProducts } from '../services/api'
 
 const activeModal = ref(null)
 const searchQuery = ref('')
@@ -311,6 +413,61 @@ const categoryLabelMap = {
   FRUITS_VEGETABLES: 'Obst/Gemüse',
   BAKERY: 'Backwaren',
   OTHERS: 'Others',
+}
+
+// Database state
+const showDatabase = ref(false)
+const allProducts = ref([])
+const dbLoading = ref(false)
+const dbError = ref('')
+const dbSearchQuery = ref('')
+const dbCategoryFilter = ref('ALL')
+
+const dbCategories = [
+  { value: 'ALL', label: 'Alle' },
+  { value: 'FRUITS_VEGETABLES', label: 'Obst/Gemüse' },
+  { value: 'BAKERY', label: 'Backwaren' },
+  { value: 'OTHERS', label: 'Others' },
+]
+
+const filteredProducts = computed(() => {
+  let list = allProducts.value
+  if (dbCategoryFilter.value !== 'ALL') {
+    list = list.filter(p => p.category === dbCategoryFilter.value)
+  }
+  const q = dbSearchQuery.value.trim().toLowerCase()
+  if (q) {
+    list = list.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.code && String(p.code).toLowerCase().includes(q)) ||
+      (p.ean && String(p.ean).toLowerCase().includes(q)) ||
+      (p.barcode && String(p.barcode).toLowerCase().includes(q))
+    )
+  }
+  return list
+})
+
+function formatTaxRate(rate) {
+  if (rate === undefined || rate === null) return '—'
+  if (rate === 1.19 || rate === 19 || rate === 0.19) return '19 %'
+  if (rate === 1.07 || rate === 7 || rate === 0.07) return '7 %'
+  if (rate === 1.0 || rate === 0) return '0 %'
+  return String(rate)
+}
+
+async function loadAllProducts() {
+  showDatabase.value = true
+  dbLoading.value = true
+  dbError.value = ''
+  try {
+    const data = await fetchAllProducts()
+    allProducts.value = Array.isArray(data) ? data : (data.products || data.content || [])
+  } catch (err) {
+    dbError.value = 'Fehler beim Laden der Produkte. Bitte versuche es erneut.'
+    console.error('loadAllProducts error:', err)
+  } finally {
+    dbLoading.value = false
+  }
 }
 
 const form = ref({
@@ -539,7 +696,7 @@ async function searchByBarcode() {
 /* Action Cards */
 .prod-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
 }
 
@@ -1089,6 +1246,319 @@ select.prod-input {
 .modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
+}
+
+/* Database Card */
+.prod-action-card--db:hover {
+  background: rgba(168, 130, 255, 0.06);
+  border-color: rgba(168, 130, 255, 0.25);
+}
+
+.prod-action-card--db .prod-action-icon {
+  background: rgba(168, 130, 255, 0.12);
+  color: #A882FF;
+}
+
+/* Database Section */
+.prod-db-section {
+  margin-top: 2.5rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+}
+
+.prod-db-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.prod-db-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+}
+
+.prod-db-title-icon {
+  width: 24px;
+  height: 24px;
+  color: #A882FF;
+  flex-shrink: 0;
+}
+
+.prod-db-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.06);
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  margin-left: 0.25rem;
+}
+
+.prod-db-close-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Filters */
+.prod-db-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.prod-db-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.prod-db-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  width: 18px;
+  height: 18px;
+  color: rgba(255,255,255,0.3);
+  pointer-events: none;
+}
+
+.prod-db-search-input {
+  width: 100%;
+  padding: 0.7rem 2.5rem 0.7rem 2.75rem;
+  font-size: 0.9rem;
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.18s;
+  box-sizing: border-box;
+}
+
+.prod-db-search-input:focus {
+  border-color: rgba(168, 130, 255, 0.5);
+}
+
+.prod-db-search-input::placeholder {
+  color: rgba(255,255,255,0.25);
+}
+
+.prod-db-search-clear {
+  position: absolute;
+  right: 0.6rem;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.prod-db-search-clear:hover {
+  background: rgba(255,100,100,0.15);
+  color: #FF6B8A;
+}
+
+.prod-db-search-clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+.prod-db-category-filter {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.prod-db-cat-btn {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.prod-db-cat-btn:hover {
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.prod-db-cat-btn--active {
+  color: #A882FF;
+  background: rgba(168, 130, 255, 0.1);
+  border-color: rgba(168, 130, 255, 0.35);
+}
+
+/* Loading */
+.prod-db-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.85rem;
+}
+
+.prod-spinner--lg {
+  width: 28px;
+  height: 28px;
+  border-width: 3px;
+}
+
+/* Table */
+.prod-db-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.prod-db-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.prod-db-table thead {
+  background: rgba(255,255,255,0.04);
+}
+
+.prod-db-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.4);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+
+.prod-db-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.75);
+}
+
+.prod-db-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.prod-db-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prod-db-td-num {
+  color: rgba(255,255,255,0.25);
+  font-size: 0.78rem;
+  width: 40px;
+}
+
+.prod-db-td-name {
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+
+.prod-db-td-ean {
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.03em;
+}
+
+.prod-db-td-price {
+  font-weight: 600;
+  color: #6EF0B4;
+  white-space: nowrap;
+}
+
+.prod-db-td-tax {
+  color: rgba(255,255,255,0.45);
+  font-size: 0.8rem;
+}
+
+/* Category Tags */
+.prod-db-cat-tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.prod-db-cat-tag--FRUITS_VEGETABLES {
+  background: rgba(110, 240, 180, 0.1);
+  color: #6EF0B4;
+  border: 1px solid rgba(110, 240, 180, 0.2);
+}
+
+.prod-db-cat-tag--BAKERY {
+  background: rgba(255, 200, 100, 0.1);
+  color: #FFC864;
+  border: 1px solid rgba(255, 200, 100, 0.2);
+}
+
+.prod-db-cat-tag--OTHERS {
+  background: rgba(0, 212, 232, 0.1);
+  color: #00D4E8;
+  border: 1px solid rgba(0, 212, 232, 0.2);
+}
+
+.prod-db-cat-tag--unknown {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Empty State */
+.prod-db-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  color: rgba(255,255,255,0.35);
+  font-size: 0.85rem;
+}
+
+.prod-db-empty-icon {
+  width: 36px;
+  height: 36px;
+  opacity: 0.4;
+}
+
+/* DB Transition */
+.db-fade-enter-active,
+.db-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.db-fade-enter-from,
+.db-fade-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
 }
 
 /* Responsive */

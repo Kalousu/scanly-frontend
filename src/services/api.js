@@ -8,6 +8,11 @@ const api = axios.create({
   },
 })
 
+export const fetchProductByBarcode = async (barcode) => {
+  const response = await api.get(`/products/barcode/${barcode}`)
+  return response.data
+}
+
 export const fetchBakeryProducts = async () => {
   const response = await api.get('/products/category/BAKERY')
   return response.data

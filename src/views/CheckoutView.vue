@@ -32,8 +32,19 @@
                 <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
 
                 <div class="ci-qty">
-                  <span class="qty-val">{{ item.amount }}×</span>
+                  <button class="qty-btn" @click="updateItemQuantity(item, -1)">−</button>
+                  <span class="qty-val">{{ item.amount }}</span>
+                  <button class="qty-btn" @click="updateItemQuantity(item, 1)">+</button>
                 </div>
+
+                <button class="delete-btn" title="Artikel entfernen" @click="confirmDeleteItem = item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -306,6 +317,33 @@
         </div>
       </main>
     </div>
+
+    <Teleport to="body">
+      <div v-if="confirmDeleteItem" class="delete-overlay" @click.self="confirmDeleteItem = null">
+        <div class="delete-confirm-card">
+          <div class="delete-confirm-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </div>
+          <h3 class="delete-confirm-title">Produkt löschen</h3>
+          <p class="delete-confirm-text">
+            Wollen Sie <strong>{{ confirmDeleteItem.productName }}</strong> wirklich löschen?
+          </p>
+          <div class="delete-confirm-actions">
+            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="confirmDeleteItem = null">
+              Abbrechen
+            </button>
+            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="deleteItem">
+              Löschen
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -364,6 +402,7 @@ const bakeryAmount = ref(1)
 const selectedProduce = ref(null)
 const weightKg = ref(0.25)
 const errorMessage = ref('')
+const confirmDeleteItem = ref(null)
 let errorTimeout = null
 
 
@@ -466,6 +505,33 @@ async function confirmWeighted() {
   selectedProduce.value = null
   weightKg.value = 0.25
   closeModal()
+}
+
+async function updateItemQuantity(item, delta) {
+  if (!cartStore.orderId) return
+  try {
+    await api.patch(`/orders/${cartStore.orderId}/items/${item.id}`, {
+      delta: delta,
+    })
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Ändern der Menge:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
+}
+
+async function deleteItem() {
+  if (!confirmDeleteItem.value || !cartStore.orderId) return
+  try {
+    await api.delete(`/orders/${cartStore.orderId}/items/${confirmDeleteItem.value.id}`)
+    await fetchOrder()
+  } catch (error) {
+    console.error('Fehler beim Löschen des Artikels:', error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Fehler: ${errorMsg}`)
+  }
+  confirmDeleteItem.value = null
 }
 
 function removeLine(lineId) {
@@ -787,6 +853,122 @@ body {
   --panel: rgba(11, 32, 49, 0.88);
   --panel-strong: rgba(10, 28, 44, 0.95);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
+}
+
+.delete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.delete-overlay .delete-confirm-card {
+  width: min(420px, 90vw);
+  background: rgba(10, 28, 44, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 24px;
+  padding: 36px 32px 28px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: scaleIn 0.25s ease;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.delete-overlay .delete-confirm-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #f87171;
+}
+
+.delete-overlay .delete-confirm-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.96);
+  letter-spacing: -0.02em;
+}
+
+.delete-overlay .delete-confirm-text {
+  margin: 0 0 24px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+}
+
+.delete-overlay .delete-confirm-text strong {
+  color: rgba(255, 255, 255, 0.96);
+  font-weight: 700;
+}
+
+.delete-overlay .delete-confirm-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.delete-overlay .delete-confirm-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.delete-overlay .delete-confirm-btn:active {
+  transform: scale(0.97);
+}
+
+.delete-overlay .delete-confirm-btn--cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+}
+
+.delete-overlay .delete-confirm-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.delete-overlay .delete-confirm-btn--delete {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 30px rgba(248, 113, 113, 0.25);
+}
+
+.delete-overlay .delete-confirm-btn--delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(248, 113, 113, 0.35);
 }
 </style>
 
@@ -1111,6 +1293,37 @@ body {
 .remove-btn:hover {
   background: rgba(248, 113, 113, 0.14);
   color: #fca5a5;
+}
+
+.delete-btn {
+  border: none;
+  background: rgba(248, 113, 113, 0.08);
+  cursor: pointer;
+  color: var(--muted2);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(248, 113, 113, 0.15);
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    transform 0.13s;
+}
+
+.delete-btn:hover {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.35);
+  transform: scale(1.08);
+}
+
+.delete-btn:active {
+  transform: scale(0.95);
 }
 
 .totals {
@@ -1972,5 +2185,42 @@ body {
   font-size: 18px;
   font-weight: 800;
   color: var(--text);
+}
+
+.delete-confirm-card {
+  text-align: center;
+  align-items: center;
+}
+
+.delete-confirm-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.delete-confirm-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.delete-confirm-text strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.modal-btn--delete {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 30px rgba(248, 113, 113, 0.25);
+}
+
+.modal-btn--delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(248, 113, 113, 0.35);
+}
+
+.modal-btn--delete:active {
+  transform: scale(0.98);
 }
 </style>

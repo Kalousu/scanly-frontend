@@ -546,7 +546,6 @@ body {
   position: relative;
   overflow: hidden;
 }
-
 .ci-accent {
   position: absolute;
   left: 0;

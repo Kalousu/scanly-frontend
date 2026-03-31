@@ -718,7 +718,7 @@ function removeProduct() {
   display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.2rem;
   font-size: 0.9rem; font-weight: 500; color: rgba(255,255,255,0.8);
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 999px; cursor: pointer; transition: all 0.18s;
+  border-radius: 999px; cursor: pointer;
 }
 
 .prod-back-btn:hover {
@@ -750,7 +750,7 @@ function removeProduct() {
   display: flex; flex-direction: column; align-items: center; text-align: center;
   padding: 2.5rem 1.5rem; background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
-  cursor: pointer; transition: all 0.22s;
+  cursor: pointer;
 }
 
 .prod-action-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); }
@@ -802,7 +802,7 @@ function removeProduct() {
   width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 10px; color: rgba(255,255,255,0.5); cursor: pointer;
-  transition: all 0.18s; flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .prod-modal-close:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
@@ -821,7 +821,7 @@ function removeProduct() {
 .prod-input {
   width: 100%; padding: 0.65rem 0.9rem; font-size: 0.9rem; color: #fff;
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px; outline: none; transition: border-color 0.18s; box-sizing: border-box;
+  border-radius: 10px; outline: none; box-sizing: border-box;
 }
 
 .prod-input:focus { border-color: rgba(0, 212, 232, 0.5); }
@@ -840,7 +840,7 @@ select.prod-input { appearance: none; cursor: pointer; }
   display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem;
   font-size: 0.85rem; font-weight: 600; color: #fff;
   background: rgba(0, 212, 232, 0.15); border: 1px solid rgba(0, 212, 232, 0.3);
-  border-radius: 10px; cursor: pointer; transition: all 0.18s; white-space: nowrap; flex-shrink: 0;
+  border-radius: 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
 }
 
 .prod-btn--search svg { width: 16px; height: 16px; }
@@ -914,7 +914,7 @@ select.prod-input { appearance: none; cursor: pointer; }
 .prod-btn {
   display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.25rem;
   font-size: 0.85rem; font-weight: 600; border-radius: 10px;
-  cursor: pointer; transition: all 0.18s; border: 1px solid transparent;
+  cursor: pointer; border: 1px solid transparent;
 }
 
 .prod-btn svg { width: 16px; height: 16px; }
@@ -930,9 +930,6 @@ select.prod-input { appearance: none; cursor: pointer; }
 .prod-btn--remove { background: #FF6B8A; color: #fff; }
 .prod-btn--remove:hover:not(:disabled) { background: #e85a78; }
 
-/* Transitions */
-.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.2s ease; }
-.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 
 /* Database Section */
 .prod-db-section {
@@ -960,7 +957,7 @@ select.prod-input { appearance: none; cursor: pointer; }
 .prod-db-search-input {
   width: 100%; padding: 0.7rem 2.5rem 0.7rem 2.75rem; font-size: 0.9rem; color: #fff;
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px; outline: none; transition: border-color 0.18s; box-sizing: border-box;
+  border-radius: 12px; outline: none; box-sizing: border-box;
 }
 
 .prod-db-search-input:focus { border-color: rgba(168, 130, 255, 0.5); }
@@ -970,7 +967,7 @@ select.prod-input { appearance: none; cursor: pointer; }
   position: absolute; right: 0.6rem; width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,0.08); border: none; border-radius: 8px;
-  color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s;
+  color: rgba(255,255,255,0.5); cursor: pointer;
 }
 
 .prod-db-search-clear:hover { background: rgba(255,100,100,0.15); color: #FF6B8A; }
@@ -982,7 +979,7 @@ select.prod-input { appearance: none; cursor: pointer; }
   padding: 0.4rem 0.9rem; font-size: 0.78rem; font-weight: 600;
   color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1); border-radius: 999px;
-  cursor: pointer; transition: all 0.18s;
+  cursor: pointer;
 }
 
 .prod-db-cat-btn:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
@@ -1017,9 +1014,6 @@ select.prod-input { appearance: none; cursor: pointer; }
 .prod-db-empty { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 3rem 1rem; color: rgba(255,255,255,0.35); font-size: 0.85rem; }
 .prod-db-empty-icon { width: 36px; height: 36px; opacity: 0.4; }
 
-/* DB Transition */
-.db-fade-enter-active, .db-fade-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
-.db-fade-enter-from, .db-fade-leave-to { opacity: 0; transform: translateY(12px); }
 
 /* Responsive */
 @media (max-width: 768px) {

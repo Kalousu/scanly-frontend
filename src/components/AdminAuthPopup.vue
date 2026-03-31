@@ -1,6 +1,5 @@
 <template>
   <Teleport to="body">
-    <Transition name="admin-popup">
       <div
         v-if="visible"
         class="admin-backdrop"
@@ -75,7 +74,6 @@
           </form>
         </div>
       </div>
-    </Transition>
   </Teleport>
 </template>
 
@@ -214,7 +212,6 @@ watch(
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.13s;
   flex-shrink: 0;
 }
 
@@ -222,7 +219,6 @@ watch(
   background: rgba(0, 212, 232, 0.12);
   border-color: rgba(0, 212, 232, 0.35);
   color: #fff;
-  transform: rotate(90deg);
 }
 
 .admin-popup__close svg {
@@ -266,7 +262,6 @@ watch(
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   outline: none;
-  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
   box-sizing: border-box;
 }
 
@@ -315,46 +310,12 @@ watch(
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.18s, background 0.18s;
   box-shadow: 0 4px 18px rgba(30, 195, 255, 0.22);
 }
 
 .admin-popup__cta:hover {
   background: linear-gradient(90deg, #3de0e0 0%, #3dd1ff 100%);
-  transform: translateY(-1px);
   box-shadow: 0 6px 22px rgba(30, 195, 255, 0.32);
 }
 
-.admin-popup__cta:active {
-  transform: translateY(0);
-}
-
-/* Transitions */
-.admin-popup-enter-active,
-.admin-popup-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s ease;
-}
-
-.admin-popup-enter-active .admin-popup,
-.admin-popup-leave-active .admin-popup {
-  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.admin-popup-enter-from {
-  opacity: 0;
-}
-
-.admin-popup-enter-from .admin-popup {
-  opacity: 0;
-  transform: scale(0.93) translateY(12px);
-}
-
-.admin-popup-leave-to {
-  opacity: 0;
-}
-
-.admin-popup-leave-to .admin-popup {
-  opacity: 0;
-  transform: scale(0.96) translateY(6px);
-}
 </style>

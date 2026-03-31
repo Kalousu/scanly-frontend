@@ -407,7 +407,6 @@ onMounted(() => {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .ord-back-btn:hover {
@@ -464,7 +463,6 @@ onMounted(() => {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .ord-refresh-btn:hover {
@@ -527,7 +525,6 @@ onMounted(() => {
   border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .ord-retry-btn:hover {
@@ -591,7 +588,6 @@ onMounted(() => {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
-  transition: border-color 0.18s;
 }
 
 .ord-search-wrap:focus-within {
@@ -632,7 +628,6 @@ onMounted(() => {
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .ord-filter-btn:hover {
@@ -680,7 +675,6 @@ onMounted(() => {
 
 .ord-row {
   cursor: pointer;
-  transition: background 0.15s;
 }
 
 .ord-row:hover {
@@ -789,7 +783,6 @@ onMounted(() => {
   border-radius: 10px;
   color: rgba(255,255,255,0.6);
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .ord-detail-close:hover {
@@ -888,7 +881,6 @@ onMounted(() => {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .ord-page-btn:hover:not(:disabled) {
@@ -904,17 +896,6 @@ onMounted(() => {
 .ord-page-info {
   font-size: 0.82rem;
   color: rgba(255,255,255,0.4);
-}
-
-/* Transition */
-.detail-fade-enter-active,
-.detail-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.detail-fade-enter-from,
-.detail-fade-leave-to {
-  opacity: 0;
 }
 
 /* Responsive */

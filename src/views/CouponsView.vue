@@ -109,7 +109,6 @@ function goBack() {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .coupons-back-btn:hover {

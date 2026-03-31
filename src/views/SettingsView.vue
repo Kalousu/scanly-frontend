@@ -195,7 +195,6 @@ function goBack() {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .settings-back-btn:hover {
@@ -302,7 +301,6 @@ function goBack() {
   inset: 0;
   background: rgba(255,255,255,0.12);
   border-radius: 999px;
-  transition: background 0.2s;
 }
 
 .settings-toggle-slider::after {
@@ -314,7 +312,6 @@ function goBack() {
   height: 18px;
   background: #fff;
   border-radius: 50%;
-  transition: transform 0.2s;
 }
 
 .settings-toggle input:checked + .settings-toggle-slider {
@@ -335,7 +332,6 @@ function goBack() {
   border-radius: 10px;
   outline: none;
   text-align: center;
-  transition: border-color 0.18s;
 }
 
 .settings-number:focus {
@@ -352,7 +348,6 @@ function goBack() {
   border-radius: 10px;
   outline: none;
   box-sizing: border-box;
-  transition: border-color 0.18s;
 }
 
 .settings-text-input:focus {
@@ -401,12 +396,6 @@ function goBack() {
   background: #00bfd2;
 }
 
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
 
 @media (max-width: 768px) {
   .settings-navbar {

@@ -519,7 +519,6 @@ onMounted(() => {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .rev-back-btn:hover {
@@ -606,7 +605,6 @@ onMounted(() => {
   border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s;
 }
 
 .rev-retry-btn:hover {

@@ -11,13 +11,6 @@
       >
         <div class="admin-popup">
           <div class="admin-popup__header">
-            <div class="admin-popup__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path
-                  d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
-                />
-              </svg>
-            </div>
             <h2 class="admin-popup__title">Admin Login</h2>
             <button
               ref="closeBtnEl"
@@ -26,10 +19,7 @@
               aria-label="Schließen"
               @click="close"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              X
             </button>
           </div>
 
@@ -60,9 +50,6 @@
             </div>
 
             <div v-if="errorMsg" class="admin-popup__error" role="alert">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-              </svg>
               {{ errorMsg }}
             </div>
 
@@ -174,23 +161,6 @@ watch(
   padding: 1.35rem 1.5rem 1rem;
 }
 
-.admin-popup__icon {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: rgba(0, 212, 232, 0.12);
-  border: 1px solid rgba(0, 212, 232, 0.22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #00D4E8;
-}
-
-.admin-popup__icon svg {
-  width: 20px;
-  height: 20px;
-}
 
 .admin-popup__title {
   flex: 1;
@@ -221,10 +191,6 @@ watch(
   color: #fff;
 }
 
-.admin-popup__close svg {
-  width: 16px;
-  height: 16px;
-}
 
 .admin-popup__divider {
   height: 1px;
@@ -288,12 +254,6 @@ watch(
   color: #fca5a5;
 }
 
-.admin-popup__error svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  color: #f87171;
-}
 
 .admin-popup__footer {
   padding-top: 0.5rem;

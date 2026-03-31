@@ -1,7 +1,5 @@
 <template>
   <div class="orders-page">
-    <div class="bg-grid" aria-hidden="true"></div>
-
     <nav class="ord-navbar">
       <div class="ord-navbar-left">
         <img src="../assets/logo-removebg-preview.png" class="ord-logo" alt="Scanly" />
@@ -351,16 +349,7 @@ onMounted(() => {
   overflow-y: auto;
   color: #fff;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
-}
-
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
-  background-size: 36px 36px;
-  z-index: 0;
+  background: #091E30;
 }
 
 /* Navbar */
@@ -372,8 +361,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 1rem 2.5rem;
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(7, 26, 42, 0.92);
-  backdrop-filter: blur(10px);
+  background: rgba(7, 26, 42, 0.95);
 }
 
 .ord-navbar-left {
@@ -397,7 +385,7 @@ onMounted(() => {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #071A2A;
-  background: linear-gradient(90deg, #00D4E8, #6EF0F9);
+  background: #00D4E8;
   border-radius: 999px;
 }
 
@@ -424,9 +412,8 @@ onMounted(() => {
 
 .ord-back-btn:hover {
   color: #fff;
-  background: rgba(0, 212, 232, 0.1);
-  border-color: rgba(0, 212, 232, 0.3);
-  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
 }
 
 .ord-back-icon {
@@ -456,10 +443,7 @@ onMounted(() => {
   font-size: 2rem;
   font-weight: 800;
   margin: 0 0 0.2rem;
-  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #fff;
 }
 
 .ord-subtitle {
@@ -484,9 +468,9 @@ onMounted(() => {
 }
 
 .ord-refresh-btn:hover {
-  color: #00D4E8;
-  border-color: rgba(0, 212, 232, 0.3);
-  background: rgba(0, 212, 232, 0.08);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
 }
 
 .ord-refresh-icon {
@@ -547,7 +531,7 @@ onMounted(() => {
 }
 
 .ord-retry-btn:hover {
-  background: rgba(0, 212, 232, 0.25);
+  background: rgba(0, 212, 232, 0.2);
 }
 
 /* KPI Row */
@@ -658,8 +642,8 @@ onMounted(() => {
 
 .ord-filter-btn--active {
   color: #00D4E8;
-  background: rgba(0, 212, 232, 0.1);
-  border-color: rgba(0, 212, 232, 0.3);
+  background: rgba(0, 212, 232, 0.08);
+  border-color: rgba(0, 212, 232, 0.25);
 }
 
 /* Table */
@@ -774,11 +758,10 @@ onMounted(() => {
   width: min(640px, 94vw);
   max-height: 85vh;
   overflow-y: auto;
-  background: linear-gradient(160deg, #0B2C44, #092538);
+  background: #0B2C44;
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
 }
 
 .ord-detail-header {
@@ -810,9 +793,8 @@ onMounted(() => {
 }
 
 .ord-detail-close:hover {
-  background: rgba(255,100,100,0.12);
-  border-color: rgba(255,100,100,0.3);
-  color: #ff6b6b;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
 }
 
 .ord-detail-close svg {
@@ -910,8 +892,8 @@ onMounted(() => {
 }
 
 .ord-page-btn:hover:not(:disabled) {
-  color: #00D4E8;
-  border-color: rgba(0, 212, 232, 0.3);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
 }
 
 .ord-page-btn:disabled {

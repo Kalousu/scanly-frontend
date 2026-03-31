@@ -1,7 +1,5 @@
 <template>
   <div class="revenue-page">
-    <div class="bg-grid" aria-hidden="true"></div>
-
     <nav class="rev-navbar">
       <div class="rev-navbar-left">
         <img src="../assets/logo-removebg-preview.png" class="rev-logo" alt="Scanly" />
@@ -463,16 +461,7 @@ onMounted(() => {
   overflow-y: auto;
   color: #fff;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
-}
-
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
-  background-size: 36px 36px;
-  z-index: 0;
+  background: #091E30;
 }
 
 /* Navbar */
@@ -484,8 +473,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 1rem 2.5rem;
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(7, 26, 42, 0.92);
-  backdrop-filter: blur(10px);
+  background: rgba(7, 26, 42, 0.95);
 }
 
 .rev-navbar-left {
@@ -509,7 +497,7 @@ onMounted(() => {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #071A2A;
-  background: linear-gradient(90deg, #00D4E8, #6EF0F9);
+  background: #00D4E8;
   border-radius: 999px;
 }
 
@@ -536,9 +524,8 @@ onMounted(() => {
 
 .rev-back-btn:hover {
   color: #fff;
-  background: rgba(0, 212, 232, 0.1);
-  border-color: rgba(0, 212, 232, 0.3);
-  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
 }
 
 .rev-back-icon {
@@ -565,10 +552,7 @@ onMounted(() => {
   font-size: 2rem;
   font-weight: 800;
   margin: 0 0 0.3rem;
-  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #fff;
 }
 
 .rev-subtitle {
@@ -626,7 +610,7 @@ onMounted(() => {
 }
 
 .rev-retry-btn:hover {
-  background: rgba(0, 212, 232, 0.25);
+  background: rgba(0, 212, 232, 0.2);
 }
 
 /* KPI Cards */
@@ -645,12 +629,6 @@ onMounted(() => {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
-  transition: all 0.2s;
-}
-
-.kpi-card:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.14);
 }
 
 .kpi-icon {
@@ -721,11 +699,6 @@ onMounted(() => {
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
   padding: 1.5rem;
-  transition: all 0.2s;
-}
-
-.chart-card:hover {
-  border-color: rgba(255,255,255,0.14);
 }
 
 .chart-card--wide {

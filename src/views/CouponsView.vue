@@ -10,8 +10,6 @@ function goBack() {
 
 <template>
   <div class="coupons-page">
-    <div class="bg-grid" aria-hidden="true"></div>
-
     <nav class="coupons-navbar">
       <div class="coupons-navbar-left">
         <img src="../assets/logo-removebg-preview.png" class="coupons-logo" alt="Scanly" />
@@ -54,16 +52,7 @@ function goBack() {
   overflow-y: auto;
   color: #fff;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
-}
-
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
-  background-size: 36px 36px;
-  z-index: 0;
+  background: #091E30;
 }
 
 .coupons-navbar {
@@ -74,8 +63,7 @@ function goBack() {
   justify-content: space-between;
   padding: 1rem 2.5rem;
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(7, 26, 42, 0.92);
-  backdrop-filter: blur(10px);
+  background: rgba(7, 26, 42, 0.95);
 }
 
 .coupons-navbar-left {
@@ -99,7 +87,7 @@ function goBack() {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #071A2A;
-  background: linear-gradient(90deg, #00D4E8, #6EF0F9);
+  background: #00D4E8;
   border-radius: 999px;
 }
 
@@ -126,9 +114,8 @@ function goBack() {
 
 .coupons-back-btn:hover {
   color: #fff;
-  background: rgba(0, 212, 232, 0.1);
-  border-color: rgba(0, 212, 232, 0.3);
-  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
 }
 
 .coupons-back-icon {
@@ -159,10 +146,7 @@ function goBack() {
   font-size: 2rem;
   font-weight: 800;
   margin: 0 0 0.3rem;
-  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #fff;
 }
 
 .coupons-subtitle {

@@ -1,3 +1,61 @@
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const dashboardCards = [
+  {
+    id: 'orders',
+    route: '/admin/orders',
+    title: 'Bestellungen',
+    description: 'Aktuelle Bestellungen einsehen und verwalten',
+    icon: 'M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z',
+    statLabel: 'Heute',
+  },
+  {
+    id: 'products',
+    route: '/admin/products',
+    title: 'Produkte',
+    description: 'Produktkatalog und Preise verwalten',
+    icon: 'M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z',
+    statLabel: 'Gesamt',
+  },
+  {
+    id: 'revenue',
+    route: '/admin/revenue',
+    title: 'Umsatz',
+    description: 'Umsatzstatistiken und Berichte',
+    icon: 'M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z',
+    statLabel: 'Heute',
+  },
+  {
+    id: 'coupons',
+    route: '/admin/coupons',
+    title: 'Gutscheine & Coupons',
+    description: 'Gutscheincodes und Rabatt-Coupons verwalten',
+    icon: 'M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z',
+    statLabel: 'Aktiv',
+  },
+  {
+    id: 'settings',
+    route: '/admin/settings',
+    title: 'Einstellungen',
+    description: 'Systemkonfiguration und Präferenzen',
+    icon: 'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z',
+    statLabel: '',
+    isArrow: true,
+  },
+]
+
+function navigateTo(route) {
+  router.push(route)
+}
+
+function goBack() {
+  router.push('/')
+}
+</script>
+
 <template>
   <div class="admin-page">
     <div class="bg-grid" aria-hidden="true"></div>
@@ -7,7 +65,7 @@
         <img src="../assets/logo-removebg-preview.png" class="admin-logo" alt="Scanly" />
         <span class="admin-badge">Admin</span>
       </div>
-      <button type="button" class="admin-back-btn" @click="$router.push('/')">
+      <button type="button" class="admin-back-btn" @click="goBack">
         <svg viewBox="0 0 24 24" class="admin-back-icon" fill="currentColor">
           <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
         </svg>
@@ -22,103 +80,35 @@
       </div>
 
       <div class="admin-grid">
-        <!-- Bestellungen -->
-        <div class="admin-card" @click="$router.push('/admin/orders')">
-          <div class="admin-card-icon admin-card-icon--orders">
+        <div
+          v-for="card in dashboardCards"
+          :key="card.id"
+          class="admin-card"
+          @click="navigateTo(card.route)"
+        >
+          <div :class="['admin-card-icon', `admin-card-icon--${card.id}`]">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/>
+              <path :d="card.icon"/>
             </svg>
           </div>
           <div class="admin-card-content">
-            <h3 class="admin-card-title">Bestellungen</h3>
-            <p class="admin-card-desc">Aktuelle Bestellungen einsehen und verwalten</p>
-          </div>
-          <div class="admin-card-stat">
-            <span class="admin-card-number">—</span>
-            <span class="admin-card-label">Heute</span>
-          </div>
-        </div>
-
-        <!-- Produkte -->
-        <div class="admin-card" @click="$router.push('/admin/products')">
-          <div class="admin-card-icon admin-card-icon--products">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z"/>
-            </svg>
-          </div>
-          <div class="admin-card-content">
-            <h3 class="admin-card-title">Produkte</h3>
-            <p class="admin-card-desc">Produktkatalog und Preise verwalten</p>
-          </div>
-          <div class="admin-card-stat">
-            <span class="admin-card-number">—</span>
-            <span class="admin-card-label">Gesamt</span>
-          </div>
-        </div>
-
-        <!-- Umsatz -->
-        <div class="admin-card" @click="$router.push('/admin/revenue')">
-          <div class="admin-card-icon admin-card-icon--revenue">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-            </svg>
-          </div>
-          <div class="admin-card-content">
-            <h3 class="admin-card-title">Umsatz</h3>
-            <p class="admin-card-desc">Umsatzstatistiken und Berichte</p>
-          </div>
-          <div class="admin-card-stat">
-            <span class="admin-card-number">—</span>
-            <span class="admin-card-label">Heute</span>
-          </div>
-        </div>
-
-        <!-- Gutscheine & Coupons -->
-        <div class="admin-card" @click="$router.push('/admin/coupons')">
-          <div class="admin-card-icon admin-card-icon--coupons">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
-            </svg>
-          </div>
-          <div class="admin-card-content">
-            <h3 class="admin-card-title">Gutscheine & Coupons</h3>
-            <p class="admin-card-desc">Gutscheincodes und Rabatt-Coupons verwalten</p>
-          </div>
-          <div class="admin-card-stat">
-            <span class="admin-card-number">—</span>
-            <span class="admin-card-label">Aktiv</span>
-          </div>
-        </div>
-
-        <!-- Einstellungen -->
-        <div class="admin-card" @click="$router.push('/admin/settings')">
-          <div class="admin-card-icon admin-card-icon--settings">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-            </svg>
-          </div>
-          <div class="admin-card-content">
-            <h3 class="admin-card-title">Einstellungen</h3>
-            <p class="admin-card-desc">Systemkonfiguration und Präferenzen</p>
+            <h3 class="admin-card-title">{{ card.title }}</h3>
+            <p class="admin-card-desc">{{ card.description }}</p>
           </div>
           <div class="admin-card-stat">
             <span class="admin-card-number">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="opacity: 0.5;">
+              <svg v-if="card.isArrow" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="opacity: 0.5;">
                 <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
               </svg>
+              <template v-else>—</template>
             </span>
-            <span class="admin-card-label"></span>
+            <span class="admin-card-label">{{ card.statLabel }}</span>
           </div>
         </div>
       </div>
-
     </main>
   </div>
 </template>
-
-<script setup>
-// Admin page — frontend only, no functionality yet
-</script>
 
 <style scoped>
 .admin-page {
@@ -141,7 +131,6 @@
   z-index: 0;
 }
 
-/* Navbar */
 .admin-navbar {
   position: relative;
   z-index: 2;
@@ -206,7 +195,6 @@
   height: 18px;
 }
 
-/* Main */
 .admin-main {
   position: relative;
   z-index: 1;
@@ -243,7 +231,6 @@
   font-weight: 400;
 }
 
-/* Card Grid */
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -342,7 +329,6 @@
   display: none;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .admin-navbar {
     padding: 1rem 1.25rem;

@@ -32,9 +32,13 @@
                 <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
 
                 <div class="ci-qty">
-                  <button class="qty-btn" @click="updateItemQuantity(item, -1)">−</button>
-                  <span class="qty-val">{{ item.amount }}</span>
-                  <button class="qty-btn" @click="updateItemQuantity(item, 1)">+</button>
+                  <template v-if="!isFruitsVegetables(item)">
+                    <button class="qty-btn" @click="updateItemQuantity(item, -1)">−</button>
+                  </template>
+                  <span class="qty-val">{{ isFruitsVegetables(item) ? item.amount.toFixed(2) + ' kg' : item.amount }}</span>
+                  <template v-if="!isFruitsVegetables(item)">
+                    <button class="qty-btn" @click="updateItemQuantity(item, 1)">+</button>
+                  </template>
                 </div>
 
                 <button class="delete-btn" title="Artikel entfernen" @click="confirmDeleteItem = item">
@@ -319,6 +323,30 @@
     </div>
 
     <Teleport to="body">
+      <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
+        <div class="delete-confirm-card">
+          <div class="delete-confirm-icon" style="color: #fbbf24; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.25);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
+          <p class="delete-confirm-text">
+            Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt.
+          </p>
+          <div class="delete-confirm-actions">
+            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="showCancelConfirm = false">
+              Zurück
+            </button>
+            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="confirmCancel">
+              Bestellung abbrechen
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="confirmDeleteItem" class="delete-overlay" @click.self="confirmDeleteItem = null">
         <div class="delete-confirm-card">
           <div class="delete-confirm-icon">
@@ -351,12 +379,14 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
+import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const settingsStore = useSettingsStore()
 const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
 
 const translations_local = allTranslations
@@ -403,8 +433,15 @@ const selectedProduce = ref(null)
 const weightKg = ref(0.25)
 const errorMessage = ref('')
 const confirmDeleteItem = ref(null)
+const showCancelConfirm = ref(false)
 let errorTimeout = null
 
+
+function isFruitsVegetables(item) {
+  const cat = item.productCategory || item.category
+  if (cat) return cat === 'FRUITS_VEGETABLES'
+  return !Number.isInteger(item.amount)
+}
 
 function round2(n) {
   return Math.round(n * 100) / 100
@@ -569,7 +606,7 @@ function handleKeydown(e) {
   if (e.key.length === 1) scanBuffer.value += e.key
   scanTimer = window.setTimeout(() => {
     scanBuffer.value = ''
-  }, 350)
+  }, settingsStore.scannerBuffer)
 }
 
 async function fetchOrder() {
@@ -600,7 +637,6 @@ async function onBarcodeScanned(code) {
     })
     console.log(`POST /api/orders/${cartStore.orderId}/items - code: ${code}`)
 
-    // Order neu laden um aktuelle Items und Preise zu bekommen
     await fetchOrder()
     status.value = 'idle'
   } catch (error) {
@@ -674,12 +710,23 @@ function closeModal() {
 }
 
 function cancel() {
+  showCancelConfirm.value = true
+}
+
+async function confirmCancel() {
+  showCancelConfirm.value = false
+  try {
+    if (cartStore.orderId) {
+      await api.delete(`/orders/${cartStore.orderId}`)
+    }
+  } catch (error) {
+    console.error('Fehler beim Abbrechen der Bestellung:', error)
+  }
   cartStore.clearCart()
   scanBuffer.value = ''
-  setTimeout(() => {
-    status.value = 'idle'
-  }, 1200)
+  stopCamera()
   closeModal()
+  router.push('/')
 }
 
 async function pay() {
@@ -693,7 +740,7 @@ async function pay() {
   await new Promise((r) => setTimeout(r, 400))
 
   status.value = 'idle'
-  router.push('/payback')
+  router.push(settingsStore.paybackEnabled ? '/payback' : '/payment')
 }
 
 async function startCamera() {
@@ -795,10 +842,10 @@ function startBarcodeScanning() {
         onBarcodeScanned(code)
         setTimeout(() => {
           scanCooldown = false
-        }, 1500)
+        }, settingsStore.cameraCooldown)
       }
     } catch {
-      /* ignore detection errors */
+      
     }
   }, 250)
 }
@@ -812,7 +859,10 @@ function stopBarcodeScanning() {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
-  startCamera()
+  fetchOrder()
+  if (settingsStore.cameraAutoStart) {
+    startCamera()
+  }
 })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)

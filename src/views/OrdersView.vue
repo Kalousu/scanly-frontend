@@ -731,23 +731,15 @@ onMounted(() => {
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 0.2rem 0.65rem;
-  font-size: 0.7rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  border-radius: 999px;
-  text-transform: capitalize;
 }
 
 .status-badge--closed {
-  background: rgba(110, 240, 180, 0.1);
-  border: 1px solid rgba(110, 240, 180, 0.25);
   color: #6EF0B4;
 }
 
 .status-badge--open {
-  background: rgba(255, 200, 60, 0.1);
-  border: 1px solid rgba(255, 200, 60, 0.25);
   color: #FFC83C;
 }
 

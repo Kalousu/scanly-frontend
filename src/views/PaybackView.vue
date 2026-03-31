@@ -170,13 +170,21 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted, nextTick } from 'vue'
+import { ref, onUnmounted, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLanguage } from '../components/Uselanguage'
+import { useSettingsStore } from '../stores/settings'
 
 const router = useRouter()
+const settingsStore = useSettingsStore()
 
 const { t } = useLanguage()
+
+onMounted(() => {
+  if (!settingsStore.paybackEnabled) {
+    router.replace('/payment')
+  }
+})
 
 const showScanner = ref(false)
 const mode = ref('scanner')

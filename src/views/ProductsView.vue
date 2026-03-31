@@ -131,6 +131,7 @@
                   <th>EAN / Barcode</th>
                   <th>Kategorie</th>
                   <th>Nettopreis</th>
+                  <th>Steuersatz</th>
                 </tr>
               </thead>
               <tbody>
@@ -138,12 +139,9 @@
                   <td class="prod-db-td-num">{{ idx + 1 }}</td>
                   <td class="prod-db-td-name">{{ product.name }}</td>
                   <td class="prod-db-td-ean">{{ product.code || product.ean || product.barcode}}</td>
-                  <td>
-                    <span class="prod-db-cat-tag" :class="'prod-db-cat-tag--' + (product.category || 'unknown')">
-                      {{ categoryLabelMap[product.category] || product.category}}
-                    </span>
-                  </td>
+                  <td>{{ categoryLabelMap[product.category] || product.category }}</td>
                   <td class="prod-db-td-price">{{ (product.price ?? product.priceNet ?? 0).toFixed(2) }} €{{ product.category === 'FRUITS_VEGETABLES' ? '/kg' : '' }}</td>
+                  <td class="prod-db-td-tax">{{ formatTaxRate(product.taxRate) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -210,11 +208,26 @@
               <label class="prod-label">EAN / Barcode</label>
               <input v-model="form.ean" type="text" class="prod-input" placeholder="z.B. 4006381333634" />
             </div>
+            <!-- Add Error -->
+            <div v-if="addError" class="prod-search-error">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <p>{{ addError }}</p>
+            </div>
+
+            <!-- Add Success -->
+            <div v-if="addSuccess" class="prod-found-card" style="margin-top: 0.75rem;">
+              <div class="prod-found-header">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                <span>Produkt erfolgreich hinzugefügt!</span>
+              </div>
+            </div>
+
             <div class="prod-modal-footer">
               <button class="prod-btn prod-btn--secondary" @click="closeModal">Abbrechen</button>
-              <button class="prod-btn prod-btn--primary prod-btn--add">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                Produkt hinzufügen
+              <button class="prod-btn prod-btn--primary prod-btn--add" @click="addProduct" :disabled="addLoading">
+                <span v-if="addLoading" class="prod-spinner"></span>
+                <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                {{ addLoading ? 'Wird hinzugefügt…' : 'Produkt hinzufügen' }}
               </button>
             </div>
           </div>
@@ -307,11 +320,26 @@
               <label class="prod-label">EAN / Barcode</label>
               <input v-model="form.ean" type="text" class="prod-input" placeholder="EAN / Barcode" :disabled="!foundProduct" />
             </div>
+            <!-- Edit Error -->
+            <div v-if="editError" class="prod-search-error">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <p>{{ editError }}</p>
+            </div>
+
+            <!-- Edit Success -->
+            <div v-if="editSuccess" class="prod-found-card" style="margin-top: 0.75rem;">
+              <div class="prod-found-header">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                <span>Produkt erfolgreich aktualisiert!</span>
+              </div>
+            </div>
+
             <div class="prod-modal-footer">
               <button class="prod-btn prod-btn--secondary" @click="closeModal">Abbrechen</button>
-              <button class="prod-btn prod-btn--primary prod-btn--edit" :disabled="!foundProduct">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                Änderungen speichern
+              <button class="prod-btn prod-btn--primary prod-btn--edit" :disabled="!foundProduct || editLoading" @click="editProduct">
+                <span v-if="editLoading" class="prod-spinner"></span>
+                <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                {{ editLoading ? 'Wird gespeichert…' : 'Änderungen speichern' }}
               </button>
             </div>
           </div>
@@ -378,11 +406,26 @@
                 <p class="prod-warning-text">Das Entfernen eines Produkts kann nicht rückgängig gemacht werden. Stellen Sie sicher, dass Sie das richtige Produkt ausgewählt haben.</p>
               </div>
             </div>
+            <!-- Remove Error -->
+            <div v-if="removeError" class="prod-search-error">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <p>{{ removeError }}</p>
+            </div>
+
+            <!-- Remove Success -->
+            <div v-if="removeSuccess" class="prod-found-card" style="margin-top: 0.75rem;">
+              <div class="prod-found-header">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                <span>Produkt erfolgreich entfernt!</span>
+              </div>
+            </div>
+
             <div class="prod-modal-footer">
               <button class="prod-btn prod-btn--secondary" @click="closeModal">Abbrechen</button>
-              <button class="prod-btn prod-btn--primary prod-btn--remove" :disabled="!foundProduct">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                Produkt entfernen
+              <button class="prod-btn prod-btn--primary prod-btn--remove" :disabled="!foundProduct || removeLoading" @click="removeProduct">
+                <span v-if="removeLoading" class="prod-spinner"></span>
+                <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                {{ removeLoading ? 'Wird entfernt…' : 'Produkt entfernen' }}
               </button>
             </div>
           </div>
@@ -394,13 +437,22 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { fetchProductByBarcode, fetchAllProducts } from '../services/api'
+import { fetchProductByBarcode, fetchAllProducts, createProduct, updateProduct, deleteProduct } from '../services/api'
 
 const activeModal = ref(null)
 const searchQuery = ref('')
 const searchLoading = ref(false)
 const searchError = ref('')
 const foundProduct = ref(null)
+const addLoading = ref(false)
+const addError = ref('')
+const addSuccess = ref(false)
+const editLoading = ref(false)
+const editError = ref('')
+const editSuccess = ref(false)
+const removeLoading = ref(false)
+const removeError = ref('')
+const removeSuccess = ref(false)
 
 const categories = [
   { value: '', label: 'Kategorie wählen…' },
@@ -499,6 +551,12 @@ function openModal(type) {
   activeModal.value = type
   resetForm()
   resetSearch()
+  addError.value = ''
+  addSuccess.value = false
+  editError.value = ''
+  editSuccess.value = false
+  removeError.value = ''
+  removeSuccess.value = false
 }
 
 function closeModal() {
@@ -506,6 +564,12 @@ function closeModal() {
   searchQuery.value = ''
   resetForm()
   resetSearch()
+  addError.value = ''
+  addSuccess.value = false
+  editError.value = ''
+  editSuccess.value = false
+  removeError.value = ''
+  removeSuccess.value = false
 }
 
 function resetForm() {
@@ -533,6 +597,102 @@ function getTaxRateValue(taxRate) {
   if (taxRate === 1.07) return '1.07'
   if (taxRate === 1.0) return '1.00'
   return '1.19'
+}
+
+async function addProduct() {
+  if (!form.value.name || !form.value.category || !form.value.priceNet || !form.value.ean) {
+    addError.value = 'Bitte alle Felder ausfüllen.'
+    return
+  }
+
+  addLoading.value = true
+  addError.value = ''
+  addSuccess.value = false
+
+  try {
+    const body = {
+      name: form.value.name,
+      category: form.value.category,
+      price: parseFloat(form.value.priceNet),
+      taxRate: parseFloat(form.value.taxRate),
+      code: form.value.ean,
+    }
+    await createProduct(body)
+    addSuccess.value = true
+    setTimeout(() => {
+      closeModal()
+      addSuccess.value = false
+    }, 1200)
+  } catch (err) {
+    console.error('Error adding product:', err)
+    addError.value = 'Fehler beim Hinzufügen des Produkts. Bitte versuche es erneut.'
+  } finally {
+    addLoading.value = false
+  }
+}
+
+async function editProduct() {
+  if (!form.value.name || !form.value.category || !form.value.priceNet || !form.value.ean) {
+    editError.value = 'Bitte alle Felder ausfüllen.'
+    return
+  }
+
+  const barcode = foundProduct.value?.ean || foundProduct.value?.barcode || foundProduct.value?.code || searchQuery.value.trim()
+  if (!barcode) {
+    editError.value = 'Kein Barcode vorhanden.'
+    return
+  }
+
+  editLoading.value = true
+  editError.value = ''
+  editSuccess.value = false
+
+  try {
+    const body = {
+      name: form.value.name,
+      code: form.value.ean,
+      price: parseFloat(form.value.priceNet),
+      taxRate: parseFloat(form.value.taxRate),
+      productCategory: form.value.category,
+    }
+    await updateProduct(barcode, body)
+    editSuccess.value = true
+    setTimeout(() => {
+      closeModal()
+      editSuccess.value = false
+    }, 1200)
+  } catch (err) {
+    console.error('Error updating product:', err)
+    editError.value = 'Fehler beim Aktualisieren des Produkts. Bitte versuche es erneut.'
+  } finally {
+    editLoading.value = false
+  }
+}
+
+async function removeProduct() {
+  const barcode = foundProduct.value?.ean || foundProduct.value?.barcode || foundProduct.value?.code || searchQuery.value.trim()
+  if (!barcode) {
+    removeError.value = 'Kein Produkt ausgewählt.'
+    return
+  }
+
+  removeLoading.value = true
+  removeError.value = ''
+  removeSuccess.value = false
+
+  try {
+    await deleteProduct(barcode)
+    removeSuccess.value = true
+    setTimeout(() => {
+      closeModal()
+      removeSuccess.value = false
+    }, 1200)
+  } catch (err) {
+    console.error('Error deleting product:', err)
+    removeError.value = 'Fehler beim Entfernen des Produkts. Bitte versuche es erneut.'
+  } finally {
+    removeLoading.value = false
+  }
 }
 
 async function searchByBarcode() {
@@ -1496,41 +1656,6 @@ select.prod-input {
   font-size: 0.8rem;
 }
 
-/* Category Tags */
-.prod-db-cat-tag {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  border-radius: 999px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.prod-db-cat-tag--FRUITS_VEGETABLES {
-  background: rgba(110, 240, 180, 0.1);
-  color: #6EF0B4;
-  border: 1px solid rgba(110, 240, 180, 0.2);
-}
-
-.prod-db-cat-tag--BAKERY {
-  background: rgba(255, 200, 100, 0.1);
-  color: #FFC864;
-  border: 1px solid rgba(255, 200, 100, 0.2);
-}
-
-.prod-db-cat-tag--OTHERS {
-  background: rgba(0, 212, 232, 0.1);
-  color: #00D4E8;
-  border: 1px solid rgba(0, 212, 232, 0.2);
-}
-
-.prod-db-cat-tag--unknown {
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
-}
 
 /* Empty State */
 .prod-db-empty {

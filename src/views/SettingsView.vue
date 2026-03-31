@@ -86,71 +86,6 @@
           </div>
         </div>
 
-        <!-- Timeout -->
-        <div class="set-card">
-          <div class="set-card-header">
-            <div class="set-card-icon set-card-icon--timeout">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
-              </svg>
-            </div>
-            <div>
-              <h2 class="set-card-title">Timeout-Einstellungen</h2>
-              <p class="set-card-desc">Automatische Zeitlimits für Inaktivität und Weiterleitungen</p>
-            </div>
-          </div>
-          <div class="set-card-body">
-            <div class="set-option-row">
-              <div class="set-option-info">
-                <span class="set-option-label">Warenkorb-Timeout</span>
-                <span class="set-option-hint">Warenkorb wird nach Inaktivität automatisch geleert.</span>
-              </div>
-              <div class="set-input-group">
-                <input
-                  v-model.number="cartTimeout"
-                  type="number"
-                  min="1"
-                  max="30"
-                  class="set-input"
-                />
-                <span class="set-input-unit">Min</span>
-              </div>
-            </div>
-            <div class="set-option-row">
-              <div class="set-option-info">
-                <span class="set-option-label">Redirect nach Bezahlung</span>
-                <span class="set-option-hint">Automatische Weiterleitung zum Startbildschirm nach erfolgreichem Checkout.</span>
-              </div>
-              <div class="set-input-group">
-                <input
-                  v-model.number="redirectTimeout"
-                  type="number"
-                  min="3"
-                  max="60"
-                  class="set-input"
-                />
-                <span class="set-input-unit">Sek</span>
-              </div>
-            </div>
-            <div class="set-option-row">
-              <div class="set-option-info">
-                <span class="set-option-label">Admin Auto-Logout</span>
-                <span class="set-option-hint">Admin-Sitzung wird nach Inaktivität automatisch beendet.</span>
-              </div>
-              <div class="set-input-group">
-                <input
-                  v-model.number="adminLogoutTimeout"
-                  type="number"
-                  min="5"
-                  max="120"
-                  class="set-input"
-                />
-                <span class="set-input-unit">Min</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Scan Cooldown -->
         <div class="set-card">
           <div class="set-card-header">
@@ -293,7 +228,15 @@
               <svg viewBox="0 0 24 24" fill="currentColor" class="set-form-hint-icon"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
               <span>Passwörter stimmen nicht überein.</span>
             </div>
-            <button class="set-btn set-btn--auth" disabled>
+            <div v-if="credentialError" class="set-form-hint">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="set-form-hint-icon"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+              <span>{{ credentialError }}</span>
+            </div>
+            <div v-if="credentialSuccess" class="set-form-success">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="set-form-success-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              <span>Passwort erfolgreich geändert!</span>
+            </div>
+            <button class="set-btn set-btn--auth" @click="saveCredentials">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14zm-4.2-5.78v1.75l3.2-2.99L12.8 9v1.7c-3.11.43-4.35 2.56-4.8 4.7 1.11-1.5 2.58-2.18 4.8-2.18z"/></svg>
               Anmeldedaten speichern
             </button>
@@ -305,8 +248,11 @@
       <!-- Save All Bar -->
       <div class="set-save-bar">
         <div class="set-save-bar-inner">
-          <span class="set-save-hint">Änderungen werden erst nach dem Speichern übernommen.</span>
-          <button class="set-btn set-btn--save" disabled>
+          <span class="set-save-hint">
+            <span v-if="saveSuccess" class="set-save-success-text">✓ Einstellungen gespeichert!</span>
+            <span v-else>Änderungen werden automatisch gespeichert.</span>
+          </span>
+          <button class="set-btn set-btn--save" @click="saveAllSettings">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
             Alle Einstellungen speichern
           </button>
@@ -317,31 +263,69 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useSettingsStore } from '../stores/settings'
+import { storeToRefs } from 'pinia'
 
-// Payback
-const paybackEnabled = ref(true)
-const paybackQrEnabled = ref(true)
-const paybackManualEnabled = ref(true)
+const settingsStore = useSettingsStore()
+const {
+  paybackEnabled,
+  paybackQrEnabled,
+  paybackManualEnabled,
+  cameraCooldown,
+  scannerBuffer,
+  cameraAutoStart,
+  adminUsername,
+} = storeToRefs(settingsStore)
 
-// Timeouts
-const cartTimeout = ref(5)
-const redirectTimeout = ref(10)
-const adminLogoutTimeout = ref(30)
-
-// Scan Cooldown
-const cameraCooldown = ref(1500)
-const scannerBuffer = ref(350)
-const cameraAutoStart = ref(true)
-
-// Admin Credentials
-const adminUsername = ref('admin')
+// Admin Credentials (local form state)
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
+
+// Save feedback
+const saveSuccess = ref(false)
+const credentialError = ref('')
+const credentialSuccess = ref(false)
+
+function saveAllSettings() {
+  settingsStore.saveAll()
+  saveSuccess.value = true
+  setTimeout(() => { saveSuccess.value = false }, 2500)
+}
+
+function saveCredentials() {
+  credentialError.value = ''
+  credentialSuccess.value = false
+
+  if (!currentPassword.value) {
+    credentialError.value = 'Bitte aktuelles Passwort eingeben.'
+    return
+  }
+  if (!settingsStore.checkCredentials(adminUsername.value, currentPassword.value)) {
+    credentialError.value = 'Aktuelles Passwort ist falsch.'
+    return
+  }
+  if (!newPassword.value) {
+    credentialError.value = 'Bitte neues Passwort eingeben.'
+    return
+  }
+  if (newPassword.value !== confirmPassword.value) {
+    credentialError.value = 'Passwörter stimmen nicht überein.'
+    return
+  }
+
+  settingsStore.adminPassword = newPassword.value
+  settingsStore.saveAll()
+  currentPassword.value = ''
+  newPassword.value = ''
+  confirmPassword.value = ''
+  credentialSuccess.value = true
+  setTimeout(() => { credentialSuccess.value = false }, 2500)
+}
 </script>
 
 <style scoped>
@@ -746,6 +730,30 @@ const showConfirmPassword = ref(false)
   height: 16px;
   flex-shrink: 0;
   color: #f87171;
+}
+
+.set-form-success {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #4ade80;
+}
+
+.set-form-success-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #4ade80;
+}
+
+.set-save-success-text {
+  color: #4ade80;
+  font-weight: 600;
 }
 
 /* Buttons */

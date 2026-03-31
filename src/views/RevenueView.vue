@@ -812,25 +812,19 @@ onMounted(() => {
 
 .pay-badge {
   display: inline-block;
-  padding: 0.2rem 0.6rem;
   font-size: 0.72rem;
   font-weight: 600;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 999px;
+  background: none;
+  border: none;
   color: rgba(255,255,255,0.6);
   text-transform: capitalize;
 }
 
 .pay-badge--closed {
-  background: rgba(110, 240, 180, 0.1);
-  border-color: rgba(110, 240, 180, 0.25);
   color: #6EF0B4;
 }
 
 .pay-badge--open {
-  background: rgba(255, 200, 60, 0.1);
-  border-color: rgba(255, 200, 60, 0.25);
   color: #FFC83C;
 }
 

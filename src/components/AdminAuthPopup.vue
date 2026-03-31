@@ -60,6 +60,13 @@
               />
             </div>
 
+            <div v-if="errorMsg" class="admin-popup__error" role="alert">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+              {{ errorMsg }}
+            </div>
+
             <div class="admin-popup__footer">
               <button type="submit" class="admin-popup__cta">
                 Anmelden
@@ -75,6 +82,7 @@
 <script setup>
 import { ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useSettingsStore } from '../stores/settings'
 
 const props = defineProps({
   visible: {
@@ -86,20 +94,27 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const router = useRouter()
+const settingsStore = useSettingsStore()
 const closeBtnEl = ref(null)
 const username = ref('')
 const password = ref('')
+const errorMsg = ref('')
 
 function close() {
   username.value = ''
   password.value = ''
+  errorMsg.value = ''
   emit('close')
 }
 
 function handleLogin() {
-  // No backend logic yet – just redirect to admin page
-  router.push('/admin')
-  close()
+  errorMsg.value = ''
+  if (settingsStore.checkCredentials(username.value, password.value)) {
+    router.push('/admin')
+    close()
+  } else {
+    errorMsg.value = 'Ungültige Anmeldedaten.'
+  }
 }
 
 watch(
@@ -263,6 +278,26 @@ watch(
   border-color: rgba(0, 212, 232, 0.5);
   box-shadow: 0 0 0 3px rgba(0, 212, 232, 0.1);
   background: rgba(255, 255, 255, 0.07);
+}
+
+.admin-popup__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fca5a5;
+}
+
+.admin-popup__error svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #f87171;
 }
 
 .admin-popup__footer {

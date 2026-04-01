@@ -13,17 +13,7 @@
         <div class="help-modal" ref="modalEl">
           <div class="help-modal__header">
             <div class="help-modal__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
-                     10-4.48 10-10S17.52 2 12 2Zm0 17a1.25 1.25 0 1 1 0-2.5
-                     1.25 1.25 0 0 1 0 2.5Zm1.2-5.7c-.7.46-.95.72-.95 1.45v.25h-1.9v-.4
-                     c0-1.23.55-1.87 1.45-2.45.73-.48 1.2-.78 1.2-1.5
-                     0-.78-.62-1.3-1.5-1.3-.82 0-1.42.44-1.75 1.1l-1.62-.95
-                     C8.68 7.42 10.05 6.6 11.7 6.6c2 0 3.5 1.18 3.5 3
-                     0 1.6-1 2.25-2 2.95Z"
-                />
-              </svg>
+              <span></span>
             </div>
             <h2 class="help-modal__title">{{ t('helpModalTitle') }}</h2>
             <button
@@ -33,10 +23,7 @@
               :aria-label="t('close')"
               @click="$emit('update:modelValue', false)"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <span></span>
             </button>
           </div>
 

@@ -1,0 +1,786 @@
+<template>
+  <div class="revenue-page">
+    <nav class="rev-navbar">
+      <div class="rev-navbar-left">
+        <img src="../assets/logo-removebg-preview.png" class="rev-logo" alt="Scanly" />
+        <span class="rev-badge">Admin</span>
+        <span class="rev-breadcrumb">/ Umsatz</span>
+      </div>
+      <button type="button" class="rev-back-btn" @click="$router.push('/admin')">
+        ← Zurück zum Dashboard
+      </button>
+    </nav>
+
+    <main class="rev-main">
+      <!-- Loading -->
+      <div v-if="loading" class="rev-loading">
+        <div class="rev-spinner"></div>
+        <p>Daten werden geladen…</p>
+      </div>
+
+      <!-- Error -->
+      <div v-else-if="error" class="rev-error">
+        <p>⚠ Fehler beim Laden der Daten</p>
+        <p class="rev-error-detail">{{ error }}</p>
+        <button class="rev-retry-btn" @click="loadOrders">Erneut versuchen</button>
+      </div>
+
+      <!-- Content -->
+      <template v-else>
+        <!-- KPI Cards -->
+        <div class="rev-header">
+          <h1 class="rev-title">Umsatzübersicht</h1>
+          <p class="rev-subtitle">Nur abgeschlossene Bestellungen (Status: closed)</p>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-content">
+              <span class="kpi-label">Gesamtumsatz</span>
+              <span class="kpi-value">{{ formatCurrency(totalRevenue) }}</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-content">
+              <span class="kpi-label">Abgeschl. Bestellungen</span>
+              <span class="kpi-value">{{ closedOrders.length }}</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-content">
+              <span class="kpi-label">Ø Bestellwert</span>
+              <span class="kpi-value">{{ formatCurrency(avgOrderValue) }}</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-content">
+              <span class="kpi-label">Umsatz heute</span>
+              <span class="kpi-value">{{ formatCurrency(todayRevenue) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="chart-card chart-card--wide">
+            <h3 class="chart-title">Tagesumsatz (letzte 30 Tage)</h3>
+            <div class="chart-wrap">
+              <Bar v-if="dailyChartData" :data="dailyChartData" :options="barOptions" />
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3 class="chart-title">Top Produkte (nach Umsatz)</h3>
+            <div class="chart-wrap chart-wrap--doughnut">
+              <Doughnut v-if="productChartData" :data="productChartData" :options="doughnutOptions" />
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3 class="chart-title">Bestellungen pro Tag</h3>
+            <div class="chart-wrap chart-wrap--doughnut">
+              <Line v-if="ordersTrendData" :data="ordersTrendData" :options="lineOptions" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders Table -->
+        <div class="rev-section">
+          <h2 class="rev-section-title">Letzte abgeschlossene Bestellungen</h2>
+          <div class="rev-table-wrap">
+            <table class="rev-table" v-if="closedOrders.length > 0">
+              <thead>
+                <tr>
+                  <th>Bestell-ID</th>
+                  <th>Datum</th>
+                  <th>Artikel</th>
+                  <th>Betrag</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="order in recentOrders" :key="order.orderId">
+                  <td class="td-id">#{{ order.orderId }}</td>
+                  <td>{{ formatDate(order.creationDate) }}</td>
+                  <td>{{ getItemCount(order) }}</td>
+                  <td class="td-amount">{{ formatCurrency(order.totalPrice || 0) }}</td>
+                  <td>
+                    <span class="pay-badge" :class="'pay-badge--' + (order.orderStatus || '').toLowerCase()">
+                      {{ order.orderStatus }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-else class="rev-empty">Keine abgeschlossenen Bestellungen vorhanden.</div>
+          </div>
+        </div>
+      </template>
+    </main>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import api from '@/services/api'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js'
+import { Bar, Doughnut, Line } from 'vue-chartjs'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+)
+
+const allOrders = ref([])
+const loading = ref(true)
+const error = ref(null)
+
+const closedOrders = computed(() =>
+  allOrders.value.filter(
+    (o) => (o.orderStatus || '').toUpperCase() === 'CLOSED'
+  )
+)
+
+const totalRevenue = computed(() =>
+  closedOrders.value.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+)
+
+const avgOrderValue = computed(() =>
+  closedOrders.value.length > 0
+    ? totalRevenue.value / closedOrders.value.length
+    : 0
+)
+
+const todayRevenue = computed(() => {
+  const today = new Date().toISOString().slice(0, 10)
+  return closedOrders.value
+    .filter((o) => (o.creationDate || '').startsWith(today))
+    .reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+})
+
+const recentOrders = computed(() =>
+  [...closedOrders.value]
+    .sort((a, b) => new Date(b.creationDate || 0) - new Date(a.creationDate || 0))
+    .slice(0, 10)
+)
+
+// --- Chart Data ---
+
+const dailyChartData = computed(() => {
+  const days = getLast30Days()
+  const map = {}
+  days.forEach((d) => (map[d] = 0))
+
+  closedOrders.value.forEach((o) => {
+    const day = (o.creationDate || '').slice(0, 10)
+    if (map[day] !== undefined) {
+      map[day] += (o.totalPrice || 0)
+    }
+  })
+
+  return {
+    labels: days.map((d) => {
+      const parts = d.split('-')
+      return `${parts[2]}.${parts[1]}`
+    }),
+    datasets: [
+      {
+        label: 'Umsatz (€)',
+        data: days.map((d) => Math.round(map[d] * 100) / 100),
+        backgroundColor: 'rgba(0, 212, 232, 0.35)',
+        borderColor: '#00D4E8',
+        borderWidth: 2,
+        borderRadius: 6,
+        hoverBackgroundColor: 'rgba(0, 212, 232, 0.55)',
+      },
+    ],
+  }
+})
+
+const productChartData = computed(() => {
+  const map = {}
+  closedOrders.value.forEach((o) => {
+    if (Array.isArray(o.orderItems)) {
+      o.orderItems.forEach((item) => {
+        const name = item.productName || 'Unbekannt'
+        map[name] = (map[name] || 0) + (item.totalPriceGross || 0)
+      })
+    }
+  })
+
+  // Sort by revenue descending, take top 6
+  const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6)
+  const labels = sorted.map(([name]) => name)
+  const data = sorted.map(([, val]) => Math.round(val * 100) / 100)
+  const colors = ['#00D4E8', '#6EF0B4', '#FFC83C', '#B4A0FF', '#FF6B8A', '#FF9F43']
+
+  return {
+    labels,
+    datasets: [
+      {
+        data,
+        backgroundColor: colors.slice(0, labels.length),
+        borderColor: 'rgba(7, 26, 42, 0.8)',
+        borderWidth: 3,
+        hoverOffset: 8,
+      },
+    ],
+  }
+})
+
+const ordersTrendData = computed(() => {
+  const days = getLast30Days()
+  const map = {}
+  days.forEach((d) => (map[d] = 0))
+
+  closedOrders.value.forEach((o) => {
+    const day = (o.creationDate || '').slice(0, 10)
+    if (map[day] !== undefined) {
+      map[day] += 1
+    }
+  })
+
+  return {
+    labels: days.map((d) => {
+      const parts = d.split('-')
+      return `${parts[2]}.${parts[1]}`
+    }),
+    datasets: [
+      {
+        label: 'Bestellungen',
+        data: days.map((d) => map[d]),
+        borderColor: '#6EF0B4',
+        backgroundColor: 'rgba(110, 240, 180, 0.08)',
+        pointBackgroundColor: '#6EF0B4',
+        pointBorderColor: '#071A2A',
+        pointBorderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        borderWidth: 2,
+        tension: 0.35,
+        fill: true,
+      },
+    ],
+  }
+})
+
+// --- Chart Options ---
+
+const barOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(7, 26, 42, 0.95)',
+      borderColor: 'rgba(0, 212, 232, 0.3)',
+      borderWidth: 1,
+      titleColor: '#fff',
+      bodyColor: 'rgba(255,255,255,0.8)',
+      padding: 12,
+      cornerRadius: 8,
+      callbacks: {
+        label: (ctx) => `${ctx.parsed.y.toFixed(2)} €`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      ticks: { color: 'rgba(255,255,255,0.4)', maxRotation: 45 },
+      grid: { color: 'rgba(255,255,255,0.04)' },
+    },
+    y: {
+      ticks: {
+        color: 'rgba(255,255,255,0.4)',
+        callback: (v) => `${v} €`,
+      },
+      grid: { color: 'rgba(255,255,255,0.06)' },
+    },
+  },
+}
+
+const doughnutOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  cutout: '65%',
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: {
+        color: 'rgba(255,255,255,0.65)',
+        padding: 16,
+        usePointStyle: true,
+        pointStyleWidth: 10,
+      },
+    },
+    tooltip: {
+      backgroundColor: 'rgba(7, 26, 42, 0.95)',
+      borderColor: 'rgba(0, 212, 232, 0.3)',
+      borderWidth: 1,
+      titleColor: '#fff',
+      bodyColor: 'rgba(255,255,255,0.8)',
+      padding: 12,
+      cornerRadius: 8,
+      callbacks: {
+        label: (ctx) => `${ctx.label}: ${ctx.parsed.toFixed(2)} €`,
+      },
+    },
+  },
+}
+
+const lineOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(7, 26, 42, 0.95)',
+      borderColor: 'rgba(110, 240, 180, 0.3)',
+      borderWidth: 1,
+      titleColor: '#fff',
+      bodyColor: 'rgba(255,255,255,0.8)',
+      padding: 12,
+      cornerRadius: 8,
+    },
+  },
+  scales: {
+    x: {
+      ticks: { color: 'rgba(255,255,255,0.4)', maxRotation: 45 },
+      grid: { color: 'rgba(255,255,255,0.04)' },
+    },
+    y: {
+      ticks: { color: 'rgba(255,255,255,0.4)', stepSize: 1 },
+      grid: { color: 'rgba(255,255,255,0.06)' },
+      beginAtZero: true,
+    },
+  },
+}
+
+// --- Helpers ---
+
+function getItemCount(order) {
+  if (Array.isArray(order.orderItems)) {
+    return order.orderItems.reduce((sum, item) => sum + (item.amount || 1), 0)
+  }
+  return '—'
+}
+
+function formatCurrency(val) {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(val)
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function getLast30Days() {
+  const days = []
+  const now = new Date()
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    days.push(d.toISOString().slice(0, 10))
+  }
+  return days
+}
+
+async function loadOrders() {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await api.get('/orders')
+    allOrders.value = Array.isArray(response.data) ? response.data : response.data.orders || response.data.content || []
+  } catch (e) {
+    console.error('Failed to load orders:', e)
+    error.value = e.message || 'Unbekannter Fehler'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadOrders()
+})
+</script>
+
+<style scoped>
+.revenue-page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  color: #fff;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #091E30;
+}
+
+/* Navbar */
+.rev-navbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(7, 26, 42, 0.95);
+}
+
+.rev-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rev-logo {
+  width: 80px;
+  display: block;
+  filter: brightness(1.1);
+}
+
+.rev-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #071A2A;
+  background: #00D4E8;
+  border-radius: 999px;
+}
+
+.rev-breadcrumb {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.rev-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.rev-back-btn:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+}
+
+
+/* Main */
+.rev-main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 2.5rem 3rem 4rem;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.rev-header {
+  margin-bottom: 2rem;
+}
+
+.rev-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.3rem;
+  color: #fff;
+}
+
+.rev-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.38);
+  margin: 0;
+}
+
+/* Loading */
+.rev-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 1rem;
+  color: rgba(255,255,255,0.4);
+  gap: 1rem;
+}
+
+.rev-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #00D4E8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error */
+.rev-error {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.rev-error-detail {
+  font-size: 0.85rem;
+  color: rgba(255,100,100,0.7);
+}
+
+.rev-retry-btn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.5rem;
+  background: rgba(0, 212, 232, 0.15);
+  border: 1px solid rgba(0, 212, 232, 0.3);
+  color: #00D4E8;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rev-retry-btn:hover {
+  background: rgba(0, 212, 232, 0.2);
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1.4rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+}
+
+
+.kpi-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.92);
+}
+
+/* Charts */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.chart-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.chart-card--wide {
+  grid-column: 1 / -1;
+}
+
+.chart-title {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+}
+
+.chart-wrap {
+  height: 280px;
+  position: relative;
+}
+
+.chart-wrap--doughnut {
+  height: 260px;
+}
+
+/* Table */
+.rev-section {
+  margin-top: 1rem;
+}
+
+.rev-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.rev-table-wrap {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.rev-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rev-table th {
+  text-align: left;
+  padding: 0.85rem 1.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.rev-table td {
+  padding: 0.8rem 1.2rem;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.rev-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.rev-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.td-id {
+  font-weight: 700;
+  color: #00D4E8;
+  font-size: 0.82rem;
+}
+
+.td-amount {
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+}
+
+.pay-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  text-transform: capitalize;
+}
+
+.pay-badge--closed {
+  color: #6EF0B4;
+}
+
+.pay-badge--open {
+  color: #FFC83C;
+}
+
+.rev-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(255,255,255,0.25);
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .chart-card--wide {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .rev-navbar {
+    padding: 1rem 1.25rem;
+  }
+  .rev-main {
+    padding: 1.5rem 1.25rem 3rem;
+  }
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rev-title {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

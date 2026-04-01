@@ -90,10 +90,14 @@
             <button
               class="btn btn--pay btn--pay--primary"
               :disabled="orderItems.length === 0 || status === 'paying' || status === 'paid'"
-              @click="pay"
+              @click="pay(); printReceipt()"
             >
               <span v-if="status === 'paying'" class="spinner"></span>
               <span v-else>{{ t('pay') }}</span>
+            </button>
+
+            <button class="btn btn--coupon-main" @click="openCouponModal">
+              Coupon einlösen
             </button>
 
             <button
@@ -117,6 +121,53 @@
             <div class="modal-actions">
               <button class="modal-btn modal-btn--done" @click="closeModal">
                 {{ t('close') }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="modal === 'coupon'" class="modal-backdrop" @click.self="closeModal">
+          <div class="modal-card modal-card--sm">
+            <h3 class="modal-title">🎟️ Coupon einlösen</h3>
+            <p class="coupon-subtitle">Code eingeben oder Coupon einscannen</p>
+
+            <div class="coupon-input-wrapper">
+              <input
+                ref="couponInputRef"
+                v-model="couponCode"
+                type="text"
+                class="coupon-input"
+                placeholder="Coupon-Code eingeben…"
+                maxlength="32"
+                @keydown.enter="redeemCoupon"
+              />
+              <button class="coupon-scan-btn" @click="startCouponScan" :title="couponScanning ? 'Scannen aktiv…' : 'Coupon scannen'">
+                <span v-if="!couponScanning">Scan</span>
+                <span v-else class="scan-pulse-icon">
+                  <span class="scan-pulse-dot"></span>
+                </span>
+              </button>
+            </div>
+
+            <div v-if="couponScanning" class="coupon-scan-hint">
+              <span class="scan-pulse-dot-sm"></span>
+              Scanner aktiv — Coupon jetzt einscannen…
+            </div>
+
+            <div v-if="couponMessage" class="coupon-message" :class="couponMessageType === 'error' ? 'coupon-message--error' : 'coupon-message--success'">
+              {{ couponMessage }}
+            </div>
+
+            <div class="modal-actions">
+              <button class="modal-btn modal-btn--back" @click="closeModal">
+                Abbrechen
+              </button>
+              <button
+                class="modal-btn modal-btn--done"
+                :disabled="!couponCode.trim()"
+                @click="redeemCoupon"
+              >
+                Einlösen
               </button>
             </div>
           </div>
@@ -147,6 +198,25 @@
         </div>
       </main>
     </div>
+
+    <Teleport to="body">
+      <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
+        <div class="delete-confirm-card">
+          <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
+          <p class="delete-confirm-text">
+            Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt.
+          </p>
+          <div class="delete-confirm-actions">
+            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="showCancelConfirm = false">
+              Zurück
+            </button>
+            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="confirmCancel">
+              Bestellung abbrechen
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -156,6 +226,7 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api from '@/services/api'
+import { PrinterEncoder } from '@/PrinterEncoder'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -181,7 +252,15 @@ const scanBuffer = ref('')
 let scanTimer = null
 
 const errorMessage = ref('')
+const showCancelConfirm = ref(false)
 let errorTimeout = null
+
+// Coupon state
+const couponCode = ref('')
+const couponScanning = ref(false)
+const couponMessage = ref('')
+const couponMessageType = ref('')
+const couponInputRef = ref(null)
 
 function selectLanguage(code) {
   setLanguage(code)
@@ -201,6 +280,43 @@ function formatPrice(n) {
   return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
 }
 
+async function printReceipt(){
+  const device = await navigator.usb.requestDevice({
+          filters: [{ vendorId: 0x0483, productId: 0x5840 }]
+        });
+        await device.open();
+        await device.selectConfiguration(1);
+        await device.claimInterface(0);
+ 
+        const endpoint = device.configuration.interfaces[0].alternate.endpoints.find(e => e.direction === 'out');
+        
+        const printer = new PrinterEncoder();
+        const result = printer
+          .init()
+          .setCodepage()
+          .setGerman()
+          .center()
+          .setBold()
+          .setItalic()
+          .setUnderline()
+          .println(0xC3)
+          .beep()
+          .unsetUnderline()
+          .unsetBold()
+          .println('Artikel A        3.50 EUR')
+          .println('Artikel B        5.00 EUR')
+          .println('------------------------')
+          .setBold()
+          .println('Total            8.50 EUR')
+          .unsetBold()
+          .unsetItalic()
+          .feed(1)
+          .cut()
+          .encode();
+ 
+        await device.transferOut(endpoint.endpointNumber, result);
+        await device.close();
+}
 
 function handleKeydown(e) {
   const tag = (e.target?.tagName || '').toLowerCase()
@@ -222,10 +338,12 @@ function handleKeydown(e) {
     return
   }
 
-  if (e.key.length === 1) scanBuffer.value += e.key
-  scanTimer = window.setTimeout(() => {
-    scanBuffer.value = ''
-  }, 120)
+  if (e.key.length === 1) {
+    scanBuffer.value += e.key
+    scanTimer = window.setTimeout(() => {
+      scanBuffer.value = ''
+    }, 300)
+  }
 }
 
 function onBarcodeScanned(code) {
@@ -240,6 +358,35 @@ function showError(msg) {
   }, 3000)
 }
 
+function openCouponModal() {
+  couponCode.value = ''
+  couponScanning.value = false
+  couponMessage.value = ''
+  couponMessageType.value = ''
+  modal.value = 'coupon'
+  setTimeout(() => couponInputRef.value?.focus(), 100)
+}
+
+function startCouponScan() {
+  couponScanning.value = !couponScanning.value
+  if (couponScanning.value) {
+    couponCode.value = ''
+    couponMessage.value = ''
+    // Focus the input so barcode scanner input goes there
+    couponInputRef.value?.focus()
+  }
+}
+
+function redeemCoupon() {
+  const code = couponCode.value.trim()
+  if (!code) return
+
+  // Frontend-only placeholder — no backend call yet
+  couponMessage.value = `Coupon „${code}" wird geprüft… (Backend noch nicht verbunden)`
+  couponMessageType.value = 'success'
+  couponScanning.value = false
+}
+
 function openHelp() {
   console.log('lang', currentLang.value)
   console.log('helpPayment', helpPayment.value)
@@ -250,19 +397,13 @@ function toggleLanguage() {
 }
 function closeModal() {
   modal.value = null
+  couponScanning.value = false
 }
 
 function cancel() {
   if (status.value === 'paying') return
-
-  status.value = 'cancelled'
-  cartStore.clearCart()
-  scanBuffer.value = ''
   closeModal()
-
-  setTimeout(() => {
-    status.value = 'idle'
-  }, 900)
+  router.push('/checkout')
 }
 
 async function pay() {
@@ -343,6 +484,122 @@ body {
   --panel: rgba(11, 32, 49, 0.88);
   --panel-strong: rgba(10, 28, 44, 0.95);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
+}
+
+.delete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.delete-overlay .delete-confirm-card {
+  width: min(420px, 90vw);
+  background: rgba(10, 28, 44, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 24px;
+  padding: 36px 32px 28px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: scaleIn 0.25s ease;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.delete-overlay .delete-confirm-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #f87171;
+}
+
+.delete-overlay .delete-confirm-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.96);
+  letter-spacing: -0.02em;
+}
+
+.delete-overlay .delete-confirm-text {
+  margin: 0 0 24px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+}
+
+.delete-overlay .delete-confirm-text strong {
+  color: rgba(255, 255, 255, 0.96);
+  font-weight: 700;
+}
+
+.delete-overlay .delete-confirm-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.delete-overlay .delete-confirm-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.delete-overlay .delete-confirm-btn:active {
+  transform: scale(0.97);
+}
+
+.delete-overlay .delete-confirm-btn--cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+}
+
+.delete-overlay .delete-confirm-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.delete-overlay .delete-confirm-btn--delete {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 30px rgba(248, 113, 113, 0.25);
+}
+
+.delete-overlay .delete-confirm-btn--delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(248, 113, 113, 0.35);
 }
 </style>
 
@@ -852,9 +1109,9 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
-  padding-bottom: 110px;
+  padding-bottom: 32px;
   width: 100%;
 }
 
@@ -1189,5 +1446,191 @@ body {
 
 .lang-btn--active .lang-code {
   color: var(--cyan);
+}
+
+/* Coupon button styles */
+.btn--coupon-main {
+  width: 100%;
+  min-height: 48px;
+  padding: 16px 32px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 20px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.06);
+  color: rgba(251, 191, 36, 0.9);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  letter-spacing: 0.02em;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+}
+
+.btn--coupon-main:hover {
+  border-color: rgba(251, 191, 36, 0.55);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 24px rgba(251, 191, 36, 0.15),
+    0 0 16px rgba(251, 191, 36, 0.1);
+}
+
+.btn--coupon-main:active {
+  transform: scale(0.98);
+}
+
+.coupon-subtitle {
+  margin: 8px 0 18px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.coupon-input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.coupon-input {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke-md);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
+}
+
+.coupon-input::placeholder {
+  color: var(--muted2);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.coupon-input:focus {
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.04);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.12);
+}
+
+.coupon-scan-btn {
+  width: 52px;
+  min-height: 52px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke-md);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s,
+    transform 0.13s,
+    box-shadow 0.2s;
+}
+
+.coupon-scan-btn:hover {
+  border-color: rgba(24, 231, 242, 0.45);
+  background: rgba(24, 231, 242, 0.08);
+  color: var(--cyan);
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(24, 231, 242, 0.15);
+}
+
+.scan-pulse-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-pulse-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan);
+  animation: coupon-scan-pulse 1.2s ease-in-out infinite;
+}
+
+.scan-pulse-dot-sm {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: coupon-scan-pulse 1.2s ease-in-out infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes coupon-scan-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.7);
+    box-shadow: 0 0 20px var(--cyan);
+  }
+}
+
+.coupon-scan-hint {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--cyan);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(24, 231, 242, 0.06);
+  border: 1px solid rgba(24, 231, 242, 0.2);
+  border-radius: 12px;
+  animation: fadeIn 0.25s ease;
+}
+
+.coupon-message {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: fadeIn 0.25s ease;
+}
+
+.coupon-message--success {
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  color: #4ade80;
+}
+
+.coupon-message--error {
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #f87171;
 }
 </style>

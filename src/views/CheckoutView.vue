@@ -3,58 +3,14 @@
     <div class="bg-grid" aria-hidden="true"></div>
 
     <div class="layout">
-      <aside class="panel cart-panel">
-        <div v-if="orderItems.length === 0" class="empty-state">
-          <h2 class="empty-title">{{ t('emptyTitle') }}</h2>
-          <p class="empty-hint">{{ t('emptyHint') }}</p>
-        </div>
-
-        <div v-else class="cart">
-          <div class="cart-header">
-            <h2 class="cart-title">{{ t('cartTitle') }}</h2>
-            <span class="scan-badge">
-              <span class="scan-badge-dot"></span>
-              {{ t('scanActive') }}
-            </span>
-          </div>
-
-          <div class="cart-items">
-            <div v-for="item in orderItems" :key="item.id" class="cart-item">
-              <div class="ci-accent"></div>
-              <div class="ci-left">
-                <div class="ci-name">{{ item.productName }}</div>
-                <div class="ci-meta">
-                  <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round((item.taxRate - 1) * 100) }}%</span>
-                </div>
-              </div>
-
-              <div class="ci-right">
-                <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
-
-                <div class="ci-qty">
-                  <template v-if="!isFruitsVegetables(item)">
-                    <button class="qty-btn" @click="updateItemQuantity(item, -1)">−</button>
-                  </template>
-                  <span class="qty-val">{{ isFruitsVegetables(item) ? item.amount.toFixed(2) + ' kg' : item.amount }}</span>
-                  <template v-if="!isFruitsVegetables(item)">
-                    <button class="qty-btn" @click="updateItemQuantity(item, 1)">+</button>
-                  </template>
-                </div>
-
-                <button class="delete-btn" title="Artikel entfernen" @click="confirmDeleteItem = item">
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="totals">
-            <div class="totals-row totals-total">
-              <span>{{ t('total') }}</span>
-              <span class="totals-total-value">{{ formatPrice(orderTotalPrice) }}</span>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <CartPanel
+        :items="orderItems"
+        :total-price="orderTotalPrice"
+        :editable="true"
+        :show-scan-badge="true"
+        @update-quantity="updateItemQuantity"
+        @delete-item="(item) => confirmDeleteItem = item"
+      />
 
       <main class="panel scan-panel">
         <div class="top-actions">
@@ -366,6 +322,7 @@ import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
+import CartPanel from '../components/CartPanel.vue'
 import { useFormatters } from '../composables/useFormatters'
 import { useErrorToast } from '../composables/useErrorToast'
 

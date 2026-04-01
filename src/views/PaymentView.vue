@@ -93,97 +93,38 @@
           </div>
         </div>
 
-        <div v-if="modal === 'coupon'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">🎟️ Coupon einlösen</h3>
-            <p class="coupon-subtitle">Code eingeben oder Coupon einscannen</p>
+        <CouponModal
+          :visible="modal === 'coupon'"
+          :code="couponCode"
+          :scanning="couponScanning"
+          :message="couponMessage"
+          :message-type="couponMessageType"
+          @update:code="couponCode = $event"
+          @redeem="redeemCoupon"
+          @toggle-scan="startCouponScan"
+          @close="closeModal"
+        />
 
-            <div class="coupon-input-wrapper">
-              <input
-                ref="couponInputRef"
-                v-model="couponCode"
-                type="text"
-                class="coupon-input"
-                placeholder="Coupon-Code eingeben…"
-                maxlength="32"
-                @keydown.enter="redeemCoupon"
-              />
-              <button class="coupon-scan-btn" @click="startCouponScan" :title="couponScanning ? 'Scannen aktiv…' : 'Coupon scannen'">
-                <span v-if="!couponScanning">Scan</span>
-                <span v-else class="scan-pulse-icon">
-                  <span class="scan-pulse-dot"></span>
-                </span>
-              </button>
-            </div>
-
-            <div v-if="couponScanning" class="coupon-scan-hint">
-              <span class="scan-pulse-dot-sm"></span>
-              Scanner aktiv — Coupon jetzt einscannen…
-            </div>
-
-            <div v-if="couponMessage" class="coupon-message" :class="couponMessageType === 'error' ? 'coupon-message--error' : 'coupon-message--success'">
-              {{ couponMessage }}
-            </div>
-
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">
-                Abbrechen
-              </button>
-              <button
-                class="modal-btn modal-btn--done"
-                :disabled="!couponCode.trim()"
-                @click="redeemCoupon"
-              >
-                Einlösen
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="modal === 'lang'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">{{ t('langTitle') }}</h3>
-            <div class="lang-grid">
-              <button
-                v-for="lang in languages"
-                :key="lang.code"
-                class="lang-btn"
-                :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="selectLanguage(lang.code)"
-              >
-                <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
-                <span class="lang-label">{{ lang.label }}</span>
-                <span class="lang-code">{{ lang.code.toUpperCase() }}</span>
-              </button>
-            </div>
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">
-                {{ t('close') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <LanguageModal
+          :visible="modal === 'lang'"
+          :current-lang="currentLang"
+          :languages="languages"
+          :t="t"
+          @select="selectLanguage"
+          @close="closeModal"
+        />
       </main>
     </div>
 
-    <Teleport to="body">
-      <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
-        <div class="delete-confirm-card">
-          <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
-          <p class="delete-confirm-text">
-            Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt.
-          </p>
-          <div class="delete-confirm-actions">
-            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="showCancelConfirm = false">
-              Zurück
-            </button>
-            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="confirmCancel">
-              Bestellung abbrechen
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <ConfirmDialog
+      :visible="showCancelConfirm"
+      title="Bestellung abbrechen"
+      message="Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt."
+      cancel-label="Zurück"
+      confirm-label="Bestellung abbrechen"
+      @cancel="showCancelConfirm = false"
+      @confirm="confirmCancel"
+    />
   </div>
 </template>
 
@@ -195,6 +136,9 @@ import { useLanguage, translations as allTranslations } from '../components/Usel
 import api from '@/services/api'
 import { PrinterEncoder } from '@/PrinterEncoder'
 import CartPanel from '../components/CartPanel.vue'
+import LanguageModal from '../components/LanguageModal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+import CouponModal from '../components/CouponModal.vue'
 import { useFormatters } from '../composables/useFormatters'
 import { useErrorToast } from '../composables/useErrorToast'
 

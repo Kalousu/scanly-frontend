@@ -244,73 +244,36 @@
           </div>
         </div>
 
-        <div v-if="modal === 'lang'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">{{ t('langTitle') }}</h3>
-            <div class="lang-grid">
-              <button
-                v-for="lang in languages"
-                :key="lang.code"
-                class="lang-btn"
-                :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="
-                  setLanguage(lang.code); closeModal()
-                "
-              >
-                <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
-                <span class="lang-label">{{ lang.label }}</span>
-                <span class="lang-code">{{ lang.code.toUpperCase() }}</span>
-              </button>
-            </div>
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">
-                {{ t('close') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <LanguageModal
+          :visible="modal === 'lang'"
+          :current-lang="currentLang"
+          :languages="languages"
+          :t="t"
+          @select="(code) => { setLanguage(code); closeModal() }"
+          @close="closeModal"
+        />
       </main>
     </div>
 
-    <Teleport to="body">
-      <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
-        <div class="delete-confirm-card">
-          <div class="delete-confirm-icon" style="color: #fbbf24; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.25);">
-          </div>
-          <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
-          <p class="delete-confirm-text">
-            Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt.
-          </p>
-          <div class="delete-confirm-actions">
-            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="showCancelConfirm = false">
-              Zurück
-            </button>
-            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="confirmCancel">
-              Bestellung abbrechen
-            </button>
-          </div>
-        </div>
-      </div>
+    <ConfirmDialog
+      :visible="showCancelConfirm"
+      title="Bestellung abbrechen"
+      message="Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt."
+      cancel-label="Zurück"
+      confirm-label="Bestellung abbrechen"
+      @cancel="showCancelConfirm = false"
+      @confirm="confirmCancel"
+    />
 
-      <div v-if="confirmDeleteItem" class="delete-overlay" @click.self="confirmDeleteItem = null">
-        <div class="delete-confirm-card">
-          <div class="delete-confirm-icon">
-          </div>
-          <h3 class="delete-confirm-title">Produkt löschen</h3>
-          <p class="delete-confirm-text">
-            Wollen Sie <strong>{{ confirmDeleteItem.productName }}</strong> wirklich löschen?
-          </p>
-          <div class="delete-confirm-actions">
-            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="confirmDeleteItem = null">
-              Abbrechen
-            </button>
-            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="deleteItem">
-              Löschen
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <ConfirmDialog
+      :visible="!!confirmDeleteItem"
+      title="Produkt löschen"
+      :message="`Wollen Sie <strong>${confirmDeleteItem?.productName ?? ''}</strong> wirklich löschen?`"
+      cancel-label="Abbrechen"
+      confirm-label="Löschen"
+      @cancel="confirmDeleteItem = null"
+      @confirm="deleteItem"
+    />
   </div>
 </template>
 
@@ -323,6 +286,8 @@ import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
 import CartPanel from '../components/CartPanel.vue'
+import LanguageModal from '../components/LanguageModal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { useFormatters } from '../composables/useFormatters'
 import { useErrorToast } from '../composables/useErrorToast'
 

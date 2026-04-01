@@ -1,17 +1,5 @@
 <template>
-  <div class="revenue-page">
-    <nav class="rev-navbar">
-      <div class="rev-navbar-left">
-        <img src="../assets/logo-removebg-preview.png" class="rev-logo" alt="Scanly" />
-        <span class="rev-badge">Admin</span>
-        <span class="rev-breadcrumb">/ Umsatz</span>
-      </div>
-      <button type="button" class="rev-back-btn" @click="$router.push('/admin')">
-        ← Zurück zum Dashboard
-      </button>
-    </nav>
-
-    <main class="rev-main">
+  <AdminLayout breadcrumb="Umsatz" :max-width="1280">
       <!-- Loading -->
       <div v-if="loading" class="rev-loading">
         <div class="rev-spinner"></div>
@@ -119,13 +107,18 @@
           </div>
         </div>
       </template>
-    </main>
-  </div>
+  </AdminLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import AdminLayout from '../components/AdminLayout.vue'
 import api from '@/services/api'
+import { useFormatters } from '../composables/useFormatters'
+import { useOrderUtils } from '../composables/useOrderUtils'
+
+const { formatCurrency, formatDate } = useFormatters()
+const { getItemCount } = useOrderUtils()
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -381,31 +374,6 @@ const lineOptions = {
 
 // --- Helpers ---
 
-function getItemCount(order) {
-  if (Array.isArray(order.orderItems)) {
-    return order.orderItems.reduce((sum, item) => sum + (item.amount || 1), 0)
-  }
-  return '—'
-}
-
-function formatCurrency(val) {
-  return new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(val)
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
 
 function getLast30Days() {
   const days = []
@@ -438,92 +406,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.revenue-page {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  color: #fff;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #091E30;
-}
-
-/* Navbar */
-.rev-navbar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(7, 26, 42, 0.95);
-}
-
-.rev-navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.rev-logo {
-  width: 80px;
-  display: block;
-  filter: brightness(1.1);
-}
-
-.rev-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #071A2A;
-  background: #00D4E8;
-  border-radius: 999px;
-}
-
-.rev-breadcrumb {
-  color: rgba(255,255,255,0.4);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.rev-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.2rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.8);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.rev-back-btn:hover {
-  color: #fff;
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.2);
-}
-
-
-/* Main */
-.rev-main {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  padding: 2.5rem 3rem 4rem;
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-}
-
 .rev-header {
   margin-bottom: 2rem;
 }
@@ -764,12 +646,6 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .rev-navbar {
-    padding: 1rem 1.25rem;
-  }
-  .rev-main {
-    padding: 1.5rem 1.25rem 3rem;
-  }
   .kpi-grid {
     grid-template-columns: 1fr 1fr;
   }

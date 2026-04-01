@@ -227,10 +227,15 @@ import { useCartStore } from '../stores/cart'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api from '@/services/api'
 import { PrinterEncoder } from '@/PrinterEncoder'
+import { useFormatters } from '../composables/useFormatters'
+import { useErrorToast } from '../composables/useErrorToast'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
+
+const { formatPrice } = useFormatters()
+const { errorMessage, showError } = useErrorToast()
 
 const translations_local = allTranslations
 
@@ -251,9 +256,7 @@ const orderTotalPrice = ref(0)
 const scanBuffer = ref('')
 let scanTimer = null
 
-const errorMessage = ref('')
 const showCancelConfirm = ref(false)
-let errorTimeout = null
 
 // Coupon state
 const couponCode = ref('')
@@ -267,18 +270,6 @@ function selectLanguage(code) {
   closeModal()
 }
 
-
-function formatPrice(n) {
-  const locale =
-    currentLang.value === 'de'
-      ? 'de-DE'
-      : currentLang.value === 'it'
-        ? 'it-IT'
-        : currentLang.value === 'ru'
-          ? 'ru-RU'
-          : 'en-US'
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
-}
 
 async function printReceipt(){
   const device = await navigator.usb.requestDevice({
@@ -348,14 +339,6 @@ function handleKeydown(e) {
 
 function onBarcodeScanned(code) {
   status.value = 'idle'
-}
-
-function showError(msg) {
-  if (errorTimeout) clearTimeout(errorTimeout)
-  errorMessage.value = msg
-  errorTimeout = setTimeout(() => {
-    errorMessage.value = ''
-  }, 3000)
 }
 
 function openCouponModal() {
@@ -449,7 +432,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
   if (scanTimer) clearTimeout(scanTimer)
-  if (errorTimeout) clearTimeout(errorTimeout)
 })
 </script>
 

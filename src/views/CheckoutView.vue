@@ -366,11 +366,16 @@ import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
+import { useFormatters } from '../composables/useFormatters'
+import { useErrorToast } from '../composables/useErrorToast'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const settingsStore = useSettingsStore()
 const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
+
+const { formatPrice } = useFormatters()
+const { errorMessage, showError } = useErrorToast()
 
 const translations_local = allTranslations
 
@@ -414,10 +419,8 @@ const bakeryAmount = ref(1)
 
 const selectedProduce = ref(null)
 const weightKg = ref(0.25)
-const errorMessage = ref('')
 const confirmDeleteItem = ref(null)
 const showCancelConfirm = ref(false)
-let errorTimeout = null
 
 
 function isFruitsVegetables(item) {
@@ -428,18 +431,6 @@ function isFruitsVegetables(item) {
 
 function round2(n) {
   return Math.round(n * 100) / 100
-}
-
-function formatPrice(n) {
-  const locale =
-    currentLang.value === 'de'
-      ? 'de-DE'
-      : currentLang.value === 'it'
-        ? 'it-IT'
-        : currentLang.value === 'ru'
-          ? 'ru-RU'
-          : 'en-US'
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
 }
 
 function getLocalizedName(item) {
@@ -628,14 +619,6 @@ async function onBarcodeScanned(code) {
     showError(`${t('error')} (${code}): ${errorMsg}`)
     status.value = 'idle'
   }
-}
-
-function showError(msg) {
-  if (errorTimeout) clearTimeout(errorTimeout)
-  errorMessage.value = msg
-  errorTimeout = setTimeout(() => {
-    errorMessage.value = ''
-  }, 3000)
 }
 
 function openHelp() {
@@ -851,7 +834,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
   stopCamera()
   if (scanTimer) clearTimeout(scanTimer)
-  if (errorTimeout) clearTimeout(errorTimeout)
 })
 </script>
 

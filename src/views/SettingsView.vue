@@ -1,9 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useSettingsStore } from '../stores/settings'
+import AdminLayout from '../components/AdminLayout.vue'
 
-const router = useRouter()
 const settings = useSettingsStore()
 
 const showSaved = ref(false)
@@ -44,25 +43,10 @@ function saveSettings() {
   setTimeout(() => { showSaved.value = false }, 2000)
 }
 
-function goBack() {
-  router.push('/admin')
-}
 </script>
 
 <template>
-  <div class="settings-page">
-    <nav class="settings-navbar">
-      <div class="settings-navbar-left">
-        <img src="../assets/logo-removebg-preview.png" class="settings-logo" alt="Scanly" />
-        <span class="settings-badge">Admin</span>
-        <span class="settings-breadcrumb">/ Einstellungen</span>
-      </div>
-      <button type="button" class="settings-back-btn" @click="goBack">
-        ← Zurück zum Dashboard
-      </button>
-    </nav>
-
-    <main class="settings-main">
+  <AdminLayout breadcrumb="Einstellungen" :max-width="700">
       <div class="settings-header">
         <h1 class="settings-title">Einstellungen</h1>
         <p class="settings-subtitle">Systemkonfiguration und Präferenzen</p>
@@ -119,95 +103,10 @@ function goBack() {
           <button class="settings-save-btn" @click="saveSettings">Speichern</button>
         </div>
       </div>
-    </main>
-  </div>
+  </AdminLayout>
 </template>
 
 <style scoped>
-.settings-page {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  color: #fff;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #091E30;
-}
-
-.settings-navbar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(7, 26, 42, 0.95);
-}
-
-.settings-navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.settings-logo {
-  width: 80px;
-  display: block;
-  filter: brightness(1.1);
-}
-
-.settings-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #071A2A;
-  background: #00D4E8;
-  border-radius: 999px;
-}
-
-.settings-breadcrumb {
-  color: rgba(255,255,255,0.4);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.settings-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.2rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.8);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.settings-back-btn:hover {
-  color: #fff;
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.2);
-}
-
-
-.settings-main {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  padding: 2.5rem 3rem 4rem;
-  max-width: 700px;
-  width: 100%;
-  margin: 0 auto;
-}
-
 .settings-header {
   margin-bottom: 2rem;
 }
@@ -384,12 +283,6 @@ function goBack() {
 
 
 @media (max-width: 768px) {
-  .settings-navbar {
-    padding: 1rem 1.25rem;
-  }
-  .settings-main {
-    padding: 1.5rem 1.25rem 3rem;
-  }
   .settings-title {
     font-size: 1.6rem;
   }

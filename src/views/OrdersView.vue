@@ -1,211 +1,186 @@
 <template>
-  <div class="orders-page">
-    <nav class="ord-navbar">
-      <div class="ord-navbar-left">
-        <img src="../assets/logo-removebg-preview.png" class="ord-logo" alt="Scanly" />
-        <span class="ord-badge">Admin</span>
-        <span class="ord-breadcrumb">/ Bestellungen</span>
-      </div>
-      <button type="button" class="ord-back-btn" @click="$router.push('/admin')">
-        ← Zurück zum Dashboard
-      </button>
-    </nav>
+  <AdminLayout breadcrumb="Bestellungen" :max-width="1280">
+    <div v-if="loading" class="ord-loading">
+      <div class="ord-spinner"></div>
+      <p>Bestellungen werden geladen…</p>
+    </div>
 
-    <main class="ord-main">
-      <!-- Loading -->
-      <div v-if="loading" class="ord-loading">
-        <div class="ord-spinner"></div>
-        <p>Bestellungen werden geladen…</p>
-      </div>
+    <div v-else-if="error" class="ord-error">
+      <p>⚠ Fehler beim Laden der Bestellungen</p>
+      <p class="ord-error-detail">{{ error }}</p>
+      <button class="ord-retry-btn" @click="loadOrders">Erneut versuchen</button>
+    </div>
 
-      <!-- Error -->
-      <div v-else-if="error" class="ord-error">
-        <p>⚠ Fehler beim Laden der Bestellungen</p>
-        <p class="ord-error-detail">{{ error }}</p>
-        <button class="ord-retry-btn" @click="loadOrders">Erneut versuchen</button>
+    <template v-else>
+      <div class="ord-header">
+        <div class="ord-header-left">
+          <h1 class="ord-title">Bestellungen</h1>
+          <p class="ord-subtitle">{{ filteredOrders.length }} von {{ allOrders.length }} Bestellungen</p>
+        </div>
+        <button class="ord-refresh-btn" @click="loadOrders" :disabled="loading">
+          Aktualisieren
+        </button>
       </div>
 
-      <!-- Content -->
-      <template v-else>
-        <div class="ord-header">
-          <div class="ord-header-left">
-            <h1 class="ord-title">Bestellungen</h1>
-            <p class="ord-subtitle">{{ filteredOrders.length }} von {{ allOrders.length }} Bestellungen</p>
-          </div>
-          <button class="ord-refresh-btn" @click="loadOrders" :disabled="loading">
-            Aktualisieren
+      <div class="ord-kpi-row">
+        <div class="ord-kpi">
+          <span class="ord-kpi-num">{{ allOrders.length }}</span>
+          <span class="ord-kpi-label">Gesamt</span>
+        </div>
+        <div class="ord-kpi ord-kpi--open">
+          <span class="ord-kpi-num">{{ openOrders.length }}</span>
+          <span class="ord-kpi-label">Offen</span>
+        </div>
+        <div class="ord-kpi ord-kpi--closed">
+          <span class="ord-kpi-num">{{ closedOrders.length }}</span>
+          <span class="ord-kpi-label">Abgeschlossen</span>
+        </div>
+        <div class="ord-kpi ord-kpi--revenue">
+          <span class="ord-kpi-num">{{ formatCurrency(closedRevenue) }}</span>
+          <span class="ord-kpi-label">Umsatz</span>
+        </div>
+      </div>
+
+      <div class="ord-toolbar">
+        <div class="ord-search-wrap">
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="ord-search"
+            placeholder="Suche nach ID, Produkt…"
+          />
+        </div>
+        <div class="ord-filter-group">
+          <button
+            v-for="f in filters"
+            :key="f.value"
+            class="ord-filter-btn"
+            :class="{ 'ord-filter-btn--active': activeFilter === f.value }"
+            @click="activeFilter = f.value"
+          >
+            {{ f.label }}
           </button>
         </div>
+      </div>
 
-        <!-- KPI Row -->
-        <div class="ord-kpi-row">
-          <div class="ord-kpi">
-            <span class="ord-kpi-num">{{ allOrders.length }}</span>
-            <span class="ord-kpi-label">Gesamt</span>
-          </div>
-          <div class="ord-kpi ord-kpi--open">
-            <span class="ord-kpi-num">{{ openOrders.length }}</span>
-            <span class="ord-kpi-label">Offen</span>
-          </div>
-          <div class="ord-kpi ord-kpi--closed">
-            <span class="ord-kpi-num">{{ closedOrders.length }}</span>
-            <span class="ord-kpi-label">Abgeschlossen</span>
-          </div>
-          <div class="ord-kpi ord-kpi--revenue">
-            <span class="ord-kpi-num">{{ formatCurrency(closedRevenue) }}</span>
-            <span class="ord-kpi-label">Umsatz</span>
-          </div>
-        </div>
-
-        <!-- Filter & Search -->
-        <div class="ord-toolbar">
-          <div class="ord-search-wrap">
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="ord-search"
-              placeholder="Suche nach ID, Produkt…"
-            />
-          </div>
-          <div class="ord-filter-group">
-            <button
-              v-for="f in filters"
-              :key="f.value"
-              class="ord-filter-btn"
-              :class="{ 'ord-filter-btn--active': activeFilter === f.value }"
-              @click="activeFilter = f.value"
+      <div class="ord-table-wrap">
+        <table class="ord-table" v-if="filteredOrders.length > 0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Datum</th>
+              <th>Produkte</th>
+              <th>Artikel</th>
+              <th>Betrag</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="order in paginatedOrders"
+              :key="order.orderId"
+              class="ord-row"
+              :class="{ 'ord-row--open': order.orderStatus === 'OPEN' }"
+              @click="toggleExpand(order.orderId)"
             >
-              {{ f.label }}
-            </button>
-          </div>
+              <td class="td-id">#{{ order.orderId }}</td>
+              <td>{{ formatDate(order.creationDate) }}</td>
+              <td class="td-products">
+                <span v-if="order.orderItems && order.orderItems.length > 0">
+                  {{ order.orderItems.map(i => i.productName).join(', ') }}
+                </span>
+                <span v-else class="td-empty">Keine Artikel</span>
+              </td>
+              <td>{{ getItemCount(order) }}</td>
+              <td class="td-amount">{{ formatCurrency(order.totalPrice || 0) }}</td>
+              <td>
+                <span class="status-badge" :class="'status-badge--' + (order.orderStatus || '').toLowerCase()">
+                  {{ order.orderStatus === 'CLOSED' ? 'Abgeschlossen' : 'Offen' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="ord-empty">
+          <p>Keine Bestellungen gefunden</p>
         </div>
+      </div>
 
-        <!-- Orders Table -->
-        <div class="ord-table-wrap">
-          <table class="ord-table" v-if="filteredOrders.length > 0">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Datum</th>
-                <th>Produkte</th>
-                <th>Artikel</th>
-                <th>Betrag</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="order in paginatedOrders"
-                :key="order.orderId"
-                class="ord-row"
-                :class="{ 'ord-row--open': order.orderStatus === 'OPEN' }"
-                @click="toggleExpand(order.orderId)"
-              >
-                <td class="td-id">#{{ order.orderId }}</td>
-                <td>{{ formatDate(order.creationDate) }}</td>
-                <td class="td-products">
-                  <span v-if="order.orderItems && order.orderItems.length > 0">
-                    {{ order.orderItems.map(i => i.productName).join(', ') }}
-                  </span>
-                  <span v-else class="td-empty">Keine Artikel</span>
-                </td>
-                <td>{{ getItemCount(order) }}</td>
-                <td class="td-amount">{{ formatCurrency(order.totalPrice || 0) }}</td>
-                <td>
-                  <span class="status-badge" :class="'status-badge--' + (order.orderStatus || '').toLowerCase()">
-                    {{ order.orderStatus === 'CLOSED' ? 'Abgeschlossen' : 'Offen' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div v-else class="ord-empty">
-            <p>Keine Bestellungen gefunden</p>
-          </div>
-        </div>
-
-        <!-- Expanded Detail -->
-        <Transition name="detail-fade">
-          <div v-if="expandedOrder" class="ord-detail-overlay" @click.self="expandedOrderId = null">
-            <div class="ord-detail-card">
-              <div class="ord-detail-header">
-                <h3>Bestellung #{{ expandedOrder.orderId }}</h3>
-                <button class="ord-detail-close" @click="expandedOrderId = null">
-                  X
-                </button>
+      <Transition name="detail-fade">
+        <div v-if="expandedOrder" class="ord-detail-overlay" @click.self="expandedOrderId = null">
+          <div class="ord-detail-card">
+            <div class="ord-detail-header">
+              <h3>Bestellung #{{ expandedOrder.orderId }}</h3>
+              <button class="ord-detail-close" @click="expandedOrderId = null">X</button>
+            </div>
+            <div class="ord-detail-meta">
+              <div class="ord-detail-meta-item">
+                <span class="ord-detail-meta-label">Datum</span>
+                <span>{{ formatDate(expandedOrder.creationDate) }}</span>
               </div>
-              <div class="ord-detail-meta">
-                <div class="ord-detail-meta-item">
-                  <span class="ord-detail-meta-label">Datum</span>
-                  <span>{{ formatDate(expandedOrder.creationDate) }}</span>
-                </div>
-                <div class="ord-detail-meta-item">
-                  <span class="ord-detail-meta-label">Status</span>
-                  <span class="status-badge" :class="'status-badge--' + (expandedOrder.orderStatus || '').toLowerCase()">
-                    {{ expandedOrder.orderStatus === 'CLOSED' ? 'Abgeschlossen' : 'Offen' }}
-                  </span>
-                </div>
-                <div class="ord-detail-meta-item">
-                  <span class="ord-detail-meta-label">Gesamtbetrag</span>
-                  <span class="ord-detail-total">{{ formatCurrency(expandedOrder.totalPrice || 0) }}</span>
-                </div>
+              <div class="ord-detail-meta-item">
+                <span class="ord-detail-meta-label">Status</span>
+                <span class="status-badge" :class="'status-badge--' + (expandedOrder.orderStatus || '').toLowerCase()">
+                  {{ expandedOrder.orderStatus === 'CLOSED' ? 'Abgeschlossen' : 'Offen' }}
+                </span>
               </div>
-              <div class="ord-detail-items" v-if="expandedOrder.orderItems && expandedOrder.orderItems.length > 0">
-                <h4>Positionen</h4>
-                <table class="ord-detail-table">
-                  <thead>
-                    <tr>
-                      <th>Produkt</th>
-                      <th>Menge</th>
-                      <th>Netto/Stk</th>
-                      <th>MwSt</th>
-                      <th>Brutto</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in expandedOrder.orderItems" :key="item.id">
-                      <td>{{ item.productName }}</td>
-                      <td>{{ item.amount }}</td>
-                      <td>{{ formatCurrency(item.unitPriceNet) }}</td>
-                      <td>{{ Math.round((item.taxRate - 1) * 100) }}%</td>
-                      <td class="td-amount">{{ formatCurrency(item.totalPriceGross) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-else class="ord-detail-no-items">
-                Keine Artikel in dieser Bestellung.
+              <div class="ord-detail-meta-item">
+                <span class="ord-detail-meta-label">Gesamtbetrag</span>
+                <span class="ord-detail-total">{{ formatCurrency(expandedOrder.totalPrice || 0) }}</span>
               </div>
             </div>
+            <div class="ord-detail-items" v-if="expandedOrder.orderItems && expandedOrder.orderItems.length > 0">
+              <h4>Positionen</h4>
+              <table class="ord-detail-table">
+                <thead>
+                  <tr>
+                    <th>Produkt</th>
+                    <th>Menge</th>
+                    <th>Netto/Stk</th>
+                    <th>MwSt</th>
+                    <th>Brutto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in expandedOrder.orderItems" :key="item.id">
+                    <td>{{ item.productName }}</td>
+                    <td>{{ item.amount }}</td>
+                    <td>{{ formatCurrency(item.unitPriceNet) }}</td>
+                    <td>{{ Math.round((item.taxRate - 1) * 100) }}%</td>
+                    <td class="td-amount">{{ formatCurrency(item.totalPriceGross) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="ord-detail-no-items">
+              Keine Artikel in dieser Bestellung.
+            </div>
           </div>
-        </Transition>
-
-        <!-- Pagination -->
-        <div class="ord-pagination" v-if="totalPages > 1">
-          <button
-            class="ord-page-btn"
-            :disabled="currentPage <= 1"
-            @click="currentPage--"
-          >
-            ← Zurück
-          </button>
-          <span class="ord-page-info">Seite {{ currentPage }} von {{ totalPages }}</span>
-          <button
-            class="ord-page-btn"
-            :disabled="currentPage >= totalPages"
-            @click="currentPage++"
-          >
-            Weiter →
-          </button>
         </div>
-      </template>
-    </main>
-  </div>
+      </Transition>
+
+      <div class="ord-pagination" v-if="totalPages > 1">
+        <button class="ord-page-btn" :disabled="currentPage <= 1" @click="currentPage--">
+          ← Zurück
+        </button>
+        <span class="ord-page-info">Seite {{ currentPage }} von {{ totalPages }}</span>
+        <button class="ord-page-btn" :disabled="currentPage >= totalPages" @click="currentPage++">
+          Weiter →
+        </button>
+      </div>
+    </template>
+  </AdminLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/services/api'
+import AdminLayout from '../components/AdminLayout.vue'
+import { useFormatters } from '../composables/useFormatters'
+import { useOrderUtils } from '../composables/useOrderUtils'
+
+const { formatCurrency, formatDate } = useFormatters()
+const { getItemCount } = useOrderUtils()
 
 const allOrders = ref([])
 const loading = ref(true)
@@ -237,12 +212,10 @@ const closedRevenue = computed(() =>
 const filteredOrders = computed(() => {
   let result = [...allOrders.value]
 
-  // Filter by status
   if (activeFilter.value !== 'all') {
     result = result.filter((o) => (o.orderStatus || '').toUpperCase() === activeFilter.value)
   }
 
-  // Search
   const q = searchQuery.value.trim().toLowerCase()
   if (q) {
     result = result.filter((o) => {
@@ -254,9 +227,7 @@ const filteredOrders = computed(() => {
     })
   }
 
-  // Sort newest first
   result.sort((a, b) => new Date(b.creationDate || 0) - new Date(a.creationDate || 0))
-
   return result
 })
 
@@ -272,7 +243,6 @@ const expandedOrder = computed(() => {
   return allOrders.value.find((o) => o.orderId === expandedOrderId.value) || null
 })
 
-// Reset page when filter/search changes
 watch([activeFilter, searchQuery], () => {
   currentPage.value = 1
 })
@@ -281,31 +251,6 @@ function toggleExpand(orderId) {
   expandedOrderId.value = expandedOrderId.value === orderId ? null : orderId
 }
 
-function getItemCount(order) {
-  if (Array.isArray(order.orderItems)) {
-    return order.orderItems.reduce((sum, item) => sum + (item.amount || 1), 0)
-  }
-  return 0
-}
-
-function formatCurrency(val) {
-  return new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(val)
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
 
 async function loadOrders() {
   loading.value = true
@@ -329,92 +274,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.orders-page {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  color: #fff;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #091E30;
-}
-
-/* Navbar */
-.ord-navbar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(7, 26, 42, 0.95);
-}
-
-.ord-navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.ord-logo {
-  width: 80px;
-  display: block;
-  filter: brightness(1.1);
-}
-
-.ord-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #071A2A;
-  background: #00D4E8;
-  border-radius: 999px;
-}
-
-.ord-breadcrumb {
-  color: rgba(255,255,255,0.4);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.ord-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.2rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.8);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.ord-back-btn:hover {
-  color: #fff;
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.2);
-}
-
-
-/* Main */
-.ord-main {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  padding: 2rem 3rem 4rem;
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-}
-
 .ord-header {
   display: flex;
   align-items: flex-end;
@@ -455,11 +314,9 @@ onMounted(() => {
   background: rgba(255,255,255,0.08);
 }
 
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
 
 .ord-loading {
   display: flex;
@@ -480,7 +337,6 @@ onMounted(() => {
   animation: spin 0.8s linear infinite;
 }
 
-/* Error */
 .ord-error {
   text-align: center;
   padding: 4rem 1rem;
@@ -507,7 +363,6 @@ onMounted(() => {
   background: rgba(0, 212, 232, 0.2);
 }
 
-/* KPI Row */
 .ord-kpi-row {
   display: flex;
   gap: 1rem;
@@ -540,9 +395,6 @@ onMounted(() => {
   letter-spacing: 0.04em;
 }
 
-
-
-/* Toolbar */
 .ord-toolbar {
   display: flex;
   align-items: center;
@@ -567,7 +419,6 @@ onMounted(() => {
 .ord-search-wrap:focus-within {
   border-color: rgba(0, 212, 232, 0.4);
 }
-
 
 .ord-search {
   flex: 1;
@@ -609,7 +460,6 @@ onMounted(() => {
   border-color: rgba(0, 212, 232, 0.25);
 }
 
-/* Table */
 .ord-table-wrap {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
@@ -698,8 +548,6 @@ onMounted(() => {
   gap: 0.75rem;
 }
 
-
-/* Detail Overlay */
 .ord-detail-overlay {
   position: fixed;
   inset: 0;
@@ -752,7 +600,6 @@ onMounted(() => {
   background: rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.8);
 }
-
 
 .ord-detail-meta {
   display: flex;
@@ -822,7 +669,6 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
-/* Pagination */
 .ord-pagination {
   display: flex;
   align-items: center;
@@ -857,14 +703,7 @@ onMounted(() => {
   color: rgba(255,255,255,0.4);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .ord-navbar {
-    padding: 1rem 1.25rem;
-  }
-  .ord-main {
-    padding: 1.5rem 1.25rem 3rem;
-  }
   .ord-title {
     font-size: 1.6rem;
   }

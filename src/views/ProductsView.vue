@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import AdminLayout from '../components/AdminLayout.vue'
 import {
   fetchProductByBarcode,
   fetchAllProducts,
@@ -8,8 +8,6 @@ import {
   updateProduct,
   deleteProduct,
 } from '../services/api'
-
-const router = useRouter()
 
 // Modal & form state
 const activeModal = ref(null)
@@ -152,11 +150,6 @@ function isFormValid() {
   return form.value.name && form.value.category && form.value.priceNet && form.value.ean
 }
 
-// Navigation
-function goBack() {
-  router.push('/admin')
-}
-
 function handleCardClick(cardId) {
   if (cardId === 'db') {
     loadAllProducts()
@@ -292,19 +285,7 @@ function removeProduct() {
 </script>
 
 <template>
-  <div class="products-page">
-    <nav class="prod-navbar">
-      <div class="prod-navbar-left">
-        <img src="../assets/logo-removebg-preview.png" class="prod-logo" alt="Scanly" />
-        <span class="prod-badge">Admin</span>
-        <span class="prod-breadcrumb">/ Produkte</span>
-      </div>
-      <button type="button" class="prod-back-btn" @click="goBack">
-        Zurück zum Dashboard
-      </button>
-    </nav>
-
-    <main class="prod-main">
+  <AdminLayout breadcrumb="Produkte" :max-width="1000">
       <div class="prod-header">
         <h1 class="prod-title">Produkte verwalten</h1>
         <p class="prod-subtitle">Produkte hinzufügen, bearbeiten oder entfernen</p>
@@ -404,18 +385,14 @@ function removeProduct() {
           </div>
         </div>
       </Transition>
-    </main>
-
     <!-- Modal -->
     <Transition name="modal-fade">
       <div v-if="activeModal" class="prod-modal-overlay" @click.self="closeModal">
         <div class="prod-modal">
           <div class="prod-modal-header">
-            <div :class="['prod-modal-header-icon', `prod-modal-header-icon--${activeModal}`]">
-            </div>
             <h2 class="prod-modal-title">{{ modalTitle }}</h2>
             <button class="prod-modal-close" @click="closeModal">
-              
+              X
             </button>
           </div>
 
@@ -650,64 +627,10 @@ function removeProduct() {
         </div>
       </div>
     </Transition>
-  </div>
+  </AdminLayout>
 </template>
 
 <style scoped>
-.products-page {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  color: #fff;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #091E30;
-}
-
-/* Navbar */
-.prod-navbar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(7, 26, 42, 0.95);
-}
-
-.prod-navbar-left { display: flex; align-items: center; gap: 0.75rem; }
-.prod-logo { width: 80px; display: block; filter: brightness(1.1); }
-
-.prod-badge {
-  display: inline-flex; align-items: center; padding: 0.25rem 0.75rem;
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  color: #071A2A; background: #00D4E8; border-radius: 999px;
-}
-
-.prod-breadcrumb { color: rgba(255,255,255,0.4); font-size: 0.85rem; font-weight: 500; }
-
-.prod-back-btn {
-  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.2rem;
-  font-size: 0.9rem; font-weight: 500; color: rgba(255,255,255,0.8);
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 999px; cursor: pointer;
-}
-
-.prod-back-btn:hover {
-  color: #fff; background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.2);
-}
-
-.prod-back-icon { width: 18px; height: 18px; }
-
-/* Main */
-.prod-main {
-  position: relative; z-index: 1; flex: 1; padding: 2.5rem 3rem 4rem;
-  max-width: 1000px; width: 100%; margin: 0 auto;
-}
-
 .prod-header { margin-bottom: 2.5rem; }
 
 .prod-title {
@@ -729,17 +652,6 @@ function removeProduct() {
 
 .prod-action-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); }
 
-.prod-action-icon {
-  width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
-  border-radius: 16px; margin-bottom: 1.25rem;
-}
-
-.prod-action-icon svg { width: 30px; height: 30px; }
-.prod-action-card--add .prod-action-icon { background: rgba(110, 240, 180, 0.12); color: #6EF0B4; }
-.prod-action-card--edit .prod-action-icon { background: rgba(0, 212, 232, 0.12); color: #00D4E8; }
-.prod-action-card--remove .prod-action-icon { background: rgba(255, 107, 138, 0.12); color: #FF6B8A; }
-.prod-action-card--db .prod-action-icon { background: rgba(168, 130, 255, 0.12); color: #A882FF; }
-
 .prod-action-title { margin: 0 0 0.4rem; font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.9); }
 .prod-action-desc { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.38); line-height: 1.4; max-width: 20ch; }
 
@@ -759,16 +671,6 @@ function removeProduct() {
   display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 1.75rem;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-
-.prod-modal-header-icon {
-  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-  border-radius: 10px; flex-shrink: 0;
-}
-
-.prod-modal-header-icon svg { width: 20px; height: 20px; }
-.prod-modal-header-icon--add { background: rgba(110, 240, 180, 0.12); color: #6EF0B4; }
-.prod-modal-header-icon--edit { background: rgba(0, 212, 232, 0.12); color: #00D4E8; }
-.prod-modal-header-icon--remove { background: rgba(255, 107, 138, 0.12); color: #FF6B8A; }
 
 .prod-modal-title { flex: 1; margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff; }
 
@@ -821,14 +723,6 @@ select.prod-input { appearance: none; cursor: pointer; }
 .prod-btn--search:hover:not(:disabled) { background: rgba(0, 212, 232, 0.25); border-color: rgba(0, 212, 232, 0.5); }
 .prod-btn--search:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Spinner */
-.prod-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid rgba(255,255,255,0.2); border-top-color: #00D4E8;
-  border-radius: 50%; animation: prod-spin 0.6s linear infinite;
-}
-
-@keyframes prod-spin { to { transform: rotate(360deg); } }
 
 /* Error */
 .prod-search-error {
@@ -991,8 +885,6 @@ select.prod-input { appearance: none; cursor: pointer; }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .prod-navbar { padding: 1rem 1.25rem; }
-  .prod-main { padding: 1.5rem 1.25rem 3rem; }
   .prod-actions { grid-template-columns: 1fr; }
   .prod-title { font-size: 1.6rem; }
   .prod-form-row { grid-template-columns: 1fr; }

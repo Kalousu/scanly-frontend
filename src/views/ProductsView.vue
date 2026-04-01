@@ -37,25 +37,21 @@ const actionCards = [
     id: 'add',
     title: 'Produkt hinzufügen',
     description: 'Neues Produkt zum Katalog hinzufügen',
-    icon: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
   },
   {
     id: 'edit',
     title: 'Produkt bearbeiten',
     description: 'Bestehende Produkte und Preise ändern',
-    icon: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
   },
   {
     id: 'remove',
     title: 'Produkt entfernen',
     description: 'Produkte aus dem Katalog löschen',
-    icon: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
   },
   {
     id: 'db',
     title: 'Produktdatenbank',
     description: 'Komplette Produktliste anzeigen und durchsuchen',
-    icon: 'M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zM6 17v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V17c0 .5-2.13 2-6 2s-6-1.5-6-2zm0-5v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V12c0 .5-2.13 2-6 2s-6-1.5-6-2z',
   },
 ]
 
@@ -304,9 +300,6 @@ function removeProduct() {
         <span class="prod-breadcrumb">/ Produkte</span>
       </div>
       <button type="button" class="prod-back-btn" @click="goBack">
-        <svg viewBox="0 0 24 24" class="prod-back-icon" fill="currentColor">
-          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-        </svg>
         Zurück zum Dashboard
       </button>
     </nav>
@@ -325,11 +318,7 @@ function removeProduct() {
           :class="['prod-action-card', `prod-action-card--${card.id}`]"
           @click="handleCardClick(card.id)"
         >
-          <div class="prod-action-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path :d="card.icon"/>
-            </svg>
-          </div>
+
           <h3 class="prod-action-title">{{ card.title }}</h3>
           <p class="prod-action-desc">{{ card.description }}</p>
         </div>
@@ -340,14 +329,11 @@ function removeProduct() {
         <div v-if="showDatabase" class="prod-db-section">
           <div class="prod-db-header">
             <h2 class="prod-db-title">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="prod-db-title-icon">
-                <path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zM6 17v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V17c0 .5-2.13 2-6 2s-6-1.5-6-2zm0-5v-2.42c1.23.8 3.38 1.42 6 1.42s4.77-.62 6-1.42V12c0 .5-2.13 2-6 2s-6-1.5-6-2z"/>
-              </svg>
               Produktdatenbank
               <span class="prod-db-count">{{ filteredProducts.length }} Produkte</span>
             </h2>
             <button class="prod-btn prod-btn--secondary prod-db-close-btn" @click="showDatabase = false">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              
               Schließen
             </button>
           </div>
@@ -355,10 +341,10 @@ function removeProduct() {
           <!-- Filters -->
           <div class="prod-db-filters">
             <div class="prod-db-search">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="prod-db-search-icon"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              
               <input v-model="dbSearchQuery" type="text" class="prod-db-search-input" placeholder="Nach Produktname oder EAN suchen…" />
               <button v-if="dbSearchQuery" class="prod-db-search-clear" @click="dbSearchQuery = ''">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                
               </button>
             </div>
             <div class="prod-db-category-filter">
@@ -381,7 +367,7 @@ function removeProduct() {
 
           <!-- Error -->
           <div v-else-if="dbError" class="prod-search-error" style="margin-top: 0;">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            
             <p>{{ dbError }}</p>
           </div>
 
@@ -413,7 +399,7 @@ function removeProduct() {
 
           <!-- Empty -->
           <div v-else class="prod-db-empty">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="prod-db-empty-icon"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            
             <p>Keine Produkte gefunden.</p>
           </div>
         </div>
@@ -426,19 +412,10 @@ function removeProduct() {
         <div class="prod-modal">
           <div class="prod-modal-header">
             <div :class="['prod-modal-header-icon', `prod-modal-header-icon--${activeModal}`]">
-              <svg v-if="activeModal === 'add'" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-              </svg>
-              <svg v-else-if="activeModal === 'edit'" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
             </div>
             <h2 class="prod-modal-title">{{ modalTitle }}</h2>
             <button class="prod-modal-close" @click="closeModal">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              
             </button>
           </div>
 
@@ -474,12 +451,12 @@ function removeProduct() {
             </div>
 
             <div v-if="actionState.error" class="prod-search-error">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              
               <p>{{ actionState.error }}</p>
             </div>
             <div v-if="actionState.success" class="prod-found-card" style="margin-top: 0.75rem;">
               <div class="prod-found-header">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                
                 <span>Produkt erfolgreich hinzugefügt!</span>
               </div>
             </div>
@@ -488,7 +465,7 @@ function removeProduct() {
               <button class="prod-btn prod-btn--secondary" @click="closeModal">Abbrechen</button>
               <button class="prod-btn prod-btn--primary prod-btn--add" @click="addProduct" :disabled="actionState.loading">
                 <span v-if="actionState.loading" class="prod-spinner"></span>
-                <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                
                 {{ actionState.loading ? 'Wird hinzugefügt…' : 'Produkt hinzufügen' }}
               </button>
             </div>
@@ -502,7 +479,7 @@ function removeProduct() {
               <div class="prod-search-row">
                 <input v-model="searchQuery" type="text" class="prod-input" placeholder="EAN / Barcode eingeben…" @keyup.enter="searchByBarcode" />
                 <button class="prod-btn prod-btn--search" @click="searchByBarcode" :disabled="searchLoading">
-                  <svg v-if="!searchLoading" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                  
                   <span v-if="searchLoading" class="prod-spinner"></span>
                   {{ searchLoading ? 'Suche…' : 'Suchen' }}
                 </button>
@@ -510,14 +487,14 @@ function removeProduct() {
             </div>
 
             <div v-if="searchError" class="prod-search-error">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              
               <p>{{ searchError }}</p>
             </div>
 
             <!-- Found product info -->
             <div v-if="foundProduct" class="prod-found-card">
               <div class="prod-found-header">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                
                 <span>Produkt gefunden</span>
               </div>
               <div class="prod-found-details">
@@ -578,12 +555,12 @@ function removeProduct() {
             </div>
 
             <div v-if="actionState.error" class="prod-search-error">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              
               <p>{{ actionState.error }}</p>
             </div>
             <div v-if="actionState.success" class="prod-found-card" style="margin-top: 0.75rem;">
               <div class="prod-found-header">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                
                 <span>Produkt erfolgreich aktualisiert!</span>
               </div>
             </div>
@@ -592,7 +569,7 @@ function removeProduct() {
               <button class="prod-btn prod-btn--secondary" @click="closeModal">Abbrechen</button>
               <button class="prod-btn prod-btn--primary prod-btn--edit" :disabled="!foundProduct || actionState.loading" @click="editProduct">
                 <span v-if="actionState.loading" class="prod-spinner"></span>
-                <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                
                 {{ actionState.loading ? 'Wird gespeichert…' : 'Änderungen speichern' }}
               </button>
             </div>
@@ -605,7 +582,7 @@ function removeProduct() {
               <div class="prod-search-row">
                 <input v-model="searchQuery" type="text" class="prod-input" placeholder="EAN / Barcode eingeben…" @keyup.enter="searchByBarcode" />
                 <button class="prod-btn prod-btn--search" @click="searchByBarcode" :disabled="searchLoading">
-                  <svg v-if="!searchLoading" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                  
                   <span v-if="searchLoading" class="prod-spinner"></span>
                   {{ searchLoading ? 'Suche…' : 'Suchen' }}
                 </button>
@@ -613,13 +590,13 @@ function removeProduct() {
             </div>
 
             <div v-if="searchError" class="prod-search-error">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              
               <p>{{ searchError }}</p>
             </div>
 
             <div v-if="foundProduct" class="prod-found-card prod-found-card--remove">
               <div class="prod-found-header">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                
                 <span>Produkt gefunden</span>
               </div>
               <div class="prod-found-details">
@@ -644,9 +621,6 @@ function removeProduct() {
 
             <div class="prod-divider"></div>
             <div class="prod-remove-warning">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="prod-warning-icon">
-                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-              </svg>
               <div>
                 <p class="prod-warning-title">Achtung</p>
                 <p class="prod-warning-text">Das Entfernen eines Produkts kann nicht rückgängig gemacht werden.</p>
@@ -654,12 +628,12 @@ function removeProduct() {
             </div>
 
             <div v-if="actionState.error" class="prod-search-error">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              
               <p>{{ actionState.error }}</p>
             </div>
             <div v-if="actionState.success" class="prod-found-card" style="margin-top: 0.75rem;">
               <div class="prod-found-header">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                
                 <span>Produkt erfolgreich entfernt!</span>
               </div>
             </div>
@@ -668,7 +642,7 @@ function removeProduct() {
               <button class="prod-btn prod-btn--secondary" @click="closeModal">Abbrechen</button>
               <button class="prod-btn prod-btn--primary prod-btn--remove" :disabled="!foundProduct || actionState.loading" @click="removeProduct">
                 <span v-if="actionState.loading" class="prod-spinner"></span>
-                <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                
                 {{ actionState.loading ? 'Wird entfernt…' : 'Produkt entfernen' }}
               </button>
             </div>

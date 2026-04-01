@@ -90,19 +90,13 @@
             <button
               class="btn btn--pay btn--pay--primary"
               :disabled="orderItems.length === 0 || status === 'paying' || status === 'paid'"
-              @click="pay"
+              @click="pay(); printReceipt()"
             >
               <span v-if="status === 'paying'" class="spinner"></span>
               <span v-else>{{ t('pay') }}</span>
             </button>
 
             <button class="btn btn--coupon-main" @click="openCouponModal">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
-                <path d="M13 5v2"/>
-                <path d="M13 17v2"/>
-                <path d="M13 11v2"/>
-              </svg>
               Coupon einlösen
             </button>
 
@@ -148,13 +142,7 @@
                 @keydown.enter="redeemCoupon"
               />
               <button class="coupon-scan-btn" @click="startCouponScan" :title="couponScanning ? 'Scannen aktiv…' : 'Coupon scannen'">
-                <svg v-if="!couponScanning" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
-                  <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
-                  <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
-                  <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
-                  <line x1="7" y1="12" x2="17" y2="12"/>
-                </svg>
+                <span v-if="!couponScanning">Scan</span>
                 <span v-else class="scan-pulse-icon">
                   <span class="scan-pulse-dot"></span>
                 </span>
@@ -214,13 +202,6 @@
     <Teleport to="body">
       <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
         <div class="delete-confirm-card">
-          <div class="delete-confirm-icon" style="color: #fbbf24; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.25);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-          </div>
           <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
           <p class="delete-confirm-text">
             Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt.
@@ -245,6 +226,7 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api from '@/services/api'
+import { PrinterEncoder } from '@/PrinterEncoder'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -298,6 +280,43 @@ function formatPrice(n) {
   return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
 }
 
+async function printReceipt(){
+  const device = await navigator.usb.requestDevice({
+          filters: [{ vendorId: 0x0483, productId: 0x5840 }]
+        });
+        await device.open();
+        await device.selectConfiguration(1);
+        await device.claimInterface(0);
+ 
+        const endpoint = device.configuration.interfaces[0].alternate.endpoints.find(e => e.direction === 'out');
+        
+        const printer = new PrinterEncoder();
+        const result = printer
+          .init()
+          .setCodepage()
+          .setGerman()
+          .center()
+          .setBold()
+          .setItalic()
+          .setUnderline()
+          .println(0xC3)
+          .beep()
+          .unsetUnderline()
+          .unsetBold()
+          .println('Artikel A        3.50 EUR')
+          .println('Artikel B        5.00 EUR')
+          .println('------------------------')
+          .setBold()
+          .println('Total            8.50 EUR')
+          .unsetBold()
+          .unsetItalic()
+          .feed(1)
+          .cut()
+          .encode();
+ 
+        await device.transferOut(endpoint.endpointNumber, result);
+        await device.close();
+}
 
 function handleKeydown(e) {
   const tag = (e.target?.tagName || '').toLowerCase()

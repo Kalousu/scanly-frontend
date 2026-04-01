@@ -36,12 +36,10 @@ const DASHBOARD_ITEMS = [
   },
 ]
 
-/** Navigiert zur angegebenen Route */
 function navigateTo(route) {
   router.push(route)
 }
 
-/** Zurück zur Startseite */
 function goBack() {
   router.push('/')
 }
@@ -209,13 +207,6 @@ function goBack() {
   background: rgba(255, 255, 255, 0.07);
   border-color: rgba(255, 255, 255, 0.15);
 }
-
-/* Farbige obere Borderlinie pro Bereich */
-.card--orders   { border-top: 3px solid #00D4E8; }
-.card--products { border-top: 3px solid #6EF0B4; }
-.card--revenue  { border-top: 3px solid #FFC83C; }
-.card--coupons  { border-top: 3px solid #FF8C5A; }
-.card--settings { border-top: 3px solid #B4A0FF; }
 
 /* ===== Card Text ===== */
 .card-title {

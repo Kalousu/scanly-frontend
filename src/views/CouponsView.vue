@@ -17,10 +17,7 @@ function goBack() {
         <span class="coupons-breadcrumb">/ Gutscheine</span>
       </div>
       <button type="button" class="coupons-back-btn" @click="goBack">
-        <svg viewBox="0 0 24 24" class="coupons-back-icon" fill="currentColor">
-          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-        </svg>
-        Zurück zum Dashboard
+        ← Zurück zum Dashboard
       </button>
     </nav>
 
@@ -31,11 +28,6 @@ function goBack() {
       </div>
 
       <div class="coupons-empty">
-        <div class="coupons-empty-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
-          </svg>
-        </div>
         <h2 class="coupons-empty-title">Noch keine Gutscheine</h2>
         <p class="coupons-empty-desc">Diese Funktion wird in einer zukünftigen Version verfügbar sein.</p>
       </div>
@@ -117,10 +109,6 @@ function goBack() {
   border-color: rgba(255,255,255,0.2);
 }
 
-.coupons-back-icon {
-  width: 18px;
-  height: 18px;
-}
 
 .coupons-main {
   position: relative;
@@ -167,22 +155,6 @@ function goBack() {
   max-width: 500px;
 }
 
-.coupons-empty-icon {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 140, 90, 0.12);
-  border-radius: 16px;
-  margin-bottom: 1.25rem;
-}
-
-.coupons-empty-icon svg {
-  width: 30px;
-  height: 30px;
-  color: #FF8C5A;
-}
 
 .coupons-empty-title {
   margin: 0 0 0.5rem;

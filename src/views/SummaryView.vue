@@ -44,12 +44,6 @@ onBeforeUnmount(() => {
 
     <main class="summary-main">
       <div class="summary-card">
-        <!-- Success icon -->
-        <div class="summary-icon-wrap">
-          <svg class="summary-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-          </svg>
-        </div>
 
         <!-- Heading -->
         <h1 class="summary-title">
@@ -118,22 +112,6 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-.summary-icon-wrap {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(110, 240, 180, 0.12);
-  border-radius: 50%;
-}
-
-.summary-icon {
-  width: 36px;
-  height: 36px;
-  color: #6EF0B4;
-}
 
 .summary-title {
   font-size: 1.8rem;

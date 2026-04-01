@@ -7,10 +7,7 @@
         <span class="ord-breadcrumb">/ Bestellungen</span>
       </div>
       <button type="button" class="ord-back-btn" @click="$router.push('/admin')">
-        <svg viewBox="0 0 24 24" class="ord-back-icon" fill="currentColor">
-          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-        </svg>
-        Zurück zum Dashboard
+        ← Zurück zum Dashboard
       </button>
     </nav>
 
@@ -36,9 +33,6 @@
             <p class="ord-subtitle">{{ filteredOrders.length }} von {{ allOrders.length }} Bestellungen</p>
           </div>
           <button class="ord-refresh-btn" @click="loadOrders" :disabled="loading">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="ord-refresh-icon" :class="{ 'ord-refresh-spinning': loading }">
-              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-            </svg>
             Aktualisieren
           </button>
         </div>
@@ -66,9 +60,6 @@
         <!-- Filter & Search -->
         <div class="ord-toolbar">
           <div class="ord-search-wrap">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="ord-search-icon">
-              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </svg>
             <input
               v-model="searchQuery"
               type="text"
@@ -129,9 +120,6 @@
             </tbody>
           </table>
           <div v-else class="ord-empty">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="ord-empty-icon">
-              <path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/>
-            </svg>
             <p>Keine Bestellungen gefunden</p>
           </div>
         </div>
@@ -143,7 +131,7 @@
               <div class="ord-detail-header">
                 <h3>Bestellung #{{ expandedOrder.orderId }}</h3>
                 <button class="ord-detail-close" @click="expandedOrderId = null">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                  X
                 </button>
               </div>
               <div class="ord-detail-meta">
@@ -415,10 +403,6 @@ onMounted(() => {
   border-color: rgba(255,255,255,0.2);
 }
 
-.ord-back-icon {
-  width: 18px;
-  height: 18px;
-}
 
 /* Main */
 .ord-main {
@@ -471,20 +455,12 @@ onMounted(() => {
   background: rgba(255,255,255,0.08);
 }
 
-.ord-refresh-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.ord-refresh-spinning {
-  animation: spin 0.8s linear infinite;
-}
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Loading */
+
 .ord-loading {
   display: flex;
   flex-direction: column;
@@ -564,9 +540,7 @@ onMounted(() => {
   letter-spacing: 0.04em;
 }
 
-.ord-kpi--open .ord-kpi-num { color: #FFC83C; }
-.ord-kpi--closed .ord-kpi-num { color: #6EF0B4; }
-.ord-kpi--revenue .ord-kpi-num { color: #00D4E8; }
+
 
 /* Toolbar */
 .ord-toolbar {
@@ -594,12 +568,6 @@ onMounted(() => {
   border-color: rgba(0, 212, 232, 0.4);
 }
 
-.ord-search-icon {
-  width: 18px;
-  height: 18px;
-  color: rgba(255,255,255,0.35);
-  flex-shrink: 0;
-}
 
 .ord-search {
   flex: 1;
@@ -730,11 +698,6 @@ onMounted(() => {
   gap: 0.75rem;
 }
 
-.ord-empty-icon {
-  width: 36px;
-  height: 36px;
-  opacity: 0.4;
-}
 
 /* Detail Overlay */
 .ord-detail-overlay {
@@ -790,10 +753,6 @@ onMounted(() => {
   color: rgba(255,255,255,0.8);
 }
 
-.ord-detail-close svg {
-  width: 18px;
-  height: 18px;
-}
 
 .ord-detail-meta {
   display: flex;

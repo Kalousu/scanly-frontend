@@ -24,10 +24,6 @@
 
           <div class="payback-actions">
             <button class="payback-btn primary" @click="openScanner">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
               {{ t('paybackScan') }}
             </button>
             <button class="payback-btn ghost" @click="skipPayback">
@@ -49,9 +45,6 @@
             <img src="../assets/logo-removebg-preview.png">
           </div>
           <button class="close-btn" @click="close" :aria-label="t('close')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
           </button>
         </div>
 
@@ -64,10 +57,6 @@
             <div class="camera-container">
               <div v-if="!cameraActive" class="camera-placeholder">
                 <div class="camera-icon-wrap">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
                 </div>
                 <p>{{ t('paybackCameraActivating') }}</p>
               </div>
@@ -81,9 +70,6 @@
                   <div class="corner br"></div>
                   <div class="scan-line" v-if="cameraActive && !scanSuccess"></div>
                   <div v-if="scanSuccess" class="success-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1fd6d6" stroke-width="3">
-                      <path d="M20 6L9 17l-5-5"/>
-                    </svg>
                   </div>
                 </div>
               </div>
@@ -91,9 +77,6 @@
 
             <div class="manual-entry">
               <button class="link-btn" @click="switchToManual" type="button">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>
-                </svg>
                 {{ t('paybackManualSwitch') }}
               </button>
             </div>
@@ -105,9 +88,6 @@
 
             <div class="input-container">
               <div class="input-wrap" :class="{ focused: inputFocused, error: inputError }">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
-                </svg>
                 <input
                   ref="inputRef"
                   v-model="cardNumber"
@@ -126,9 +106,6 @@
                 />
               </div>
               <p v-if="inputError" class="error-message" role="alert">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-                </svg>
                 {{ errorMessage }}
               </p>
             </div>
@@ -142,9 +119,7 @@
                 type="button"
               >{{ key }}</button>
               <button class="key-btn key-backspace" @click="backspace" type="button" :aria-label="t('back')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/>
-                </svg>
+                ⌫
               </button>
             </div>
 
@@ -153,10 +128,6 @@
                 {{ t('paybackConfirm') }}
               </button>
               <button class="btn secondary" @click="switchToScanner" type="button">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
                 {{ t('paybackBackToScanner') }}
               </button>
             </div>

@@ -7,10 +7,7 @@
         <span class="rev-breadcrumb">/ Umsatz</span>
       </div>
       <button type="button" class="rev-back-btn" @click="$router.push('/admin')">
-        <svg viewBox="0 0 24 24" class="rev-back-icon" fill="currentColor">
-          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-        </svg>
-        Zurück zum Dashboard
+        ← Zurück zum Dashboard
       </button>
     </nav>
 
@@ -38,9 +35,6 @@
 
         <div class="kpi-grid">
           <div class="kpi-card">
-            <div class="kpi-icon kpi-icon--total">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-            </div>
             <div class="kpi-content">
               <span class="kpi-label">Gesamtumsatz</span>
               <span class="kpi-value">{{ formatCurrency(totalRevenue) }}</span>
@@ -48,9 +42,6 @@
           </div>
 
           <div class="kpi-card">
-            <div class="kpi-icon kpi-icon--orders">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/></svg>
-            </div>
             <div class="kpi-content">
               <span class="kpi-label">Abgeschl. Bestellungen</span>
               <span class="kpi-value">{{ closedOrders.length }}</span>
@@ -58,9 +49,6 @@
           </div>
 
           <div class="kpi-card">
-            <div class="kpi-icon kpi-icon--avg">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
-            </div>
             <div class="kpi-content">
               <span class="kpi-label">Ø Bestellwert</span>
               <span class="kpi-value">{{ formatCurrency(avgOrderValue) }}</span>
@@ -68,9 +56,6 @@
           </div>
 
           <div class="kpi-card">
-            <div class="kpi-icon kpi-icon--today">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
-            </div>
             <div class="kpi-content">
               <span class="kpi-label">Umsatz heute</span>
               <span class="kpi-value">{{ formatCurrency(todayRevenue) }}</span>
@@ -527,10 +512,6 @@ onMounted(() => {
   border-color: rgba(255,255,255,0.2);
 }
 
-.rev-back-icon {
-  width: 18px;
-  height: 18px;
-}
 
 /* Main */
 .rev-main {
@@ -629,40 +610,6 @@ onMounted(() => {
   border-radius: 16px;
 }
 
-.kpi-icon {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-}
-
-.kpi-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-.kpi-icon--total {
-  background: rgba(0, 212, 232, 0.12);
-  color: #00D4E8;
-}
-
-.kpi-icon--orders {
-  background: rgba(110, 240, 180, 0.12);
-  color: #6EF0B4;
-}
-
-.kpi-icon--avg {
-  background: rgba(255, 200, 60, 0.12);
-  color: #FFC83C;
-}
-
-.kpi-icon--today {
-  background: rgba(180, 160, 255, 0.12);
-  color: #B4A0FF;
-}
 
 .kpi-content {
   display: flex;

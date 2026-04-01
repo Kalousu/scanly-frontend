@@ -42,12 +42,6 @@
                 </div>
 
                 <button class="delete-btn" title="Artikel entfernen" @click="confirmDeleteItem = item">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                  </svg>
                 </button>
               </div>
             </div>
@@ -326,11 +320,6 @@
       <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
         <div class="delete-confirm-card">
           <div class="delete-confirm-icon" style="color: #fbbf24; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.25);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
           </div>
           <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
           <p class="delete-confirm-text">
@@ -350,12 +339,6 @@
       <div v-if="confirmDeleteItem" class="delete-overlay" @click.self="confirmDeleteItem = null">
         <div class="delete-confirm-card">
           <div class="delete-confirm-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
           </div>
           <h3 class="delete-confirm-title">Produkt löschen</h3>
           <p class="delete-confirm-text">

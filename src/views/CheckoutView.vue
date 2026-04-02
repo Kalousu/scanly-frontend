@@ -116,8 +116,9 @@
 
         <div v-if="errorMessage" class="error-toast" role="alert">⚠️ {{ errorMessage }}</div>
 
-        <ProduceModal
-          :visible="modal === 'produce'"
+        <ProductPickerModal
+          :visible="modal === 'vegetables'"
+          mode="vegetables"
           :catalog="produceCatalog"
           :loading="produceLoading"
           :selected="selectedProduce"
@@ -131,8 +132,9 @@
           @close="closeModal"
         />
 
-        <BakeryModal
+        <ProductPickerModal
           :visible="modal === 'bakery'"
+          mode="bakery"
           :catalog="bakeryCatalog"
           :loading="bakeryLoading"
           :selected="selectedBakery"
@@ -204,8 +206,7 @@ import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/a
 import CartPanel from '../components/CartPanel.vue'
 import LanguageModal from '../components/LanguageModal.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import ProduceModal from '../components/ProduceModal.vue'
-import BakeryModal from '../components/BakeryModal.vue'
+import ProductPickerModal from '../components/ProductPickerModal.vue'
 import { useFormatters } from '../composables/useFormatters'
 import { useErrorToast } from '../composables/useErrorToast'
 
@@ -468,7 +469,7 @@ function toggleLanguage() {
   modal.value = 'lang'
 }
 async function openProduce() {
-  modal.value = 'produce'
+  modal.value = 'vegetables'
   selectedProduce.value = null
   weightKg.value = 0.25
   if (produceCatalog.value.length === 0) {

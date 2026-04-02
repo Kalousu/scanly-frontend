@@ -183,6 +183,7 @@ function selectLanguage(code) {
 }
 
 
+// connects to usb thermal printer via WebUSB and prints a test receipt
 async function printReceipt(){
   const device = await navigator.usb.requestDevice({
           filters: [{ vendorId: 0x0483, productId: 0x5840 }]
@@ -301,6 +302,7 @@ function cancel() {
   router.push('/checkout')
 }
 
+// sends checkout request to backend, navigates to summary on success
 async function pay() {
   if (orderItems.value.length === 0) return
   if (status.value === 'paying') return

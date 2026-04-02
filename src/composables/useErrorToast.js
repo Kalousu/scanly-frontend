@@ -1,9 +1,6 @@
 import { ref } from 'vue'
 
-/**
- * Composable for showing temporary error toast messages.
- * Provides reactive `errorMessage` ref and `showError(msg, duration?)` function.
- */
+// shows an error message that auto disappears after a few seconds
 export function useErrorToast(duration = 3000) {
   const errorMessage = ref('')
   let errorTimeout = null

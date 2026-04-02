@@ -12,6 +12,8 @@ import ProductsView from '../views/ProductsView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import CouponsView from '../views/CouponsView.vue'
 
+// customer goes landing, checkout, payback, payment, summary
+// admin stuff lives under /admin
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [

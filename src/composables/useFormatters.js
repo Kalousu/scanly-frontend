@@ -1,20 +1,10 @@
 import { useLanguage } from '../components/Uselanguage'
 
-/**
- * Composable for shared formatting utilities.
- *
- * - formatCurrency: Always German locale (admin views)
- * - formatPrice: Locale-aware based on current language (customer views)
- * - formatDate: German locale date + time
- * - formatTaxRate: Tax rate label from numeric value
- */
+// helpers for formatting prices, dates, tax rates etc
 export function useFormatters() {
   const { currentLang } = useLanguage()
 
-  /**
-   * Format a value as EUR currency in German locale.
-   * Used in admin views (Orders, Revenue).
-   */
+  // always german locale, used in admin views
   function formatCurrency(val) {
     return new Intl.NumberFormat('de-DE', {
       style: 'currency',
@@ -22,19 +12,13 @@ export function useFormatters() {
     }).format(val)
   }
 
-  /**
-   * Format a value as EUR currency using the customer's selected language.
-   * Used in customer-facing views (Checkout, Payment).
-   */
+  // uses the customers selected language
   function formatPrice(n) {
     const localeMap = { de: 'de-DE', it: 'it-IT', ru: 'ru-RU' }
     const locale = localeMap[currentLang.value] || 'en-US'
     return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
   }
 
-  /**
-   * Format an ISO date string as German locale date + time.
-   */
   function formatDate(dateStr) {
     if (!dateStr) return '—'
     const d = new Date(dateStr)
@@ -47,9 +31,6 @@ export function useFormatters() {
     })
   }
 
-  /**
-   * Map a numeric tax rate to a display label.
-   */
   function formatTaxRate(rate) {
     const map = {
       1.19: '19 %',

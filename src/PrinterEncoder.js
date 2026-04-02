@@ -1,3 +1,4 @@
+// builds esc/pos byte commands for usb thermal printers
 export class PrinterEncoder{
     #commands;
     #ESC;
@@ -94,6 +95,7 @@ export class PrinterEncoder{
     }
  
     //ENCODING
+    // pack all collected commands into one byte array to send to printer
     encode(){
         return new Uint8Array(this.#commands.flat());
     }

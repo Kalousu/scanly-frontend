@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
+// settings get saved to localstorage whenever something changes
 const STORAGE_KEY = 'scanly-settings'
 
 function loadFromStorage() {
@@ -75,7 +76,7 @@ export const useSettingsStore = defineStore('settings', () => {
     return username === adminUsername.value && password === adminPassword.value
   }
 
-  // Auto-persist on any change
+  // watch everything and save on change
   const allRefs = [
     paybackEnabled, paybackQrEnabled, paybackManualEnabled,
     cameraCooldown, scannerBuffer, cameraAutoStart,

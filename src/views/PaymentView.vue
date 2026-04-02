@@ -3,45 +3,12 @@
     <div class="bg-grid" aria-hidden="true"></div>
 
     <div class="layout">
-      <aside class="panel cart-panel">
-        <div v-if="orderItems.length === 0" class="empty-state">
-          <h2 class="empty-title">{{ t('emptyTitle') }}</h2>
-          <p class="empty-hint">{{ t('emptyHint') }}</p>
-        </div>
-
-        <div v-else class="cart">
-          <div class="cart-header">
-            <h2 class="cart-title">{{ t('cartTitle') }}</h2>
-          </div>
-
-          <div class="cart-items">
-            <div v-for="item in orderItems" :key="item.id" class="cart-item">
-              <div class="ci-accent"></div>
-              <div class="ci-left">
-                <div class="ci-name">{{ item.productName }}</div>
-                <div class="ci-meta">
-                  <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round((item.taxRate - 1) * 100) }}%</span>
-                </div>
-              </div>
-
-              <div class="ci-right">
-                <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
-
-                <div class="ci-qty" aria-label="Menge">
-                  <span class="qty-val">{{ item.amount }}×</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="totals">
-            <div class="totals-row totals-total">
-              <span>{{ t('total') }}</span>
-              <span class="totals-total-value">{{ formatPrice(orderTotalPrice) }}</span>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <CartPanel
+        :items="orderItems"
+        :total-price="orderTotalPrice"
+        :editable="false"
+        :show-scan-badge="false"
+      />
 
       <main class="panel scan-panel">
         <div class="top-actions">
@@ -126,97 +93,38 @@
           </div>
         </div>
 
-        <div v-if="modal === 'coupon'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">🎟️ Coupon einlösen</h3>
-            <p class="coupon-subtitle">Code eingeben oder Coupon einscannen</p>
+        <CouponModal
+          :visible="modal === 'coupon'"
+          :code="couponCode"
+          :scanning="couponScanning"
+          :message="couponMessage"
+          :message-type="couponMessageType"
+          @update:code="couponCode = $event"
+          @redeem="redeemCoupon"
+          @toggle-scan="startCouponScan"
+          @close="closeModal"
+        />
 
-            <div class="coupon-input-wrapper">
-              <input
-                ref="couponInputRef"
-                v-model="couponCode"
-                type="text"
-                class="coupon-input"
-                placeholder="Coupon-Code eingeben…"
-                maxlength="32"
-                @keydown.enter="redeemCoupon"
-              />
-              <button class="coupon-scan-btn" @click="startCouponScan" :title="couponScanning ? 'Scannen aktiv…' : 'Coupon scannen'">
-                <span v-if="!couponScanning">Scan</span>
-                <span v-else class="scan-pulse-icon">
-                  <span class="scan-pulse-dot"></span>
-                </span>
-              </button>
-            </div>
-
-            <div v-if="couponScanning" class="coupon-scan-hint">
-              <span class="scan-pulse-dot-sm"></span>
-              Scanner aktiv — Coupon jetzt einscannen…
-            </div>
-
-            <div v-if="couponMessage" class="coupon-message" :class="couponMessageType === 'error' ? 'coupon-message--error' : 'coupon-message--success'">
-              {{ couponMessage }}
-            </div>
-
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">
-                Abbrechen
-              </button>
-              <button
-                class="modal-btn modal-btn--done"
-                :disabled="!couponCode.trim()"
-                @click="redeemCoupon"
-              >
-                Einlösen
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="modal === 'lang'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">{{ t('langTitle') }}</h3>
-            <div class="lang-grid">
-              <button
-                v-for="lang in languages"
-                :key="lang.code"
-                class="lang-btn"
-                :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="selectLanguage(lang.code)"
-              >
-                <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
-                <span class="lang-label">{{ lang.label }}</span>
-                <span class="lang-code">{{ lang.code.toUpperCase() }}</span>
-              </button>
-            </div>
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">
-                {{ t('close') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <LanguageModal
+          :visible="modal === 'lang'"
+          :current-lang="currentLang"
+          :languages="languages"
+          :t="t"
+          @select="selectLanguage"
+          @close="closeModal"
+        />
       </main>
     </div>
 
-    <Teleport to="body">
-      <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
-        <div class="delete-confirm-card">
-          <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
-          <p class="delete-confirm-text">
-            Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt.
-          </p>
-          <div class="delete-confirm-actions">
-            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="showCancelConfirm = false">
-              Zurück
-            </button>
-            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="confirmCancel">
-              Bestellung abbrechen
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <ConfirmDialog
+      :visible="showCancelConfirm"
+      title="Bestellung abbrechen"
+      message="Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt."
+      cancel-label="Zurück"
+      confirm-label="Bestellung abbrechen"
+      @cancel="showCancelConfirm = false"
+      @confirm="confirmCancel"
+    />
   </div>
 </template>
 
@@ -227,10 +135,19 @@ import { useCartStore } from '../stores/cart'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api from '@/services/api'
 import { PrinterEncoder } from '@/PrinterEncoder'
+import CartPanel from '../components/CartPanel.vue'
+import LanguageModal from '../components/LanguageModal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+import CouponModal from '../components/CouponModal.vue'
+import { useFormatters } from '../composables/useFormatters'
+import { useErrorToast } from '../composables/useErrorToast'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
+
+const { formatPrice } = useFormatters()
+const { errorMessage, showError } = useErrorToast()
 
 const translations_local = allTranslations
 
@@ -251,9 +168,7 @@ const orderTotalPrice = ref(0)
 const scanBuffer = ref('')
 let scanTimer = null
 
-const errorMessage = ref('')
 const showCancelConfirm = ref(false)
-let errorTimeout = null
 
 // Coupon state
 const couponCode = ref('')
@@ -268,18 +183,7 @@ function selectLanguage(code) {
 }
 
 
-function formatPrice(n) {
-  const locale =
-    currentLang.value === 'de'
-      ? 'de-DE'
-      : currentLang.value === 'it'
-        ? 'it-IT'
-        : currentLang.value === 'ru'
-          ? 'ru-RU'
-          : 'en-US'
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
-}
-
+// connects to usb thermal printer via WebUSB and prints a test receipt
 async function printReceipt(){
   const device = await navigator.usb.requestDevice({
           filters: [{ vendorId: 0x0483, productId: 0x5840 }]
@@ -350,14 +254,6 @@ function onBarcodeScanned(code) {
   status.value = 'idle'
 }
 
-function showError(msg) {
-  if (errorTimeout) clearTimeout(errorTimeout)
-  errorMessage.value = msg
-  errorTimeout = setTimeout(() => {
-    errorMessage.value = ''
-  }, 3000)
-}
-
 function openCouponModal() {
   couponCode.value = ''
   couponScanning.value = false
@@ -406,6 +302,7 @@ function cancel() {
   router.push('/checkout')
 }
 
+// sends checkout request to backend, navigates to summary on success
 async function pay() {
   if (orderItems.value.length === 0) return
   if (status.value === 'paying') return
@@ -449,7 +346,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
   if (scanTimer) clearTimeout(scanTimer)
-  if (errorTimeout) clearTimeout(errorTimeout)
 })
 </script>
 

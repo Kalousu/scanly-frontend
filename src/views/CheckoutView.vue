@@ -3,58 +3,14 @@
     <div class="bg-grid" aria-hidden="true"></div>
 
     <div class="layout">
-      <aside class="panel cart-panel">
-        <div v-if="orderItems.length === 0" class="empty-state">
-          <h2 class="empty-title">{{ t('emptyTitle') }}</h2>
-          <p class="empty-hint">{{ t('emptyHint') }}</p>
-        </div>
-
-        <div v-else class="cart">
-          <div class="cart-header">
-            <h2 class="cart-title">{{ t('cartTitle') }}</h2>
-            <span class="scan-badge">
-              <span class="scan-badge-dot"></span>
-              {{ t('scanActive') }}
-            </span>
-          </div>
-
-          <div class="cart-items">
-            <div v-for="item in orderItems" :key="item.id" class="cart-item">
-              <div class="ci-accent"></div>
-              <div class="ci-left">
-                <div class="ci-name">{{ item.productName }}</div>
-                <div class="ci-meta">
-                  <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round((item.taxRate - 1) * 100) }}%</span>
-                </div>
-              </div>
-
-              <div class="ci-right">
-                <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
-
-                <div class="ci-qty">
-                  <template v-if="!isFruitsVegetables(item)">
-                    <button class="qty-btn" @click="updateItemQuantity(item, -1)">−</button>
-                  </template>
-                  <span class="qty-val">{{ isFruitsVegetables(item) ? item.amount.toFixed(2) + ' kg' : item.amount }}</span>
-                  <template v-if="!isFruitsVegetables(item)">
-                    <button class="qty-btn" @click="updateItemQuantity(item, 1)">+</button>
-                  </template>
-                </div>
-
-                <button class="delete-btn" title="Artikel entfernen" @click="confirmDeleteItem = item">
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="totals">
-            <div class="totals-row totals-total">
-              <span>{{ t('total') }}</span>
-              <span class="totals-total-value">{{ formatPrice(orderTotalPrice) }}</span>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <CartPanel
+        :items="orderItems"
+        :total-price="orderTotalPrice"
+        :editable="true"
+        :show-scan-badge="true"
+        @update-quantity="updateItemQuantity"
+        @delete-item="(item) => confirmDeleteItem = item"
+      />
 
       <main class="panel scan-panel">
         <div class="top-actions">
@@ -160,119 +116,37 @@
 
         <div v-if="errorMessage" class="error-toast" role="alert">⚠️ {{ errorMessage }}</div>
 
-        <div v-if="modal === 'produce'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card">
-            <div class="modal-head">
-              <div class="modal-icon">🥦</div>
-              <div>
-                <h3 class="modal-title">{{ t('produce') }}</h3>
-                <p class="modal-subtitle">{{ t('produceSubtitle') }}</p>
-              </div>
-            </div>
+        <ProductPickerModal
+          :visible="modal === 'vegetables'"
+          mode="vegetables"
+          :catalog="produceCatalog"
+          :loading="produceLoading"
+          :selected="selectedProduce"
+          :weight-kg="weightKg"
+          :t="t"
+          :get-item-name="getItemName"
+          @select="addWeighted"
+          @deselect="selectedProduce = null"
+          @confirm="confirmWeighted"
+          @update:weight-kg="weightKg = $event"
+          @close="closeModal"
+        />
 
-            <div v-if="produceLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
-              <div class="spinner-ring"></div>
-            </div>
-            <div v-else class="product-grid">
-              <button
-                v-for="p in produceCatalog"
-                :key="p.sku"
-                class="product-card"
-                :class="{ 'product-card--selected': selectedProduce?.sku === p.sku }"
-                @click="addWeighted(p)"
-              >
-                <div class="product-name">{{ getItemName(p) }}</div>
-                <div class="product-price">
-                  {{ formatPrice(p.pricePerKg) }}<span class="price-unit">/kg</span>
-                </div>
-              </button>
-            </div>
-
-            <div v-if="selectedProduce" class="weight-row">
-              <label class="weight-label">{{ t('weightLabel') }}</label>
-              <input
-                v-model.number="weightKg"
-                type="number"
-                min="0.01"
-                step="0.01"
-                class="weight-input"
-              />
-              <span class="weight-preview"
-                >= {{ formatPrice(selectedProduce.pricePerKg * weightKg) }}</span
-              >
-            </div>
-
-            <div class="modal-actions">
-              <button
-                class="modal-btn modal-btn--back"
-                @click="selectedProduce ? (selectedProduce = null) : closeModal()"
-              >
-                {{ t('back') }}
-              </button>
-              <button
-                class="modal-btn modal-btn--done"
-                :disabled="!selectedProduce"
-                @click="confirmWeighted"
-              >
-                {{ t('add') }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="modal === 'bakery'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card">
-            <div class="modal-head">
-              <div class="modal-icon">🥐</div>
-              <div>
-                <h3 class="modal-title">{{ t('bakery') }}</h3>
-                <p class="modal-subtitle">{{ t('bakerySubtitle') }}</p>
-              </div>
-            </div>
-
-            <div v-if="bakeryLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
-              <div class="spinner-ring"></div>
-            </div>
-            <div v-else class="product-grid">
-              <button
-                v-for="b in bakeryCatalog"
-                :key="b.sku"
-                class="product-card"
-                :class="{ 'product-card--selected': selectedBakery?.sku === b.sku }"
-                @click="selectBakeryItem(b)"
-              >
-                <div class="product-name">{{ getItemName(b) }}</div>
-                <div class="product-price">{{ formatPrice(b.price) }}</div>
-              </button>
-            </div>
-
-            <div v-if="selectedBakery" class="weight-row">
-              <label class="weight-label">{{ t('amount') }}</label>
-              <div class="bakery-qty-picker">
-                <button class="qty-btn" @click="bakeryAmount > 1 && bakeryAmount--">−</button>
-                <span class="qty-val bakery-qty-val">{{ bakeryAmount }}</span>
-                <button class="qty-btn" @click="bakeryAmount++">+</button>
-              </div>
-              <span class="weight-preview">= {{ formatPrice(selectedBakery.price * bakeryAmount) }}</span>
-            </div>
-
-            <div class="modal-actions">
-              <button
-                class="modal-btn modal-btn--back"
-                @click="selectedBakery ? (selectedBakery = null) : closeModal()"
-              >
-                {{ t('back') }}
-              </button>
-              <button
-                class="modal-btn modal-btn--done"
-                :disabled="!selectedBakery"
-                @click="confirmBakeryItem"
-              >
-                {{ t('add') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ProductPickerModal
+          :visible="modal === 'bakery'"
+          mode="bakery"
+          :catalog="bakeryCatalog"
+          :loading="bakeryLoading"
+          :selected="selectedBakery"
+          :amount="bakeryAmount"
+          :t="t"
+          :get-item-name="getItemName"
+          @select="selectBakeryItem"
+          @deselect="selectedBakery = null"
+          @confirm="confirmBakeryItem"
+          @update:amount="bakeryAmount = $event"
+          @close="closeModal"
+        />
 
         <div v-if="modal === 'help'" class="modal-backdrop" @click.self="closeModal">
           <div class="modal-card modal-card--sm">
@@ -288,73 +162,36 @@
           </div>
         </div>
 
-        <div v-if="modal === 'lang'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">{{ t('langTitle') }}</h3>
-            <div class="lang-grid">
-              <button
-                v-for="lang in languages"
-                :key="lang.code"
-                class="lang-btn"
-                :class="{ 'lang-btn--active': currentLang === lang.code }"
-                @click="
-                  setLanguage(lang.code); closeModal()
-                "
-              >
-                <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
-                <span class="lang-label">{{ lang.label }}</span>
-                <span class="lang-code">{{ lang.code.toUpperCase() }}</span>
-              </button>
-            </div>
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--back" @click="closeModal">
-                {{ t('close') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <LanguageModal
+          :visible="modal === 'lang'"
+          :current-lang="currentLang"
+          :languages="languages"
+          :t="t"
+          @select="(code) => { setLanguage(code); closeModal() }"
+          @close="closeModal"
+        />
       </main>
     </div>
 
-    <Teleport to="body">
-      <div v-if="showCancelConfirm" class="delete-overlay" @click.self="showCancelConfirm = false">
-        <div class="delete-confirm-card">
-          <div class="delete-confirm-icon" style="color: #fbbf24; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.25);">
-          </div>
-          <h3 class="delete-confirm-title">Bestellung abbrechen</h3>
-          <p class="delete-confirm-text">
-            Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt.
-          </p>
-          <div class="delete-confirm-actions">
-            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="showCancelConfirm = false">
-              Zurück
-            </button>
-            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="confirmCancel">
-              Bestellung abbrechen
-            </button>
-          </div>
-        </div>
-      </div>
+    <ConfirmDialog
+      :visible="showCancelConfirm"
+      :title="t('cancelOrderTitle')"
+      :message="t('cancelOrderMessage')"
+      :cancel-label="t('back')"
+      :confirm-label="t('cancelOrderConfirm')"
+      @cancel="showCancelConfirm = false"
+      @confirm="confirmCancel"
+    />
 
-      <div v-if="confirmDeleteItem" class="delete-overlay" @click.self="confirmDeleteItem = null">
-        <div class="delete-confirm-card">
-          <div class="delete-confirm-icon">
-          </div>
-          <h3 class="delete-confirm-title">Produkt löschen</h3>
-          <p class="delete-confirm-text">
-            Wollen Sie <strong>{{ confirmDeleteItem.productName }}</strong> wirklich löschen?
-          </p>
-          <div class="delete-confirm-actions">
-            <button class="delete-confirm-btn delete-confirm-btn--cancel" @click="confirmDeleteItem = null">
-              Abbrechen
-            </button>
-            <button class="delete-confirm-btn delete-confirm-btn--delete" @click="deleteItem">
-              Löschen
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <ConfirmDialog
+      :visible="!!confirmDeleteItem"
+      :title="t('deleteProductTitle')"
+      :message="tFn('deleteProductMessage', confirmDeleteItem?.productName ?? '')"
+      :cancel-label="t('cancel')"
+      :confirm-label="t('deleteProductConfirm')"
+      @cancel="confirmDeleteItem = null"
+      @confirm="deleteItem"
+    />
   </div>
 </template>
 
@@ -366,11 +203,20 @@ import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
 import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
+import CartPanel from '../components/CartPanel.vue'
+import LanguageModal from '../components/LanguageModal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+import ProductPickerModal from '../components/ProductPickerModal.vue'
+import { useFormatters } from '../composables/useFormatters'
+import { useErrorToast } from '../composables/useErrorToast'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const settingsStore = useSettingsStore()
 const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
+
+const { formatPrice } = useFormatters()
+const { errorMessage, showError } = useErrorToast()
 
 const translations_local = allTranslations
 
@@ -389,6 +235,7 @@ const vatRate = ref(19)
 const orderItems = ref([])
 const orderTotalPrice = ref(0)
 
+// collects fast keystrokes from the hardware barcode scanner
 const scanBuffer = ref('')
 let scanTimer = null
 
@@ -414,10 +261,8 @@ const bakeryAmount = ref(1)
 
 const selectedProduce = ref(null)
 const weightKg = ref(0.25)
-const errorMessage = ref('')
 const confirmDeleteItem = ref(null)
 const showCancelConfirm = ref(false)
-let errorTimeout = null
 
 
 function isFruitsVegetables(item) {
@@ -428,18 +273,6 @@ function isFruitsVegetables(item) {
 
 function round2(n) {
   return Math.round(n * 100) / 100
-}
-
-function formatPrice(n) {
-  const locale =
-    currentLang.value === 'de'
-      ? 'de-DE'
-      : currentLang.value === 'it'
-        ? 'it-IT'
-        : currentLang.value === 'ru'
-          ? 'ru-RU'
-          : 'en-US'
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
 }
 
 function getLocalizedName(item) {
@@ -564,6 +397,7 @@ function dec(line) {
   cartStore.dec(line)
 }
 
+// catches keyboard input from barcode scanner, ignores it when camera barcode detection is active
 function handleKeydown(e) {
   const tag = (e.target?.tagName || '').toLowerCase()
 
@@ -604,6 +438,7 @@ async function fetchOrder() {
   }
 }
 
+// called when a barcode is detected, either from camera or keyboard scanner
 async function onBarcodeScanned(code) {
   status.value = 'scanning'
 
@@ -630,14 +465,6 @@ async function onBarcodeScanned(code) {
   }
 }
 
-function showError(msg) {
-  if (errorTimeout) clearTimeout(errorTimeout)
-  errorMessage.value = msg
-  errorTimeout = setTimeout(() => {
-    errorMessage.value = ''
-  }, 3000)
-}
-
 function openHelp() {
   modal.value = 'help'
 }
@@ -645,7 +472,7 @@ function toggleLanguage() {
   modal.value = 'lang'
 }
 async function openProduce() {
-  modal.value = 'produce'
+  modal.value = 'vegetables'
   selectedProduce.value = null
   weightKg.value = 0.25
   if (produceCatalog.value.length === 0) {
@@ -726,6 +553,7 @@ async function pay() {
   router.push(settingsStore.paybackEnabled ? '/payback' : '/payment')
 }
 
+// tries to open the camera and init BarcodeDetector if the browser supports it
 async function startCamera() {
   cameraLoading.value = true
   cameraError.value = ''
@@ -851,7 +679,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
   stopCamera()
   if (scanTimer) clearTimeout(scanTimer)
-  if (errorTimeout) clearTimeout(errorTimeout)
 })
 </script>
 

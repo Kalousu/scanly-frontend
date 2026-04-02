@@ -89,6 +89,7 @@ const { currentLang, languages, t, setLanguage } = useLanguage()
 const isHelpOpen = ref(false)
 const isAdminAuthOpen = ref(false)
 
+// creates a new order on the backend and then navigates to checkout
 async function onStart() {
   try {
     const response = await api.post('/orders')

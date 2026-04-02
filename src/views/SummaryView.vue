@@ -8,6 +8,7 @@ const router = useRouter()
 const cart = useCartStore()
 const { t, tFn } = useLanguage()
 
+// auto-redirect back to landing after countdown finishes
 const REDIRECT_SECONDS = 10
 const countdown = ref(REDIRECT_SECONDS)
 let countdownInterval = null

@@ -1,9 +1,10 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
+// everything cart related lives here
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
-  const orderId = ref(null)
+  const orderId = ref(null) // set after backend creates the order
   const vatEnabled = ref(false)
   const vatRate = ref(19)
   const language = ref('de')
@@ -38,6 +39,7 @@ export const useCartStore = defineStore('cart', () => {
     })
   }
 
+  // weighted items always get their own line bc every weighing is different
   function addWeighted(item, kg) {
     items.value.push({
       lineId: uid(),

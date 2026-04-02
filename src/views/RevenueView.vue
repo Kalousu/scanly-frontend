@@ -1,51 +1,52 @@
 <template>
   <AdminLayout breadcrumb="Umsatz" :max-width="1280">
       <!-- Loading -->
-      <div v-if="loading" class="rev-loading">
-        <div class="rev-spinner"></div>
+      <div v-if="loading" class="admin-loading">
+        <div class="admin-spinner"></div>
         <p>Daten werden geladen…</p>
       </div>
 
       <!-- Error -->
-      <div v-else-if="error" class="rev-error">
+      <div v-else-if="error" class="admin-error">
         <p>⚠ Fehler beim Laden der Daten</p>
-        <p class="rev-error-detail">{{ error }}</p>
-        <button class="rev-retry-btn" @click="loadOrders">Erneut versuchen</button>
+        <p class="admin-error-detail">{{ error }}</p>
+        <button class="admin-retry-btn" @click="loadOrders">Erneut versuchen</button>
       </div>
 
       <!-- Content -->
       <template v-else>
-        <!-- KPI Cards -->
-        <div class="rev-header">
-          <h1 class="rev-title">Umsatzübersicht</h1>
-          <p class="rev-subtitle">Nur abgeschlossene Bestellungen (Status: closed)</p>
+        <!-- Header -->
+        <div class="admin-page-header">
+          <h1 class="admin-page-title">Umsatzübersicht</h1>
+          <p class="admin-page-subtitle">Nur abgeschlossene Bestellungen (Status: closed)</p>
         </div>
 
+        <!-- KPI Cards -->
         <div class="kpi-grid">
-          <div class="kpi-card">
+          <div class="admin-kpi">
             <div class="kpi-content">
-              <span class="kpi-label">Gesamtumsatz</span>
+              <span class="admin-kpi-label">Gesamtumsatz</span>
               <span class="kpi-value">{{ formatCurrency(totalRevenue) }}</span>
             </div>
           </div>
 
-          <div class="kpi-card">
+          <div class="admin-kpi">
             <div class="kpi-content">
-              <span class="kpi-label">Abgeschl. Bestellungen</span>
+              <span class="admin-kpi-label">Abgeschl. Bestellungen</span>
               <span class="kpi-value">{{ closedOrders.length }}</span>
             </div>
           </div>
 
-          <div class="kpi-card">
+          <div class="admin-kpi">
             <div class="kpi-content">
-              <span class="kpi-label">Ø Bestellwert</span>
+              <span class="admin-kpi-label">Ø Bestellwert</span>
               <span class="kpi-value">{{ formatCurrency(avgOrderValue) }}</span>
             </div>
           </div>
 
-          <div class="kpi-card">
+          <div class="admin-kpi">
             <div class="kpi-content">
-              <span class="kpi-label">Umsatz heute</span>
+              <span class="admin-kpi-label">Umsatz heute</span>
               <span class="kpi-value">{{ formatCurrency(todayRevenue) }}</span>
             </div>
           </div>
@@ -78,8 +79,8 @@
         <!-- Recent Orders Table -->
         <div class="rev-section">
           <h2 class="rev-section-title">Letzte abgeschlossene Bestellungen</h2>
-          <div class="rev-table-wrap">
-            <table class="rev-table" v-if="closedOrders.length > 0">
+          <div class="admin-table-wrap">
+            <table class="admin-table" v-if="closedOrders.length > 0">
               <thead>
                 <tr>
                   <th>Bestell-ID</th>
@@ -91,19 +92,19 @@
               </thead>
               <tbody>
                 <tr v-for="order in recentOrders" :key="order.orderId">
-                  <td class="td-id">#{{ order.orderId }}</td>
+                  <td class="admin-td-id">#{{ order.orderId }}</td>
                   <td>{{ formatDate(order.creationDate) }}</td>
                   <td>{{ getItemCount(order) }}</td>
-                  <td class="td-amount">{{ formatCurrency(order.totalPrice || 0) }}</td>
+                  <td class="admin-td-amount">{{ formatCurrency(order.totalPrice || 0) }}</td>
                   <td>
-                    <span class="pay-badge" :class="'pay-badge--' + (order.orderStatus || '').toLowerCase()">
+                    <span class="admin-badge-status" :class="'admin-badge-status--' + (order.orderStatus || '').toLowerCase()">
                       {{ order.orderStatus }}
                     </span>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <div v-else class="rev-empty">Keine abgeschlossenen Bestellungen vorhanden.</div>
+            <div v-else class="admin-empty">Keine abgeschlossenen Bestellungen vorhanden.</div>
           </div>
         </div>
       </template>
@@ -405,76 +406,14 @@ onMounted(() => {
 })
 </script>
 
+<style>
+@import '@/assets/admin-shared.css';
+</style>
+
 <style scoped>
-.rev-header {
-  margin-bottom: 2rem;
-}
+/* Revenue-specific styles only */
 
-.rev-title {
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 0 0.3rem;
-  color: #fff;
-}
-
-.rev-subtitle {
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.38);
-  margin: 0;
-}
-
-/* Loading */
-.rev-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6rem 1rem;
-  color: rgba(255,255,255,0.4);
-  gap: 1rem;
-}
-
-.rev-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255,255,255,0.1);
-  border-top-color: #00D4E8;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Error */
-.rev-error {
-  text-align: center;
-  padding: 4rem 1rem;
-  color: rgba(255,255,255,0.5);
-}
-
-.rev-error-detail {
-  font-size: 0.85rem;
-  color: rgba(255,100,100,0.7);
-}
-
-.rev-retry-btn {
-  margin-top: 1rem;
-  padding: 0.6rem 1.5rem;
-  background: rgba(0, 212, 232, 0.15);
-  border: 1px solid rgba(0, 212, 232, 0.3);
-  color: #00D4E8;
-  border-radius: 999px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.rev-retry-btn:hover {
-  background: rgba(0, 212, 232, 0.2);
-}
-
-/* KPI Cards */
+/* KPI Grid (wider layout variant) */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -482,29 +421,15 @@ onMounted(() => {
   margin-bottom: 2rem;
 }
 
-.kpi-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.kpi-grid .admin-kpi {
   padding: 1.2rem 1.4rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
 }
-
 
 .kpi-content {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-}
-
-.kpi-label {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.4);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .kpi-value {
@@ -548,7 +473,7 @@ onMounted(() => {
   height: 260px;
 }
 
-/* Table */
+/* Section */
 .rev-section {
   margin-top: 1rem;
 }
@@ -558,81 +483,6 @@ onMounted(() => {
   font-weight: 700;
   margin: 0 0 1rem;
   color: rgba(255,255,255,0.8);
-}
-
-.rev-table-wrap {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.rev-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.rev-table th {
-  text-align: left;
-  padding: 0.85rem 1.2rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(255,255,255,0.4);
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.rev-table td {
-  padding: 0.8rem 1.2rem;
-  font-size: 0.88rem;
-  color: rgba(255,255,255,0.7);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.rev-table tbody tr:hover {
-  background: rgba(255,255,255,0.03);
-}
-
-.rev-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.td-id {
-  font-weight: 700;
-  color: #00D4E8;
-  font-size: 0.82rem;
-}
-
-.td-amount {
-  font-weight: 700;
-  color: rgba(255,255,255,0.9);
-}
-
-.pay-badge {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 600;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.6);
-  text-transform: capitalize;
-}
-
-.pay-badge--closed {
-  color: #6EF0B4;
-}
-
-.pay-badge--open {
-  color: #FFC83C;
-}
-
-.rev-empty {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: rgba(255,255,255,0.25);
-  font-size: 0.9rem;
 }
 
 /* Responsive */
@@ -648,9 +498,6 @@ onMounted(() => {
 @media (max-width: 768px) {
   .kpi-grid {
     grid-template-columns: 1fr 1fr;
-  }
-  .rev-title {
-    font-size: 1.6rem;
   }
 }
 

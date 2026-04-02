@@ -44,16 +44,16 @@ function navigateTo(route) {
 
 <template>
   <AdminLayout breadcrumb="Dashboard" back-to="/" back-label="Zurück zum Start">
-    <header class="header">
-      <h1 class="title">Dashboard</h1>
-      <p class="subtitle">Verwaltung & Übersicht</p>
+    <header class="admin-page-header admin-page-header--center">
+      <h1 class="admin-page-title">Dashboard</h1>
+      <p class="admin-page-subtitle">Verwaltung & Übersicht</p>
     </header>
 
     <div class="grid">
       <div
         v-for="item in DASHBOARD_ITEMS"
         :key="item.id"
-        :class="['card', `card--${item.id}`]"
+        :class="['admin-card admin-card--interactive card--centered', `card--${item.id}`]"
         @click="navigateTo(item.route)"
       >
         <h3 class="card-title">{{ item.title }}</h3>
@@ -63,24 +63,11 @@ function navigateTo(route) {
   </AdminLayout>
 </template>
 
+<style>
+@import '@/assets/admin-shared.css';
+</style>
+
 <style scoped>
-.header {
-  margin-bottom: 2.5rem;
-  text-align: center;
-}
-
-.title {
-  font-size: 2.2rem;
-  font-weight: 800;
-  margin: 0 0 0.35rem;
-}
-
-.subtitle {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -88,26 +75,17 @@ function navigateTo(route) {
   width: 100%;
 }
 
-.grid .card:last-child {
+.grid .admin-card:last-child {
   grid-column: 1 / -1;
 }
 
-.card {
+.card--centered {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 2rem 1.5rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  cursor: pointer;
-}
-
-.card:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  padding: 2rem 1.5rem;
 }
 
 .card-title {
@@ -127,10 +105,6 @@ function navigateTo(route) {
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
-  }
-
-  .title {
-    font-size: 1.7rem;
   }
 }
 </style>

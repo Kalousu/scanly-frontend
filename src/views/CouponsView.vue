@@ -4,9 +4,9 @@ import AdminLayout from '../components/AdminLayout.vue'
 
 <template>
   <AdminLayout breadcrumb="Gutscheine" :max-width="800">
-    <div class="coupons-header">
-      <h1 class="coupons-title">Gutscheine & Coupons</h1>
-      <p class="coupons-subtitle">Gutscheincodes und Rabatt-Coupons verwalten</p>
+    <div class="admin-page-header admin-page-header--center">
+      <h1 class="admin-page-title">Gutscheine & Coupons</h1>
+      <p class="admin-page-subtitle">Gutscheincodes und Rabatt-Coupons verwalten</p>
     </div>
 
     <div class="coupons-empty">
@@ -16,26 +16,11 @@ import AdminLayout from '../components/AdminLayout.vue'
   </AdminLayout>
 </template>
 
+<style>
+@import '@/assets/admin-shared.css';
+</style>
+
 <style scoped>
-.coupons-header {
-  margin-bottom: 2.5rem;
-  text-align: center;
-  width: 100%;
-}
-
-.coupons-title {
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 0 0.3rem;
-  color: #fff;
-}
-
-.coupons-subtitle {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.38);
-  margin: 0;
-}
-
 .coupons-empty {
   display: flex;
   flex-direction: column;
@@ -62,11 +47,5 @@ import AdminLayout from '../components/AdminLayout.vue'
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.35);
   line-height: 1.5;
-}
-
-@media (max-width: 768px) {
-  .coupons-title {
-    font-size: 1.6rem;
-  }
 }
 </style>

@@ -116,119 +116,35 @@
 
         <div v-if="errorMessage" class="error-toast" role="alert">⚠️ {{ errorMessage }}</div>
 
-        <div v-if="modal === 'produce'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card">
-            <div class="modal-head">
-              <div class="modal-icon">🥦</div>
-              <div>
-                <h3 class="modal-title">{{ t('produce') }}</h3>
-                <p class="modal-subtitle">{{ t('produceSubtitle') }}</p>
-              </div>
-            </div>
+        <ProduceModal
+          :visible="modal === 'produce'"
+          :catalog="produceCatalog"
+          :loading="produceLoading"
+          :selected="selectedProduce"
+          :weight-kg="weightKg"
+          :t="t"
+          :get-item-name="getItemName"
+          @select="addWeighted"
+          @deselect="selectedProduce = null"
+          @confirm="confirmWeighted"
+          @update:weight-kg="weightKg = $event"
+          @close="closeModal"
+        />
 
-            <div v-if="produceLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
-              <div class="spinner-ring"></div>
-            </div>
-            <div v-else class="product-grid">
-              <button
-                v-for="p in produceCatalog"
-                :key="p.sku"
-                class="product-card"
-                :class="{ 'product-card--selected': selectedProduce?.sku === p.sku }"
-                @click="addWeighted(p)"
-              >
-                <div class="product-name">{{ getItemName(p) }}</div>
-                <div class="product-price">
-                  {{ formatPrice(p.pricePerKg) }}<span class="price-unit">/kg</span>
-                </div>
-              </button>
-            </div>
-
-            <div v-if="selectedProduce" class="weight-row">
-              <label class="weight-label">{{ t('weightLabel') }}</label>
-              <input
-                v-model.number="weightKg"
-                type="number"
-                min="0.01"
-                step="0.01"
-                class="weight-input"
-              />
-              <span class="weight-preview"
-                >= {{ formatPrice(selectedProduce.pricePerKg * weightKg) }}</span
-              >
-            </div>
-
-            <div class="modal-actions">
-              <button
-                class="modal-btn modal-btn--back"
-                @click="selectedProduce ? (selectedProduce = null) : closeModal()"
-              >
-                {{ t('back') }}
-              </button>
-              <button
-                class="modal-btn modal-btn--done"
-                :disabled="!selectedProduce"
-                @click="confirmWeighted"
-              >
-                {{ t('add') }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="modal === 'bakery'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card">
-            <div class="modal-head">
-              <div class="modal-icon">🥐</div>
-              <div>
-                <h3 class="modal-title">{{ t('bakery') }}</h3>
-                <p class="modal-subtitle">{{ t('bakerySubtitle') }}</p>
-              </div>
-            </div>
-
-            <div v-if="bakeryLoading" class="product-grid" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
-              <div class="spinner-ring"></div>
-            </div>
-            <div v-else class="product-grid">
-              <button
-                v-for="b in bakeryCatalog"
-                :key="b.sku"
-                class="product-card"
-                :class="{ 'product-card--selected': selectedBakery?.sku === b.sku }"
-                @click="selectBakeryItem(b)"
-              >
-                <div class="product-name">{{ getItemName(b) }}</div>
-                <div class="product-price">{{ formatPrice(b.price) }}</div>
-              </button>
-            </div>
-
-            <div v-if="selectedBakery" class="weight-row">
-              <label class="weight-label">{{ t('amount') }}</label>
-              <div class="bakery-qty-picker">
-                <button class="qty-btn" @click="bakeryAmount > 1 && bakeryAmount--">−</button>
-                <span class="qty-val bakery-qty-val">{{ bakeryAmount }}</span>
-                <button class="qty-btn" @click="bakeryAmount++">+</button>
-              </div>
-              <span class="weight-preview">= {{ formatPrice(selectedBakery.price * bakeryAmount) }}</span>
-            </div>
-
-            <div class="modal-actions">
-              <button
-                class="modal-btn modal-btn--back"
-                @click="selectedBakery ? (selectedBakery = null) : closeModal()"
-              >
-                {{ t('back') }}
-              </button>
-              <button
-                class="modal-btn modal-btn--done"
-                :disabled="!selectedBakery"
-                @click="confirmBakeryItem"
-              >
-                {{ t('add') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <BakeryModal
+          :visible="modal === 'bakery'"
+          :catalog="bakeryCatalog"
+          :loading="bakeryLoading"
+          :selected="selectedBakery"
+          :amount="bakeryAmount"
+          :t="t"
+          :get-item-name="getItemName"
+          @select="selectBakeryItem"
+          @deselect="selectedBakery = null"
+          @confirm="confirmBakeryItem"
+          @update:amount="bakeryAmount = $event"
+          @close="closeModal"
+        />
 
         <div v-if="modal === 'help'" class="modal-backdrop" @click.self="closeModal">
           <div class="modal-card modal-card--sm">
@@ -257,20 +173,20 @@
 
     <ConfirmDialog
       :visible="showCancelConfirm"
-      title="Bestellung abbrechen"
-      message="Möchten Sie die Bestellung wirklich abbrechen? Alle Artikel werden entfernt."
-      cancel-label="Zurück"
-      confirm-label="Bestellung abbrechen"
+      :title="t('cancelOrderTitle')"
+      :message="t('cancelOrderMessage')"
+      :cancel-label="t('back')"
+      :confirm-label="t('cancelOrderConfirm')"
       @cancel="showCancelConfirm = false"
       @confirm="confirmCancel"
     />
 
     <ConfirmDialog
       :visible="!!confirmDeleteItem"
-      title="Produkt löschen"
-      :message="`Wollen Sie <strong>${confirmDeleteItem?.productName ?? ''}</strong> wirklich löschen?`"
-      cancel-label="Abbrechen"
-      confirm-label="Löschen"
+      :title="t('deleteProductTitle')"
+      :message="tFn('deleteProductMessage', confirmDeleteItem?.productName ?? '')"
+      :cancel-label="t('cancel')"
+      :confirm-label="t('deleteProductConfirm')"
       @cancel="confirmDeleteItem = null"
       @confirm="deleteItem"
     />
@@ -288,6 +204,8 @@ import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/a
 import CartPanel from '../components/CartPanel.vue'
 import LanguageModal from '../components/LanguageModal.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import ProduceModal from '../components/ProduceModal.vue'
+import BakeryModal from '../components/BakeryModal.vue'
 import { useFormatters } from '../composables/useFormatters'
 import { useErrorToast } from '../composables/useErrorToast'
 

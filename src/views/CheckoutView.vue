@@ -656,7 +656,7 @@ function startBarcodeScanning() {
         }, settingsStore.cameraCooldown)
       }
     } catch {
-      
+
     }
   }, 250)
 }

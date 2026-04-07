@@ -95,6 +95,8 @@ async function onStart() {
     const response = await api.post('/orders')
     console.log('POST /api/orders Response:', response.data)
     cartStore.orderId = response.data.id ?? response.data.orderId ?? response.data
+    cartStore.clearCoupon()
+    cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
   } catch (error) {
     console.error('POST /api/orders Error:', error)
   }

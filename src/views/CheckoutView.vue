@@ -235,7 +235,6 @@ const vatRate = ref(19)
 const orderItems = ref([])
 const orderTotalPrice = ref(0)
 
-// collects fast keystrokes from the hardware barcode scanner
 const scanBuffer = ref('')
 let scanTimer = null
 
@@ -397,7 +396,6 @@ function dec(line) {
   cartStore.dec(line)
 }
 
-// catches keyboard input from barcode scanner, ignores it when camera barcode detection is active
 function handleKeydown(e) {
   const tag = (e.target?.tagName || '').toLowerCase()
 
@@ -438,7 +436,6 @@ async function fetchOrder() {
   }
 }
 
-// called when a barcode is detected, either from camera or keyboard scanner
 async function onBarcodeScanned(code) {
   status.value = 'scanning'
 
@@ -553,7 +550,6 @@ async function pay() {
   router.push(settingsStore.paybackEnabled ? '/payback' : '/payment')
 }
 
-// tries to open the camera and init BarcodeDetector if the browser supports it
 async function startCamera() {
   cameraLoading.value = true
   cameraError.value = ''

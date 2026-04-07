@@ -173,7 +173,6 @@ let scanTimer = null
 
 const showCancelConfirm = ref(false)
 
-// Coupon state
 const couponCode = ref('')
 const couponScanning = ref(false)
 const couponMessage = ref('')
@@ -190,7 +189,6 @@ function selectLanguage(code) {
 }
 
 
-// connects to usb thermal printer via WebUSB and prints a test receipt
 async function printReceipt(){
   const device = await navigator.usb.requestDevice({
           filters: [{ vendorId: 0x0483, productId: 0x5840 }]
@@ -264,7 +262,6 @@ function onBarcodeScanned(code) {
 
 function openCouponModal() {
   couponCode.value = cartStore.appliedCoupon?.code || ''
-  couponScanning.value = false
   couponMessage.value = cartStore.appliedCoupon
     ? `${cartStore.appliedCoupon.label} ist bereits aktiv.`
     : ''
@@ -285,7 +282,6 @@ function redeemCoupon() {
   couponCode.value = result.code || normalizeCouponCode(couponCode.value)
   couponMessage.value = result.message
   couponMessageType.value = result.ok ? 'success' : 'error'
-  couponScanning.value = false
 
   if (!result.ok) {
     cartStore.clearCoupon()
@@ -295,17 +291,8 @@ function redeemCoupon() {
 
   cartStore.applyCoupon(result.coupon)
   syncPaymentSummary()
-  return
-
-  /*
-
-  // Frontend-only placeholder — no backend call yet
   couponMessage.value = `Coupon „${code}" wird geprüft… (Backend noch nicht verbunden)`
-  couponMessageType.value = 'success'
   couponScanning.value = false
-}
-
-  */
 }
 
 function openHelp() {
@@ -354,7 +341,6 @@ function cancel() {
   router.push('/checkout')
 }
 
-// sends checkout request to backend, navigates to summary on success
 async function pay() {
   if (orderItems.value.length === 0) return
   if (status.value === 'paying') return
@@ -1584,3 +1570,4 @@ body {
   color: #f87171;
 }
 </style>
+

@@ -1,4 +1,3 @@
-// all backend calls go through this axios instance
 import axios from 'axios'
 
 const api = axios.create({

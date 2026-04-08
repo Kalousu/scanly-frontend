@@ -8,12 +8,20 @@ const router = useRouter()
 const cart = useCartStore()
 const { t, tFn } = useLanguage()
 
-// auto-redirect back to landing after countdown finishes
 const REDIRECT_SECONDS = 10
 const countdown = ref(REDIRECT_SECONDS)
 let countdownInterval = null
 
-const formattedTotal = computed(() => cart.total.toFixed(2))
+const subtotal = computed(() => Number(cart.paymentSummary?.subtotal || 0))
+const discount = computed(() => Number(cart.paymentSummary?.discount || 0))
+const finalTotal = computed(() => {
+  const summaryTotal = Number(cart.paymentSummary?.total || 0)
+  return summaryTotal > 0 ? summaryTotal : cart.total
+})
+
+const formattedSubtotal = computed(() => subtotal.value.toFixed(2))
+const formattedDiscount = computed(() => discount.value.toFixed(2))
+const formattedTotal = computed(() => finalTotal.value.toFixed(2))
 
 function startCountdown() {
   countdownInterval = setInterval(() => {
@@ -45,26 +53,33 @@ onBeforeUnmount(() => {
 
     <main class="summary-main">
       <div class="summary-card">
-
-        <!-- Heading -->
         <h1 class="summary-title">
           {{ t('thankYou') }}
           <span class="summary-accent">{{ t('thankYouAccent') }}</span>
         </h1>
         <p class="summary-subtitle">{{ t('subtitle') }}</p>
 
-        <!-- Total -->
         <div class="summary-total">
-          <span class="summary-total-label">{{ t('total') }}</span>
-          <span class="summary-total-value">{{ formattedTotal }} €</span>
+          <div class="summary-total-copy">
+            <span class="summary-total-label">{{ t('total') }}</span>
+            <span v-if="discount > 0" class="summary-total-subline">
+              Vor Rabatt: {{ formattedSubtotal }} EUR
+            </span>
+            <span
+              v-if="discount > 0"
+              class="summary-total-subline summary-total-subline--discount"
+            >
+              Coupon-Rabatt: -{{ formattedDiscount }} EUR
+            </span>
+          </div>
+          <span class="summary-total-value">{{ formattedTotal }} EUR</span>
         </div>
 
-        <!-- Countdown -->
         <div class="summary-countdown">
           <div class="summary-progress-bar">
             <div
               class="summary-progress-fill"
-              :style="{ width: (countdown / REDIRECT_SECONDS * 100) + '%' }"
+              :style="{ width: (countdown / REDIRECT_SECONDS) * 100 + '%' }"
             ></div>
           </div>
           <p class="summary-countdown-text">{{ tFn('countdownLabel', countdown) }}</p>
@@ -85,14 +100,14 @@ onBeforeUnmount(() => {
   justify-content: center;
   color: #fff;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
+  background: linear-gradient(160deg, #071a2a 0%, #0b2c44 60%, #092538 100%);
 }
 
 .bg-grid {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 36px 36px;
   z-index: 0;
 }
@@ -106,13 +121,12 @@ onBeforeUnmount(() => {
 }
 
 .summary-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   padding: 3rem 2.5rem;
   text-align: center;
 }
-
 
 .summary-title {
   font-size: 1.8rem;
@@ -122,7 +136,7 @@ onBeforeUnmount(() => {
 }
 
 .summary-accent {
-  background: linear-gradient(90deg, #00D4E8, #6EF0F9);
+  background: linear-gradient(90deg, #00d4e8, #6ef0f9);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -130,7 +144,7 @@ onBeforeUnmount(() => {
 
 .summary-subtitle {
   font-size: 0.9rem;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255, 255, 255, 0.45);
   margin: 0 0 2rem;
 }
 
@@ -139,24 +153,40 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   margin-bottom: 2rem;
+}
+
+.summary-total-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
 }
 
 .summary-total-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.summary-total-subline {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.summary-total-subline--discount {
+  color: #6ef0b4;
 }
 
 .summary-total-value {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #6EF0B4;
+  color: #6ef0b4;
 }
 
 .summary-countdown {
@@ -166,7 +196,7 @@ onBeforeUnmount(() => {
 .summary-progress-bar {
   width: 100%;
   height: 4px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 0.75rem;
@@ -174,20 +204,20 @@ onBeforeUnmount(() => {
 
 .summary-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #00D4E8, #6EF0F9);
+  background: linear-gradient(90deg, #00d4e8, #6ef0f9);
   border-radius: 999px;
   transition: width 1s linear;
 }
 
 .summary-countdown-text {
   font-size: 0.82rem;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   margin: 0;
 }
 
 .summary-hint {
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255, 255, 255, 0.25);
   margin: 0;
 }
 
@@ -195,9 +225,11 @@ onBeforeUnmount(() => {
   .summary-main {
     padding: 1.5rem;
   }
+
   .summary-card {
     padding: 2rem 1.5rem;
   }
+
   .summary-title {
     font-size: 1.4rem;
   }

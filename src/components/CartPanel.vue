@@ -56,6 +56,11 @@
       </div>
 
       <div class="totals">
+        <div v-if="appliedCoupon" class="totals-row totals-row--coupon">
+          <span>Coupon ({{ appliedCoupon.code }})</span>
+          <span class="totals-discount-value">-{{ formatPrice(couponDiscount) }}</span>
+        </div>
+
         <div class="totals-row totals-total">
           <span>{{ t('total') }}</span>
           <span class="totals-total-value">{{ formatPrice(totalPrice) }}</span>
@@ -72,6 +77,8 @@ import { useFormatters } from '../composables/useFormatters'
 defineProps({
   items: { type: Array, required: true },
   totalPrice: { type: Number, default: 0 },
+  couponDiscount: { type: Number, default: 0 },
+  appliedCoupon: { type: Object, default: null },
   editable: { type: Boolean, default: false },
   showScanBadge: { type: Boolean, default: false },
 })
@@ -367,6 +374,15 @@ function isFruitsVegetables(item) {
   color: rgba(255, 255, 255, 0.65);
   padding: 3px 0;
   line-height: 1.5;
+}
+
+.totals-row--coupon {
+  color: #6ef0b4;
+  font-weight: 700;
+}
+
+.totals-discount-value {
+  color: #6ef0b4;
 }
 
 .totals-total {

@@ -7,7 +7,6 @@ const settings = useSettingsStore()
 
 const showSaved = ref(false)
 
-// Toggle settings grouped by section
 const toggleSettings = computed(() => [
   {
     section: 'Payback',
@@ -25,13 +24,11 @@ const toggleSettings = computed(() => [
   },
 ])
 
-// Numeric settings with min/max/step
 const numericSettings = [
   { label: 'Kamera Cooldown (ms)', key: 'cameraCooldown', min: 100, max: 5000, step: 100 },
   { label: 'Scanner Buffer (ms)', key: 'scannerBuffer', min: 50, max: 2000, step: 50 },
 ]
 
-// Admin credential fields
 const credentialFields = [
   { label: 'Admin Benutzername', key: 'adminUsername', type: 'text', placeholder: 'Benutzername' },
   { label: 'Admin Passwort', key: 'adminPassword', type: 'password', placeholder: 'Passwort' },

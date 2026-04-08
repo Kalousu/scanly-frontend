@@ -89,12 +89,13 @@ const { currentLang, languages, t, setLanguage } = useLanguage()
 const isHelpOpen = ref(false)
 const isAdminAuthOpen = ref(false)
 
-// creates a new order on the backend and then navigates to checkout
 async function onStart() {
   try {
     const response = await api.post('/orders')
     console.log('POST /api/orders Response:', response.data)
     cartStore.orderId = response.data.id ?? response.data.orderId ?? response.data
+    cartStore.clearCoupon()
+    cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
   } catch (error) {
     console.error('POST /api/orders Error:', error)
   }

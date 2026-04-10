@@ -133,7 +133,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
-import api from '@/services/api'
+import api, { fetchReceiptForOrder } from '@/services/api'
 import { PrinterEncoder } from '@/PrinterEncoder'
 import CartPanel from '../components/CartPanel.vue'
 import LanguageModal from '../components/LanguageModal.vue'
@@ -185,6 +185,12 @@ function selectLanguage(code) {
 
 // connects to usb thermal printer via WebUSB and prints a test receipt
 async function printReceipt(){
+  const orderId = cartStore.orderId
+  if(!orderId) {
+    console.error('No OrderId found')
+    return
+  }
+  const receiptData = await fetchReceiptForOrder(orderId)
   const device = await navigator.usb.requestDevice({
           filters: [{ vendorId: 0x0483, productId: 0x5840 }]
         });
@@ -195,7 +201,7 @@ async function printReceipt(){
         const endpoint = device.configuration.interfaces[0].alternate.endpoints.find(e => e.direction === 'out');
         
         const printer = new PrinterEncoder();
-        const result = printer
+        printer
           .init()
           .setCodepage()
           .setGerman()
@@ -209,14 +215,31 @@ async function printReceipt(){
           .unsetBold()
           .println('Artikel A        3.50 EUR')
           .println('Artikel B        5.00 EUR')
-          .println('------------------------')
-          .setBold()
-          .println('Total            8.50 EUR')
-          .unsetBold()
-          .unsetItalic()
-          .feed(1)
-          .cut()
-          .encode();
+        // Print each receipt item from the API response
+        if (receiptData.receiptItemResponseList && receiptData.receiptItemResponseList.length > 0) {
+          printer.printEURLabel()
+          receiptData.receiptItemResponseList.forEach(item => {
+            printer.printPrice(
+              item.productName,
+              item.totalPriceGross,
+              item.unitPriceGross,
+              item.amount,
+              item.taxLabel
+            )
+          })
+          printer.lineSeparator()
+          printer.setBold()
+          printer.printSum(receiptData.totalAmount)
+          printer.unsetBold()
+          printer.feed(1)
+          printer.printTaxGroupTable(receiptData.receiptTaxGroupResponseList)
+        }
+
+        printer.unsetItalic()
+        printer.feed(1)
+        printer.cut()
+
+        const result = printer.encode();
  
         await device.transferOut(endpoint.endpointNumber, result);
         await device.close();

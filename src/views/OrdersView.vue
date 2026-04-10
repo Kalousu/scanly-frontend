@@ -147,7 +147,7 @@
                       <td>{{ item.productName }}</td>
                       <td>{{ item.amount }}</td>
                       <td>{{ formatCurrency(item.unitPriceNet) }}</td>
-                      <td>{{ Math.round((item.taxRate - 1) * 100) }}%</td>
+                      <td>{{ Math.round(item.taxRate * 100) }}%</td>
                       <td class="admin-td-amount">{{ formatCurrency(item.totalPriceGross) }}</td>
                     </tr>
                   </tbody>

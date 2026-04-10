@@ -87,7 +87,7 @@ const pricePlaceholder = computed(() =>
 )
 
 function getEmptyForm() {
-  return { name: '', priceNet: '', taxRate: '1.19', category: '', ean: '' }
+  return { name: '', priceNet: '', taxRate: '0.19', category: '', ean: '' }
 }
 
 function resetAll() {
@@ -109,10 +109,10 @@ function formatTaxRate(rate) {
 }
 
 function toTaxRateSelect(taxRate) {
-  if ([1.19, 19, 0.19].includes(taxRate)) return '1.19'
-  if ([1.07, 7, 0.07].includes(taxRate)) return '1.07'
-  if ([1.0, 0].includes(taxRate)) return '1.00'
-  return '1.19'
+  if ([1.19, 19, 0.19].includes(taxRate)) return '0.19'
+  if ([1.07, 7, 0.07].includes(taxRate)) return '0.07'
+  if ([1.0, 0, 0.0].includes(taxRate)) return '0.00'
+  return '0.19'
 }
 
 function getBarcode(product) {
@@ -367,9 +367,9 @@ function removeProduct() {
               <div class="admin-form-group">
                 <label class="admin-label">MwSt-Satz</label>
                 <select v-model="form.taxRate" class="admin-input">
-                  <option value="1.19">19%</option>
-                  <option value="1.07">7%</option>
-                  <option value="1.00">0%</option>
+                  <option value="0.19">19%</option>
+                  <option value="0.07">7%</option>
+                  <option value="0.00">0%</option>
                 </select>
               </div>
             </div>
@@ -460,9 +460,9 @@ function removeProduct() {
               <div class="admin-form-group">
                 <label class="admin-label">MwSt-Satz</label>
                 <select v-model="form.taxRate" class="admin-input" :disabled="!foundProduct">
-                  <option value="1.19">19%</option>
-                  <option value="1.07">7%</option>
-                  <option value="1.00">0%</option>
+                  <option value="0.19">19%</option>
+                  <option value="0.07">7%</option>
+                  <option value="0.00">0%</option>
                 </select>
               </div>
             </div>

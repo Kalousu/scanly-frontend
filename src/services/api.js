@@ -44,4 +44,9 @@ export const fetchFruitsAndVegetables = async () => {
   return response.data
 }
 
+export const fetchReceiptForOrder = async (orderId) => {
+  const response = await api.get(`/orders/${orderId}/receipt`)
+  return response.data
+}
+
 export default api

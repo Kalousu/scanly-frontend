@@ -1,11 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { fetchOrders } from '@/services/api'
-
-export const orderStatusFilters = [
-  { label: 'Alle', value: 'all' },
-  { label: 'Offen', value: 'OPEN' },
-  { label: 'Abgeschlossen', value: 'CLOSED' },
-]
+import { useLanguage } from '@/components/Uselanguage'
 
 export function normalizeOrdersResponse(data) {
   return Array.isArray(data) ? data : data.orders || data.content || []
@@ -36,6 +31,8 @@ function getOrderErrorMessage(error) {
 }
 
 export function useOrdersAdmin({ pageSize = 15 } = {}) {
+  const { t } = useLanguage()
+
   const allOrders = ref([])
   const loading = ref(true)
   const error = ref(null)
@@ -44,15 +41,21 @@ export function useOrdersAdmin({ pageSize = 15 } = {}) {
   const currentPage = ref(1)
   const expandedOrderId = ref(null)
 
+  const filters = computed(() => [
+    { label: t('adminAll'), value: 'all' },
+    { label: t('adminOpen'), value: 'OPEN' },
+    { label: t('adminClosed'), value: 'CLOSED' },
+  ])
+
   const openOrders = computed(() => allOrders.value.filter(isOpenOrder))
   const closedOrders = computed(() => getClosedOrders(allOrders.value))
   const closedRevenue = computed(() => sumOrderRevenue(closedOrders.value))
 
   const orderKpis = computed(() => [
-    { label: 'Gesamt', value: allOrders.value.length },
-    { label: 'Offen', value: openOrders.value.length },
-    { label: 'Abgeschlossen', value: closedOrders.value.length },
-    { label: 'Umsatz', value: closedRevenue.value },
+    { label: t('adminTotal'), value: allOrders.value.length },
+    { label: t('adminOpen'), value: openOrders.value.length },
+    { label: t('adminClosed'), value: closedOrders.value.length },
+    { label: t('adminRevenuKpi'), value: closedRevenue.value },
   ])
 
   const filteredOrders = computed(() => {
@@ -116,7 +119,7 @@ export function useOrdersAdmin({ pageSize = 15 } = {}) {
     activeFilter,
     currentPage,
     expandedOrderId,
-    filters: orderStatusFilters,
+    filters,
     openOrders,
     closedOrders,
     closedRevenue,

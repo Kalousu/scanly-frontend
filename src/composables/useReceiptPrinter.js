@@ -1,6 +1,19 @@
 import { fetchReceiptForOrder } from '@/services/api'
 import { PrinterEncoder } from '@/PrinterEncoder'
 
+function getReceiptPrinterErrorMessage(error) {
+  if (error?.name === 'NotFoundError') {
+    return 'Kein Drucker ausgewählt oder gefunden.'
+  }
+  if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
+    return 'Zugriff auf den Drucker wurde verweigert.'
+  }
+  if (error?.name === 'NetworkError') {
+    return 'USB-Übertragung zum Drucker fehlgeschlagen.'
+  }
+  return error?.message || 'Bon konnte nicht gedruckt werden.'
+}
+
 export function useReceiptPrinter(showError) {
   async function printReceipt(orderId) {
     if (!orderId) {
@@ -10,6 +23,11 @@ export function useReceiptPrinter(showError) {
 
     let device = null
     try {
+      if (!navigator.usb) {
+        showError('Bon-Druck wird in diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.')
+        return false
+      }
+
       const receiptData = await fetchReceiptForOrder(orderId)
       device = await navigator.usb.requestDevice({
         filters: [{ vendorId: 0x0483, productId: 0x5840 }],
@@ -65,8 +83,7 @@ export function useReceiptPrinter(showError) {
       await device.transferOut(endpoint.endpointNumber, printer.encode())
       return true
     } catch (error) {
-      const errorMsg = error?.message || 'Bon konnte nicht gedruckt werden.'
-      showError(`Bon-Druck fehlgeschlagen: ${errorMsg}`)
+      showError(`Bon-Druck fehlgeschlagen: ${getReceiptPrinterErrorMessage(error)}`)
       return false
     } finally {
       if (device?.opened) {

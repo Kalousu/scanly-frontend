@@ -1,38 +1,40 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { useLanguage } from '@/components/Uselanguage'
 import AdminLayout from '@/components/AdminLayout.vue'
 
 const settings = useSettingsStore()
+const { t } = useLanguage()
 
 const showSaved = ref(false)
 
 const toggleSettings = computed(() => [
   {
-    section: 'Payback',
+    section: t('adminPayback'),
     items: [
-      { label: 'Payback aktiviert', key: 'paybackEnabled' },
-      { label: 'Payback QR-Code', key: 'paybackQrEnabled' },
-      { label: 'Payback manuelle Eingabe', key: 'paybackManualEnabled' },
+      { label: t('adminPaybackEnabled'), key: 'paybackEnabled' },
+      { label: t('adminPaybackQr'), key: 'paybackQrEnabled' },
+      { label: t('adminPaybackManual'), key: 'paybackManualEnabled' },
     ],
   },
   {
-    section: 'Kamera',
+    section: t('adminCamera'),
     items: [
-      { label: 'Kamera-Autostart', key: 'cameraAutoStart' },
+      { label: t('adminCameraAutoStart'), key: 'cameraAutoStart' },
     ],
   },
 ])
 
-const numericSettings = [
-  { label: 'Kamera Cooldown (ms)', key: 'cameraCooldown', min: 100, max: 5000, step: 100 },
-  { label: 'Scanner Buffer (ms)', key: 'scannerBuffer', min: 50, max: 2000, step: 50 },
-]
+const numericSettings = computed(() => [
+  { label: t('adminCameraCooldown'), key: 'cameraCooldown', min: 100, max: 5000, step: 100 },
+  { label: t('adminScannerBuffer'), key: 'scannerBuffer', min: 50, max: 2000, step: 50 },
+])
 
-const credentialFields = [
-  { label: 'Admin Benutzername', key: 'adminUsername', type: 'text', placeholder: 'Benutzername' },
-  { label: 'Admin Passwort', key: 'adminPassword', type: 'password', placeholder: 'Passwort' },
-]
+const credentialFields = computed(() => [
+  { label: t('adminUsername'), key: 'adminUsername', type: 'text', placeholder: t('adminUsernamePlaceholder') },
+  { label: t('adminPassword'), key: 'adminPassword', type: 'password', placeholder: t('adminPasswordPlaceholder') },
+])
 
 function saveSettings() {
   settings.saveAll()
@@ -43,10 +45,10 @@ function saveSettings() {
 </script>
 
 <template>
-  <AdminLayout breadcrumb="Einstellungen" :max-width="700">
+  <AdminLayout :breadcrumb="t('adminSettings')" :max-width="700">
       <div class="admin-page-header">
-        <h1 class="admin-page-title">Einstellungen</h1>
-        <p class="admin-page-subtitle">Systemkonfiguration und Präferenzen</p>
+        <h1 class="admin-page-title">{{ t('adminSettings') }}</h1>
+        <p class="admin-page-subtitle">{{ t('adminSettingsDesc') }}</p>
       </div>
 
       <div class="admin-card">
@@ -64,7 +66,7 @@ function saveSettings() {
 
         <!-- Numeric settings -->
         <div class="settings-section">
-          <h2 class="admin-section-title">Scanner</h2>
+          <h2 class="admin-section-title">{{ t('adminScanner') }}</h2>
           <div v-for="item in numericSettings" :key="item.key" class="admin-settings-row">
             <span class="admin-settings-label">{{ item.label }}</span>
             <input
@@ -80,7 +82,7 @@ function saveSettings() {
 
         <!-- Admin credentials -->
         <div class="settings-section">
-          <h2 class="admin-section-title">Admin-Zugangsdaten</h2>
+          <h2 class="admin-section-title">{{ t('adminCredentials') }}</h2>
           <div v-for="field in credentialFields" :key="field.key" class="admin-settings-row admin-settings-row--vertical">
             <span class="admin-settings-label">{{ field.label }}</span>
             <input
@@ -95,9 +97,9 @@ function saveSettings() {
         <!-- Save button -->
         <div class="settings-footer">
             <span v-if="showSaved" class="admin-saved-msg">
-              Gespeichert!
+              {{ t('adminSaved') }}
             </span>
-          <button class="admin-btn admin-btn--primary" @click="saveSettings">Speichern</button>
+          <button type="button" class="admin-btn admin-btn--primary" @click="saveSettings">{{ t('adminSave') }}</button>
         </div>
       </div>
   </AdminLayout>

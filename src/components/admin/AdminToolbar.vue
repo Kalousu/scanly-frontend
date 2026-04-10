@@ -14,6 +14,7 @@
       <button
         v-for="filter in filters"
         :key="filter.value"
+        type="button"
         class="admin-filter-btn"
         :class="{ 'admin-filter-btn--active': activeFilter === filter.value }"
         @click="$emit('update:activeFilter', filter.value)"

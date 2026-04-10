@@ -1,18 +1,18 @@
 <template>
   <div>
     <div class="admin-form-group">
-      <label class="admin-label">Produktname</label>
+      <label class="admin-label">{{ t('adminProductName') }}</label>
       <input
         :value="form.name"
         type="text"
         class="admin-input"
-        :placeholder="namePlaceholder"
+        :placeholder="namePlaceholder || t('adminProductNamePlaceholder')"
         :disabled="disabled"
         @input="updateField('name', $event.target.value)"
       />
     </div>
     <div class="admin-form-group">
-      <label class="admin-label">Kategorie</label>
+      <label class="admin-label">{{ t('adminCategory') }}</label>
       <select
         :value="form.category"
         class="admin-input"
@@ -36,7 +36,7 @@
         />
       </div>
       <div class="admin-form-group">
-        <label class="admin-label">MwSt-Satz</label>
+        <label class="admin-label">{{ t('adminTaxRate') }}</label>
         <select
           :value="form.taxRate"
           class="admin-input"
@@ -50,12 +50,12 @@
       </div>
     </div>
     <div class="admin-form-group">
-      <label class="admin-label">EAN / Barcode</label>
+      <label class="admin-label">{{ t('adminEanBarcode') }}</label>
       <input
         :value="form.ean"
         type="text"
         class="admin-input"
-        placeholder="z.B. 4006381333634"
+        :placeholder="t('adminEanPlaceholder')"
         :disabled="disabled"
         @input="updateField('ean', $event.target.value)"
       />
@@ -64,13 +64,17 @@
 </template>
 
 <script setup>
+import { useLanguage } from '@/components/Uselanguage'
+
+const { t } = useLanguage()
+
 defineProps({
   form: { type: Object, required: true },
   categories: { type: Array, default: () => [] },
   priceLabel: { type: String, required: true },
   pricePlaceholder: { type: String, required: true },
   disabled: { type: Boolean, default: false },
-  namePlaceholder: { type: String, default: 'z.B. Monster White' },
+  namePlaceholder: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update-field'])

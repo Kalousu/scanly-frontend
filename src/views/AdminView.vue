@@ -1,41 +1,44 @@
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useLanguage } from '@/components/Uselanguage'
 import AdminLayout from '@/components/AdminLayout.vue'
 
 const router = useRouter()
+const { t } = useLanguage()
 
-const DASHBOARD_ITEMS = [
+const DASHBOARD_ITEMS = computed(() => [
   {
     id: 'orders',
     route: '/admin/orders',
-    title: 'Bestellungen',
-    description: 'Aktuelle Bestellungen einsehen und verwalten',
+    title: t('adminOrders'),
+    description: t('adminOrdersDesc'),
   },
   {
     id: 'products',
     route: '/admin/products',
-    title: 'Produkte',
-    description: 'Produktkatalog und Preise verwalten',
+    title: t('adminProducts'),
+    description: t('adminProductsDesc'),
   },
   {
     id: 'revenue',
     route: '/admin/revenue',
-    title: 'Umsatz',
-    description: 'Umsatzstatistiken und Berichte',
+    title: t('adminRevenue'),
+    description: t('adminRevenueDesc'),
   },
   {
     id: 'coupons',
     route: '/admin/coupons',
-    title: 'Gutscheine',
-    description: 'Gutscheincodes und Rabatt-Coupons verwalten',
+    title: t('adminCoupons'),
+    description: t('adminCouponsDesc'),
   },
   {
     id: 'settings',
     route: '/admin/settings',
-    title: 'Einstellungen',
-    description: 'Systemkonfiguration und Präferenzen',
+    title: t('adminSettings'),
+    description: t('adminSettingsDesc'),
   },
-]
+])
 
 function navigateTo(route) {
   router.push(route)
@@ -43,10 +46,10 @@ function navigateTo(route) {
 </script>
 
 <template>
-  <AdminLayout breadcrumb="Dashboard" back-to="/" back-label="Zurück zum Start">
+  <AdminLayout :breadcrumb="t('adminDashboard')" back-to="/" :back-label="t('adminBackToStart')">
     <header class="admin-page-header admin-page-header--center">
-      <h1 class="admin-page-title">Dashboard</h1>
-      <p class="admin-page-subtitle">Verwaltung & Übersicht</p>
+      <h1 class="admin-page-title">{{ t('adminDashboard') }}</h1>
+      <p class="admin-page-subtitle">{{ t('adminDashboardSubtitle') }}</p>
     </header>
 
     <div class="grid">

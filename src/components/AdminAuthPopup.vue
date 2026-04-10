@@ -65,9 +65,10 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, toRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
+import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
 
 const props = defineProps({
   visible: {
@@ -84,6 +85,8 @@ const closeBtnEl = ref(null)
 const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
+
+useBodyScrollLock(toRef(props, 'visible'))
 
 function close() {
   username.value = ''
@@ -108,9 +111,6 @@ watch(
     if (opened) {
       await nextTick()
       closeBtnEl.value?.focus()
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
     }
   }
 )

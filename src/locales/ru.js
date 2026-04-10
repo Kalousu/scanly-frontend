@@ -67,6 +67,10 @@ export default {
   cameraNotAvailable: 'Камера не обнаружена',
   barcodeNotSupported:
     'Сканирование штрих-кодов в браузере не поддерживается – используйте аппаратный сканер.',
+  cameraSecureContextRequired: 'Камера доступна только через HTTPS или localhost.',
+  cameraBrowserUnsupported: 'Этот браузер не поддерживает доступ к камере.',
+  cameraBusy: 'Не удалось запустить камеру. Возможно, она уже используется.',
+  cameraConstraintsUnsupported: 'Камера не поддерживает выбранную настройку.',
   noCamera: 'Нет камеры',
   produceCategory: 'Овощи/фрукты',
 
@@ -78,6 +82,7 @@ export default {
   paybackHint: 'Совет: Также можно ввести номер карты вручную.',
   paybackScanTitle: 'Сканировать карту Payback',
   paybackScanSubtitle: 'Поднесите QR-код к камере',
+  paybackDemoHint: 'Демо-режим: скан подтверждается автоматически через несколько секунд.',
   paybackCameraActivating: 'Активация камеры…',
   paybackManualSwitch: 'Ввести номер карты вручную',
   paybackManualTitle: 'Введите номер карты',
@@ -101,4 +106,16 @@ export default {
   deleteProductTitle: 'Удалить товар',
   deleteProductMessage: (name) => `Вы действительно хотите удалить <strong>${name}</strong>?`,
   deleteProductConfirm: 'Удалить',
+
+  // Customer-facing: Coupon modal & payment
+  couponRedeem: 'Применить купон',
+  couponRedeemSubtitle: 'Введите код или отсканируйте купон',
+  couponInputPlaceholder: 'Введите код купона…',
+  couponScanHint: 'Сканер активен — отсканируйте купон…',
+  couponScanTitle: 'Сканировать купон',
+  couponScanActiveTitle: 'Сканирование активно…',
+  couponScanBtn: 'Скан',
+  couponRedeemBtn: 'Применить',
+  summaryPreDiscount: 'До скидки',
+  summaryCouponDiscount: 'Скидка по купону',
 }

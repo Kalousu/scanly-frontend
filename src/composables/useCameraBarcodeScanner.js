@@ -16,6 +16,7 @@ export function useCameraBarcodeScanner({ t, onScan, cooldown = 1500 }) {
   const { barcodeSupported, initBarcodeDetector, startDetection, stopDetection } = useBarcodeDetector({
     cooldown,
     onDetect: onScan,
+    unsupportedMessage: t('barcodeNotSupported'),
   })
 
   async function startCamera() {

@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { fetchOrders } from '@/services/api'
+import { useLanguage } from '@/components/Uselanguage'
 import { getClosedOrders, normalizeOrdersResponse, sortOrdersNewestFirst, sumOrderRevenue } from '@/composables/useOrdersAdmin'
 
 const chartColors = ['#00D4E8', '#6EF0B4', '#FFC83C', '#B4A0FF', '#FF6B8A', '#FF9F43']
@@ -29,6 +30,8 @@ function getRevenueErrorMessage(error) {
 }
 
 export function useRevenueAnalytics() {
+  const { t } = useLanguage()
+
   const allOrders = ref([])
   const loading = ref(true)
   const error = ref(null)
@@ -47,10 +50,10 @@ export function useRevenueAnalytics() {
   const recentOrders = computed(() => sortOrdersNewestFirst(closedOrders.value).slice(0, 10))
 
   const revenueKpis = computed(() => [
-    { label: 'Gesamtumsatz', value: totalRevenue.value, type: 'currency' },
-    { label: 'Abgeschl. Bestellungen', value: closedOrders.value.length },
-    { label: 'Ø Bestellwert', value: avgOrderValue.value, type: 'currency' },
-    { label: 'Umsatz heute', value: todayRevenue.value, type: 'currency' },
+    { label: t('adminTotalRevenue'), value: totalRevenue.value, type: 'currency' },
+    { label: t('adminClosedOrders'), value: closedOrders.value.length },
+    { label: t('adminAvgOrderValue'), value: avgOrderValue.value, type: 'currency' },
+    { label: t('adminRevenueToday'), value: todayRevenue.value, type: 'currency' },
   ])
 
   const dailyChartData = computed(() => {
@@ -68,7 +71,7 @@ export function useRevenueAnalytics() {
       labels: days.map(shortDateLabel),
       datasets: [
         {
-          label: 'Umsatz (EUR)',
+          label: t('adminRevenueEur'),
           data: days.map((day) => roundCurrency(revenueByDay[day])),
           backgroundColor: 'rgba(0, 212, 232, 0.35)',
           borderColor: '#00D4E8',
@@ -121,7 +124,7 @@ export function useRevenueAnalytics() {
       labels: days.map(shortDateLabel),
       datasets: [
         {
-          label: 'Bestellungen',
+          label: t('adminChartOrders'),
           data: days.map((day) => ordersByDay[day]),
           borderColor: '#6EF0B4',
           backgroundColor: 'rgba(110, 240, 180, 0.08)',

@@ -1,4 +1,5 @@
-﻿<script setup>
+<script setup>
+import { useLanguage } from '@/components/Uselanguage'
 import AdminLayout from '@/components/AdminLayout.vue'
 import ProductActionGrid from '@/components/products/ProductActionGrid.vue'
 import ProductDatabaseTable from '@/components/products/ProductDatabaseTable.vue'
@@ -9,6 +10,8 @@ import {
   getProductBarcode,
 } from '@/composables/useProductFormatters'
 import { useProductsAdmin } from '@/composables/useProductsAdmin'
+
+const { t } = useLanguage()
 
 const {
   activeModal,
@@ -41,10 +44,10 @@ const {
 </script>
 
 <template>
-  <AdminLayout breadcrumb="Produkte" :max-width="1000">
+  <AdminLayout :breadcrumb="t('adminProducts')" :max-width="1000">
     <div class="admin-page-header">
-      <h1 class="admin-page-title">Produkte verwalten</h1>
-      <p class="admin-page-subtitle">Produkte hinzufügen, bearbeiten oder entfernen</p>
+      <h1 class="admin-page-title">{{ t('adminProductsManage') }}</h1>
+      <p class="admin-page-subtitle">{{ t('adminProductsManageSub') }}</p>
     </div>
 
     <ProductActionGrid :cards="actionCards" @select="handleCardClick" />
@@ -90,208 +93,3 @@ const {
     />
   </AdminLayout>
 </template>
-<style>
-/* Products-specific styles only */
-
-.prod-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.prod-action-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 2.5rem 1.5rem;
-}
-
-.prod-action-title {
-  margin: 0 0 0.4rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.9);
-}
-
-.prod-action-desc {
-  margin: 0;
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.38);
-  line-height: 1.4;
-  max-width: 20ch;
-}
-
-/* Database section */
-.prod-db-section {
-  margin-top: 1rem;
-}
-
-.prod-db-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-}
-
-.prod-db-title {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.9);
-}
-
-.prod-db-count {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.06);
-  padding: 0.2rem 0.65rem;
-  border-radius: 999px;
-  margin-left: 0.25rem;
-}
-
-.prod-db-filters {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-
-/* Table cell tweaks */
-.td-num { color: rgba(255,255,255,0.25); font-size: 0.78rem; width: 40px; }
-.td-name { font-weight: 600; color: rgba(255,255,255,0.9); }
-.td-ean { font-family: 'SF Mono', 'Consolas', 'Monaco', monospace; font-size: 0.8rem; color: rgba(255,255,255,0.5); letter-spacing: 0.03em; }
-.td-price { font-weight: 600; color: #6EF0B4; white-space: nowrap; }
-.td-tax { color: rgba(255,255,255,0.45); font-size: 0.8rem; }
-
-/* Search row in modals */
-.prod-search-row {
-  display: flex;
-  gap: 0.6rem;
-  align-items: stretch;
-}
-
-.prod-search-row .admin-input { flex: 1; }
-
-.prod-btn-search {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.65rem 1.1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #fff;
-  background: rgba(0, 212, 232, 0.15);
-  border: 1px solid rgba(0, 212, 232, 0.3);
-  border-radius: 10px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.prod-btn-search:hover:not(:disabled) { background: rgba(0, 212, 232, 0.25); border-color: rgba(0, 212, 232, 0.5); }
-.prod-btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* Found product card */
-.prod-found-card {
-  margin-top: 0.75rem;
-  background: rgba(0, 212, 232, 0.06);
-  border: 1px solid rgba(0, 212, 232, 0.2);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.prod-found-card--remove {
-  background: rgba(255, 107, 138, 0.06);
-  border-color: rgba(255, 107, 138, 0.2);
-}
-
-.prod-found-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1rem;
-  background: rgba(0, 212, 232, 0.08);
-  border-bottom: 1px solid rgba(0, 212, 232, 0.12);
-}
-
-.prod-found-card--remove .prod-found-header {
-  background: rgba(255, 107, 138, 0.08);
-  border-bottom-color: rgba(255, 107, 138, 0.12);
-}
-
-.prod-found-header span {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.85);
-}
-
-.prod-found-details { padding: 0.75rem 1rem; }
-
-.prod-found-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.35rem 0;
-}
-
-.prod-found-row + .prod-found-row { border-top: 1px solid rgba(255,255,255,0.05); }
-
-.prod-found-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.4);
-}
-
-.prod-found-value {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.85);
-}
-
-.prod-found-ean {
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-  font-size: 0.82rem;
-  color: #00D4E8;
-  letter-spacing: 0.04em;
-}
-
-.prod-found-card--remove .prod-found-ean { color: #FF6B8A; }
-
-/* Hint text */
-.prod-hint {
-  font-size: 0.82rem;
-  color: rgba(255,255,255,0.35);
-  margin: 0 0 1rem;
-  line-height: 1.5;
-}
-
-/* Warning */
-.prod-warning-title { margin: 0 0 0.25rem; font-size: 0.85rem; font-weight: 700; color: #FF6B8A; }
-.prod-warning-text { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.45); line-height: 1.45; }
-
-/* Success message */
-.prod-success-msg {
-  margin-top: 0.75rem;
-  padding: 0.7rem 1rem;
-  background: rgba(0, 212, 232, 0.06);
-  border: 1px solid rgba(0, 212, 232, 0.2);
-  border-radius: 12px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.85);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .prod-actions { grid-template-columns: 1fr; }
-}
-</style>
-

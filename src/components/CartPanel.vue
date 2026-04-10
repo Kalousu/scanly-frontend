@@ -29,7 +29,7 @@
 
             <div class="ci-qty" :aria-label="editable ? undefined : 'Menge'">
               <template v-if="editable && !isFruitsVegetables(item)">
-                <button class="qty-btn" @click="$emit('update-quantity', item, -1)">−</button>
+                <button type="button" class="qty-btn" @click="$emit('update-quantity', item, -1)">−</button>
               </template>
               <span class="qty-val">
                 <template v-if="editable">
@@ -40,12 +40,13 @@
                 </template>
               </span>
               <template v-if="editable && !isFruitsVegetables(item)">
-                <button class="qty-btn" @click="$emit('update-quantity', item, 1)">+</button>
+                <button type="button" class="qty-btn" @click="$emit('update-quantity', item, 1)">+</button>
               </template>
             </div>
 
             <button
               v-if="editable"
+              type="button"
               class="delete-btn"
               title="Artikel entfernen"
               @click="$emit('delete-item', item)"

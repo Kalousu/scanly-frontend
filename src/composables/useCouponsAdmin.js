@@ -1,11 +1,6 @@
 import { computed, ref } from 'vue'
 import { activateCoupon, createCoupon, deactivateCoupon, fetchAllCoupons } from '@/services/api'
-
-export const couponStatusOptions = [
-  { value: 'ALL', label: 'Alle' },
-  { value: 'ACTIVE', label: 'Aktiv' },
-  { value: 'INACTIVE', label: 'Inaktiv' },
-]
+import { useLanguage } from '@/components/Uselanguage'
 
 function getEmptyForm() {
   return {
@@ -22,6 +17,8 @@ function getApiErrorMessage(error, fallback) {
 }
 
 export function useCouponsAdmin() {
+  const { t, tFn } = useLanguage()
+
   const coupons = ref([])
   const loading = ref(false)
   const activeModal = ref(false)
@@ -30,6 +27,12 @@ export function useCouponsAdmin() {
   const saveMessage = ref('')
   const formError = ref('')
   const form = ref(getEmptyForm())
+
+  const statusOptions = computed(() => [
+    { value: 'ALL', label: t('adminAll') },
+    { value: 'ACTIVE', label: t('adminActive') },
+    { value: 'INACTIVE', label: t('adminInactive') },
+  ])
 
   const filteredCoupons = computed(() => {
     const query = searchQuery.value.trim().toLowerCase()
@@ -56,9 +59,9 @@ export function useCouponsAdmin() {
     ).length
 
     return [
-      { label: 'Coupons gesamt', value: coupons.value.length },
-      { label: 'Aktiv', value: activeCount },
-      { label: 'Prozentual', value: percentageCount },
+      { label: t('adminKpiCouponsTotal'), value: coupons.value.length },
+      { label: t('adminActive'), value: activeCount },
+      { label: t('adminKpiPercentage'), value: percentageCount },
     ]
   })
 
@@ -90,12 +93,12 @@ export function useCouponsAdmin() {
     const code = (form.value.code || '').trim().toUpperCase()
 
     if (!code || !form.value.label.trim()) {
-      formError.value = 'Bitte Code und Bezeichnung ausfüllen.'
+      formError.value = t('adminCouponCodeRequired')
       return false
     }
 
     if (!Number.isFinite(Number(form.value.value)) || Number(form.value.value) <= 0) {
-      formError.value = 'Der Rabattwert muss größer als 0 sein.'
+      formError.value = t('adminCouponValueRequired')
       return false
     }
 
@@ -110,7 +113,7 @@ export function useCouponsAdmin() {
       coupons.value = Array.isArray(data) ? data : []
     } catch {
       coupons.value = []
-      showSavedMessage('Coupons konnten nicht geladen werden.')
+      showSavedMessage(t('adminCouponLoadError'))
     } finally {
       loading.value = false
     }
@@ -129,11 +132,11 @@ export function useCouponsAdmin() {
 
     try {
       await createCoupon(payload)
-      showSavedMessage(`Coupon ${payload.code} angelegt.`)
+      showSavedMessage(tFn('adminCouponCreatedMsg', payload.code))
       closeModal()
       await loadCoupons()
     } catch (error) {
-      formError.value = getApiErrorMessage(error, 'Fehler beim Anlegen des Coupons.')
+      formError.value = getApiErrorMessage(error, t('adminCouponCreateError'))
     }
   }
 
@@ -141,14 +144,14 @@ export function useCouponsAdmin() {
     try {
       if (coupon.active) {
         await deactivateCoupon(coupon.id)
-        showSavedMessage(`Coupon ${coupon.code} deaktiviert.`)
+        showSavedMessage(tFn('adminCouponDeactivated', coupon.code))
       } else {
         await activateCoupon(coupon.id)
-        showSavedMessage(`Coupon ${coupon.code} aktiviert.`)
+        showSavedMessage(tFn('adminCouponActivated', coupon.code))
       }
       await loadCoupons()
     } catch (error) {
-      showSavedMessage(getApiErrorMessage(error, 'Fehler beim Ändern des Coupon-Status.'))
+      showSavedMessage(getApiErrorMessage(error, t('adminCouponStatusError')))
     }
   }
 
@@ -161,7 +164,7 @@ export function useCouponsAdmin() {
     saveMessage,
     formError,
     form,
-    statusOptions: couponStatusOptions,
+    statusOptions,
     filteredCoupons,
     couponKpis,
     openCreateModal,

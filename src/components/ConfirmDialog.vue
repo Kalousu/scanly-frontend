@@ -5,10 +5,10 @@
         <h3 class="confirm-title">{{ title }}</h3>
         <p class="confirm-text" v-html="message"></p>
         <div class="confirm-actions">
-          <button class="confirm-btn confirm-btn--cancel" @click="$emit('cancel')">
+          <button type="button" class="confirm-btn confirm-btn--cancel" @click="$emit('cancel')">
             {{ cancelLabel }}
           </button>
-          <button class="confirm-btn confirm-btn--confirm" @click="$emit('confirm')">
+          <button type="button" class="confirm-btn confirm-btn--confirm" @click="$emit('confirm')">
             {{ confirmLabel }}
           </button>
         </div>

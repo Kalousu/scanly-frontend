@@ -1,5 +1,12 @@
 @import './base.css';
 @import './admin-shared.css';
+@import './kiosk-modal.css';
+@import './checkout-flow.css';
+@import './payment-flow.css';
+@import './products-admin.css';
+@import './coupons-admin.css';
+@import './orders-admin.css';
+@import './revenue-admin.css';
 
 #app {
   width: 100%;

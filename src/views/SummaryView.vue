@@ -3,10 +3,12 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useLanguage } from '@/components/Uselanguage'
+import { useFormatters } from '@/composables/useFormatters'
 
 const router = useRouter()
 const cart = useCartStore()
 const { t, tFn } = useLanguage()
+const { formatCurrency } = useFormatters()
 
 const REDIRECT_SECONDS = 10
 const countdown = ref(REDIRECT_SECONDS)
@@ -18,10 +20,6 @@ const finalTotal = computed(() => {
   const summaryTotal = Number(cart.paymentSummary?.total || 0)
   return summaryTotal > 0 ? summaryTotal : cart.total
 })
-
-const formattedSubtotal = computed(() => subtotal.value.toFixed(2))
-const formattedDiscount = computed(() => discount.value.toFixed(2))
-const formattedTotal = computed(() => finalTotal.value.toFixed(2))
 
 function startCountdown() {
   countdownInterval = setInterval(() => {
@@ -63,16 +61,16 @@ onBeforeUnmount(() => {
           <div class="summary-total-copy">
             <span class="summary-total-label">{{ t('total') }}</span>
             <span v-if="discount > 0" class="summary-total-subline">
-              Vor Rabatt: {{ formattedSubtotal }} EUR
+              {{ t('summaryPreDiscount') }}: {{ formatCurrency(subtotal) }}
             </span>
             <span
               v-if="discount > 0"
               class="summary-total-subline summary-total-subline--discount"
             >
-              Coupon-Rabatt: -{{ formattedDiscount }} EUR
+              {{ t('summaryCouponDiscount') }}: -{{ formatCurrency(discount) }}
             </span>
           </div>
-          <span class="summary-total-value">{{ formattedTotal }} EUR</span>
+          <span class="summary-total-value">{{ formatCurrency(finalTotal) }}</span>
         </div>
 
         <div class="summary-countdown">

@@ -2,8 +2,15 @@ import { ref } from 'vue'
 
 const defaultFormats = ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e']
 
-export function useBarcodeDetector({ formats = defaultFormats, intervalMs = 250, cooldown = 1500, onDetect }) {
+export function useBarcodeDetector({
+  formats = defaultFormats,
+  intervalMs = 250,
+  cooldown = 1500,
+  onDetect,
+  unsupportedMessage = 'Barcode-Scanning wird in diesem Browser nicht unterstützt.',
+} = {}) {
   const barcodeSupported = ref(null)
+  const barcodeError = ref('')
 
   let barcodeDetector = null
   let scanInterval = null
@@ -12,6 +19,7 @@ export function useBarcodeDetector({ formats = defaultFormats, intervalMs = 250,
   function initBarcodeDetector() {
     if (!('BarcodeDetector' in window)) {
       barcodeSupported.value = false
+      barcodeError.value = unsupportedMessage
       barcodeDetector = null
       return false
     }
@@ -19,9 +27,11 @@ export function useBarcodeDetector({ formats = defaultFormats, intervalMs = 250,
     try {
       barcodeDetector = new BarcodeDetector({ formats })
       barcodeSupported.value = true
+      barcodeError.value = ''
       return true
-    } catch {
+    } catch (error) {
       barcodeSupported.value = false
+      barcodeError.value = error?.message || unsupportedMessage
       barcodeDetector = null
       return false
     }
@@ -62,6 +72,7 @@ export function useBarcodeDetector({ formats = defaultFormats, intervalMs = 250,
 
   return {
     barcodeSupported,
+    barcodeError,
     initBarcodeDetector,
     startDetection,
     stopDetection,

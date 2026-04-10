@@ -67,6 +67,10 @@ export default {
   cameraNotAvailable: 'Nessuna fotocamera rilevata',
   barcodeNotSupported:
     'Scansione codice a barre non supportata nel browser – utilizzare lo scanner hardware.',
+  cameraSecureContextRequired: 'La fotocamera è disponibile solo tramite HTTPS o localhost.',
+  cameraBrowserUnsupported: 'Questo browser non supporta l accesso alla fotocamera.',
+  cameraBusy: 'La fotocamera non può essere avviata. Potrebbe essere già in uso.',
+  cameraConstraintsUnsupported: 'La fotocamera non supporta l impostazione richiesta.',
   noCamera: 'Nessuna fotocamera',
   produceCategory: 'Frutta/Verdura',
 
@@ -78,6 +82,7 @@ export default {
   paybackHint: 'Suggerimento: In alternativa inserire il numero di carta manualmente.',
   paybackScanTitle: 'Scansiona la carta Payback',
   paybackScanSubtitle: 'Avvicini il codice QR alla fotocamera',
+  paybackDemoHint: 'Modalità demo: la scansione viene confermata automaticamente dopo pochi secondi.',
   paybackCameraActivating: 'Attivazione fotocamera…',
   paybackManualSwitch: 'Inserire il numero di carta manualmente',
   paybackManualTitle: 'Inserire il numero di carta',
@@ -101,4 +106,16 @@ export default {
   deleteProductTitle: 'Elimina prodotto',
   deleteProductMessage: (name) => `Vuole davvero eliminare <strong>${name}</strong>?`,
   deleteProductConfirm: 'Elimina',
+
+  // Customer-facing: Coupon modal & payment
+  couponRedeem: 'Riscuoti coupon',
+  couponRedeemSubtitle: 'Inserisci il codice o scansiona il coupon',
+  couponInputPlaceholder: 'Inserisci codice coupon…',
+  couponScanHint: 'Scanner attivo — scansiona il coupon ora…',
+  couponScanTitle: 'Scansiona coupon',
+  couponScanActiveTitle: 'Scansione attiva…',
+  couponScanBtn: 'Scan',
+  couponRedeemBtn: 'Riscuoti',
+  summaryPreDiscount: 'Prima dello sconto',
+  summaryCouponDiscount: 'Sconto coupon',
 }

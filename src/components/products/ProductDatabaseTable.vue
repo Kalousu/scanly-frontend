@@ -3,16 +3,16 @@
     <div v-if="visible" class="prod-db-section admin-card">
       <div class="prod-db-header">
         <h2 class="prod-db-title">
-          Produktdatenbank
-          <span class="prod-db-count">{{ products.length }} Produkte</span>
+          {{ t('adminProductDatabase') }}
+          <span class="prod-db-count">{{ tFn('adminProductCount', products.length) }}</span>
         </h2>
-        <button class="admin-btn admin-btn--secondary" @click="$emit('close')">Schließen</button>
+        <button type="button" class="admin-btn admin-btn--secondary" @click="$emit('close')">{{ t('adminClose') }}</button>
       </div>
 
       <AdminToolbar
         class="prod-db-filters"
         :search-query="searchQuery"
-        search-placeholder="Nach Produktname oder EAN suchen..."
+        :search-placeholder="t('adminProductSearchPlaceholder')"
         :filters="categories"
         :active-filter="categoryFilter"
         @update:search-query="$emit('update:searchQuery', $event)"
@@ -21,14 +21,14 @@
 
       <div v-if="loading" class="admin-loading">
         <div class="admin-spinner"></div>
-        <p>Produkte werden geladen...</p>
+        <p>{{ t('adminProductsLoading') }}</p>
       </div>
 
       <div v-else-if="error" class="admin-alert admin-alert--error">
         <p>{{ error }}</p>
       </div>
 
-      <AdminDataTable v-else :columns="columns" :rows="products" empty-message="Keine Produkte gefunden.">
+      <AdminDataTable v-else :columns="columns" :rows="products" :empty-message="t('adminNoProductsFound')">
         <template #rows="{ rows }">
           <tr v-for="(product, idx) in rows" :key="product.id || product.ean || idx">
             <td class="td-num">{{ idx + 1 }}</td>
@@ -45,8 +45,12 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useLanguage } from '@/components/Uselanguage'
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminToolbar from '@/components/admin/AdminToolbar.vue'
+
+const { t, tFn } = useLanguage()
 
 defineProps({
   visible: { type: Boolean, default: false },
@@ -63,12 +67,12 @@ defineProps({
 
 defineEmits(['close', 'update:searchQuery', 'update:categoryFilter'])
 
-const columns = [
-  { key: 'index', label: '#' },
-  { key: 'name', label: 'Produktname' },
-  { key: 'barcode', label: 'EAN / Barcode' },
-  { key: 'category', label: 'Kategorie' },
-  { key: 'priceNet', label: 'Nettopreis' },
-  { key: 'taxRate', label: 'Steuersatz' },
-]
+const columns = computed(() => [
+  { key: 'index', label: t('adminColIndex') },
+  { key: 'name', label: t('adminColProductName') },
+  { key: 'barcode', label: t('adminColEanBarcode') },
+  { key: 'category', label: t('adminColCategory') },
+  { key: 'priceNet', label: t('adminColNetPrice') },
+  { key: 'taxRate', label: t('adminColTaxRate') },
+])
 </script>

@@ -8,7 +8,7 @@
         <div class="payback">
 
           <div class="brand-badge">
-            <img src="../assets/logo-removebg-preview.png" />
+            <img src="../assets/logo-removebg-preview.png" alt="Scanly" />
           </div>
 
           <h1 class="title">
@@ -20,13 +20,14 @@
           <img
             src="https://www.payback.de/resource/blob/327670/bb5914260838b67b1e398db1622a0d92/image-center-data.png"
             class="payback-logo"
+            alt="Payback"
           />
 
           <div class="payback-actions">
-            <button class="payback-btn primary" @click="openScanner">
+            <button type="button" class="payback-btn primary" @click="openScanner">
               {{ t('paybackScan') }}
             </button>
-            <button class="payback-btn ghost" @click="skipPayback">
+            <button type="button" class="payback-btn ghost" @click="skipPayback">
               {{ t('paybackSkip') }}
             </button>
           </div>
@@ -42,9 +43,9 @@
 
         <div class="modal-header">
           <div class="modal-logo">
-            <img src="../assets/logo-removebg-preview.png">
+            <img src="../assets/logo-removebg-preview.png" alt="Scanly">
           </div>
-          <button class="close-btn" @click="close" :aria-label="t('close')">
+          <button type="button" class="close-btn" @click="close" :aria-label="t('close')">
           </button>
         </div>
 
@@ -53,6 +54,7 @@
           <div v-if="mode === 'scanner'" key="scanner" class="scanner-view">
             <h2 id="modal-title" class="modal-title">{{ t('paybackScanTitle') }}</h2>
             <p class="modal-subtitle">{{ t('paybackScanSubtitle') }}</p>
+            <p class="demo-note">{{ t('paybackDemoHint') }}</p>
 
             <div class="camera-container">
               <div v-if="!cameraActive" class="camera-placeholder">
@@ -122,7 +124,7 @@
                 type="button"
               >{{ key }}</button>
               <button class="key-btn key-backspace" @click="backspace" type="button" :aria-label="t('back')">
-                ⌫
+                ←
               </button>
             </div>
 
@@ -192,6 +194,7 @@ function openScanner() {
 
 function close() {
   stopCamera()
+  scanSuccess.value = false
   showScanner.value = false
 }
 
@@ -211,6 +214,8 @@ function switchToScanner() {
   cardNumber.value = ''
   inputError.value = false
   errorMessage.value = ''
+  scanSuccess.value = false
+  scanError.value = false
   mode.value = 'scanner'
   showKeyboard.value = false
   nextTick(() => { startCamera() })
@@ -248,6 +253,7 @@ function confirm() {
 }
 
 async function startCamera() {
+  stopCamera()
   errorMessage.value = ''
   scanError.value = false
   try {
@@ -268,8 +274,9 @@ function stopCamera() {
 }
 
 function completeDemoScan() {
+  demoScanTimer = null
   scanSuccess.value = true
-  setTimeout(() => { router.push('/payment') }, 1500)
+  demoScanTimer = window.setTimeout(() => { router.push('/payment') }, 1500)
 }
 
 onUnmounted(() => { stopCamera() })
@@ -585,6 +592,14 @@ onUnmounted(() => { stopCamera() })
   letter-spacing: 0.03em;
   position: relative;
   z-index: 1;
+}
+
+.demo-note {
+  margin: -10px 0 18px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.42);
+  text-align: center;
+  line-height: 1.45;
 }
 
 .scanner-view,

@@ -1,11 +1,11 @@
 <template>
   <Transition :name="transitionName">
-    <div v-if="visible" class="admin-modal-overlay" @click.self="$emit('close')">
+    <div v-if="visible" class="admin-modal-overlay" role="dialog" aria-modal="true" @click.self="$emit('close')" @keydown.esc="$emit('close')">
       <div class="admin-modal" :class="modalClass">
         <div class="admin-modal-header">
           <slot name="header">
             <h2 class="admin-modal-title">{{ title }}</h2>
-            <button class="admin-modal-close" @click="$emit('close')">X</button>
+            <button type="button" class="admin-modal-close" @click="$emit('close')">X</button>
           </slot>
         </div>
         <slot></slot>

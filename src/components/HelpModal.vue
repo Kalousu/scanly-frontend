@@ -56,7 +56,8 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, computed } from 'vue'
+import { ref, watch, nextTick, computed, toRef } from 'vue'
+import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
 
 const props = defineProps({
   modelValue: {
@@ -82,15 +83,14 @@ const t = (key) => props.translations[props.currentLang]?.[key] ?? key
 
 const helpSteps = computed(() => props.translations[props.currentLang]?.helpSteps ?? [])
 
+useBodyScrollLock(toRef(props, 'modelValue'))
+
 watch(
   () => props.modelValue,
   async (opened) => {
     if (opened) {
       await nextTick()
       closeBtnEl.value?.focus()
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
     }
   }
 )

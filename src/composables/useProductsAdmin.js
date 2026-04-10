@@ -6,34 +6,8 @@ import {
   fetchProductByBarcode,
   updateProduct,
 } from '@/services/api'
+import { useLanguage } from '@/components/Uselanguage'
 import { getProductBarcode } from '@/composables/useProductFormatters'
-
-export const productActionCards = [
-  { id: 'add', title: 'Produkt hinzufügen', description: 'Neues Produkt zum Katalog hinzufügen' },
-  { id: 'edit', title: 'Produkt bearbeiten', description: 'Bestehende Produkte und Preise ändern' },
-  { id: 'remove', title: 'Produkt entfernen', description: 'Produkte aus dem Katalog löschen' },
-  { id: 'db', title: 'Produktdatenbank', description: 'Komplette Produktliste anzeigen und durchsuchen' },
-]
-
-export const productCategories = [
-  { value: '', label: 'Kategorie wählen...' },
-  { value: 'FRUITS_VEGETABLES', label: 'Obst/Gemüse' },
-  { value: 'BAKERY', label: 'Backwaren' },
-  { value: 'OTHERS', label: 'Others' },
-]
-
-export const productCategoryLabels = {
-  FRUITS_VEGETABLES: 'Obst/Gemüse',
-  BAKERY: 'Backwaren',
-  OTHERS: 'Others',
-}
-
-export const productDatabaseCategories = [
-  { value: 'ALL', label: 'Alle' },
-  { value: 'FRUITS_VEGETABLES', label: 'Obst/Gemüse' },
-  { value: 'BAKERY', label: 'Backwaren' },
-  { value: 'OTHERS', label: 'Others' },
-]
 
 function getEmptyForm() {
   return { name: '', priceNet: '', taxRate: '0.19', category: '', ean: '' }
@@ -48,6 +22,8 @@ function toTaxRateSelect(taxRate) {
 }
 
 export function useProductsAdmin() {
+  const { t } = useLanguage()
+
   const activeModal = ref(null)
   const searchQuery = ref('')
   const searchLoading = ref(false)
@@ -61,6 +37,33 @@ export function useProductsAdmin() {
   const dbError = ref('')
   const dbSearchQuery = ref('')
   const dbCategoryFilter = ref('ALL')
+
+  const actionCards = computed(() => [
+    { id: 'add', title: t('adminProductAdd'), description: t('adminProductAddDesc') },
+    { id: 'edit', title: t('adminProductEdit'), description: t('adminProductEditDesc') },
+    { id: 'remove', title: t('adminProductRemove'), description: t('adminProductRemoveDesc') },
+    { id: 'db', title: t('adminProductDatabase'), description: t('adminProductDatabaseDesc') },
+  ])
+
+  const categories = computed(() => [
+    { value: '', label: t('adminCategorySelect') },
+    { value: 'FRUITS_VEGETABLES', label: t('adminCategoryFruits') },
+    { value: 'BAKERY', label: t('adminCategoryBakery') },
+    { value: 'OTHERS', label: t('adminCategoryOthers') },
+  ])
+
+  const categoryLabelMap = computed(() => ({
+    FRUITS_VEGETABLES: t('adminCategoryFruits'),
+    BAKERY: t('adminCategoryBakery'),
+    OTHERS: t('adminCategoryOthers'),
+  }))
+
+  const dbCategories = computed(() => [
+    { value: 'ALL', label: t('adminAll') },
+    { value: 'FRUITS_VEGETABLES', label: t('adminCategoryFruits') },
+    { value: 'BAKERY', label: t('adminCategoryBakery') },
+    { value: 'OTHERS', label: t('adminCategoryOthers') },
+  ])
 
   const filteredProducts = computed(() => {
     let list = allProducts.value
@@ -80,19 +83,19 @@ export function useProductsAdmin() {
 
   const modalTitle = computed(() => {
     const titles = {
-      add: 'Produkt hinzufügen',
-      edit: 'Produkt bearbeiten',
-      remove: 'Produkt entfernen',
+      add: t('adminProductAdd'),
+      edit: t('adminProductEdit'),
+      remove: t('adminProductRemove'),
     }
     return titles[activeModal.value] || ''
   })
 
   const priceLabel = computed(() =>
-    form.value.category === 'FRUITS_VEGETABLES' ? 'Nettopreis pro Kilo (EUR)' : 'Nettopreis (EUR)',
+    form.value.category === 'FRUITS_VEGETABLES' ? t('adminNetPriceKg') : t('adminNetPrice'),
   )
 
   const pricePlaceholder = computed(() =>
-    form.value.category === 'FRUITS_VEGETABLES' ? '0.00 EUR/kg' : '0.00',
+    form.value.category === 'FRUITS_VEGETABLES' ? t('adminPricePlaceholderKg') : t('adminPricePlaceholder'),
   )
 
   function resetAll() {
@@ -122,7 +125,7 @@ export function useProductsAdmin() {
       const data = await fetchAllProducts()
       allProducts.value = Array.isArray(data) ? data : data.products || data.content || []
     } catch {
-      dbError.value = 'Fehler beim Laden der Produkte. Bitte versuche es erneut.'
+      dbError.value = t('adminProductLoadError')
     } finally {
       dbLoading.value = false
     }
@@ -139,7 +142,7 @@ export function useProductsAdmin() {
   async function searchByBarcode() {
     const barcode = searchQuery.value.trim()
     if (!barcode) {
-      searchError.value = 'Bitte eine EAN / Barcode eingeben.'
+      searchError.value = t('adminProductEanRequired')
       return
     }
 
@@ -161,8 +164,8 @@ export function useProductsAdmin() {
     } catch (error) {
       searchError.value =
         error.response?.status === 404
-          ? 'Kein Produkt mit dieser EAN gefunden.'
-          : 'Fehler bei der Suche. Bitte versuche es erneut.'
+          ? t('adminProductNotFound')
+          : t('adminProductSearchError')
     } finally {
       searchLoading.value = false
     }
@@ -187,7 +190,7 @@ export function useProductsAdmin() {
 
   function addProduct() {
     if (!isFormValid()) {
-      actionState.value.error = 'Bitte alle Felder ausfüllen.'
+      actionState.value.error = t('adminFillAllFields')
       return
     }
 
@@ -200,19 +203,19 @@ export function useProductsAdmin() {
           taxRate: Number(form.value.taxRate),
           code: form.value.ean,
         }),
-      'Fehler beim Hinzufügen des Produkts. Bitte versuche es erneut.',
+      t('adminProductAddError'),
     )
   }
 
   function editProduct() {
     if (!isFormValid()) {
-      actionState.value.error = 'Bitte alle Felder ausfüllen.'
+      actionState.value.error = t('adminFillAllFields')
       return
     }
 
     const barcode = getProductBarcode(foundProduct.value, searchQuery.value)
     if (!barcode) {
-      actionState.value.error = 'Kein Barcode vorhanden.'
+      actionState.value.error = t('adminNoBarcode')
       return
     }
 
@@ -225,20 +228,20 @@ export function useProductsAdmin() {
           taxRate: Number(form.value.taxRate),
           productCategory: form.value.category,
         }),
-      'Fehler beim Aktualisieren des Produkts. Bitte versuche es erneut.',
+      t('adminProductUpdateError'),
     )
   }
 
   function removeProduct() {
     const barcode = getProductBarcode(foundProduct.value, searchQuery.value)
     if (!barcode) {
-      actionState.value.error = 'Kein Produkt ausgewählt.'
+      actionState.value.error = t('adminNoProductSelected')
       return
     }
 
     executeAction(
       () => deleteProduct(barcode),
-      'Fehler beim Entfernen des Produkts. Bitte versuche es erneut.',
+      t('adminProductDeleteError'),
     )
   }
 
@@ -255,10 +258,10 @@ export function useProductsAdmin() {
     dbError,
     dbSearchQuery,
     dbCategoryFilter,
-    actionCards: productActionCards,
-    categories: productCategories,
-    categoryLabelMap: productCategoryLabels,
-    dbCategories: productDatabaseCategories,
+    actionCards,
+    categories,
+    categoryLabelMap,
+    dbCategories,
     filteredProducts,
     modalTitle,
     priceLabel,

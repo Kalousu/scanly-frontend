@@ -6,7 +6,7 @@
         <li v-for="(item, i) in items" :key="i" v-html="item"></li>
       </ul>
       <div class="modal-actions">
-        <button class="modal-btn modal-btn--done" @click="$emit('close')">
+        <button type="button" class="modal-btn modal-btn--done" @click="$emit('close')">
           {{ t('close') }}
         </button>
       </div>
@@ -23,3 +23,18 @@ defineProps({
 
 defineEmits(['close'])
 </script>
+
+<style scoped>
+.help-list {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 2;
+  font-size: 14px;
+}
+
+.help-list :deep(b) {
+  color: rgba(255, 255, 255, 0.96);
+  font-weight: 700;
+}
+</style>

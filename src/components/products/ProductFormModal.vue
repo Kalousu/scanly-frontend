@@ -9,10 +9,10 @@
             :price-placeholder="pricePlaceholder"
             @update-field="$emit('update-form-field', $event)"
           />
-          <ProductActionFeedback :action-state="actionState" success-text="Produkt erfolgreich hinzugefügt!" />
+          <ProductActionFeedback :action-state="actionState" :success-text="t('adminProductAddSuccess')" />
           <ProductModalFooter
-            confirm-label="Produkt hinzufügen"
-            loading-label="Wird hinzugefügt..."
+            :confirm-label="t('adminProductAdd')"
+            :loading-label="t('adminProductAdding')"
             button-class="admin-btn--success"
             :loading="actionState.loading"
             @close="$emit('close')"
@@ -33,20 +33,20 @@
             @update:search-query="$emit('update:searchQuery', $event)"
             @search="$emit('search')"
           />
-          <p v-if="!foundProduct" class="prod-hint">Gib eine EAN ein und klicke auf "Suchen", um das Produkt zu laden.</p>
+          <p v-if="!foundProduct" class="prod-hint">{{ t('adminProductSearchHint') }}</p>
           <ProductFormFields
             :form="form"
             :categories="categories"
             :price-label="priceLabel"
             :price-placeholder="pricePlaceholder"
             :disabled="!foundProduct"
-            name-placeholder="Produktname"
+            :name-placeholder="t('adminProductName')"
             @update-field="$emit('update-form-field', $event)"
           />
-          <ProductActionFeedback :action-state="actionState" success-text="Produkt erfolgreich aktualisiert!" />
+          <ProductActionFeedback :action-state="actionState" :success-text="t('adminProductEditSuccess')" />
           <ProductModalFooter
-            confirm-label="Änderungen speichern"
-            loading-label="Wird gespeichert..."
+            :confirm-label="t('adminProductSaveChanges')"
+            :loading-label="t('adminProductSaving')"
             button-class="admin-btn--primary"
             :disabled="!foundProduct"
             :loading="actionState.loading"
@@ -70,14 +70,14 @@
           />
           <div class="admin-alert admin-alert--warning">
             <div>
-              <p class="prod-warning-title">Achtung</p>
-              <p class="prod-warning-text">Das Entfernen eines Produkts kann nicht rückgängig gemacht werden.</p>
+              <p class="prod-warning-title">{{ t('adminWarning') }}</p>
+              <p class="prod-warning-text">{{ t('adminProductWarning') }}</p>
             </div>
           </div>
-          <ProductActionFeedback :action-state="actionState" success-text="Produkt erfolgreich entfernt!" />
+          <ProductActionFeedback :action-state="actionState" :success-text="t('adminProductRemoveSuccess')" />
           <ProductModalFooter
-            confirm-label="Produkt entfernen"
-            loading-label="Wird entfernt..."
+            :confirm-label="t('adminProductRemove')"
+            :loading-label="t('adminProductRemoving')"
             button-class="admin-btn--danger"
             :disabled="!foundProduct"
             :loading="actionState.loading"
@@ -89,9 +89,12 @@
 </template>
 
 <script setup>
+import { useLanguage } from '@/components/Uselanguage'
 import AdminModal from '@/components/admin/AdminModal.vue'
 import ProductFormFields from '@/components/products/ProductFormFields.vue'
 import ProductLookupPanel from '@/components/products/ProductLookupPanel.vue'
+
+const { t } = useLanguage()
 
 defineProps({
   activeModal: { type: String, default: null },
@@ -114,6 +117,8 @@ defineEmits(['close', 'add', 'edit', 'remove', 'search', 'update:searchQuery', '
 </script>
 
 <script>
+import { useLanguage } from '@/components/Uselanguage'
+
 const ProductActionFeedback = {
   props: {
     actionState: { type: Object, required: true },
@@ -140,10 +145,14 @@ const ProductModalFooter = {
     disabled: { type: Boolean, default: false },
   },
   emits: ['close', 'confirm'],
+  setup() {
+    const { t } = useLanguage()
+    return { t }
+  },
   template: `
     <div class="admin-modal-footer">
-      <button class="admin-btn admin-btn--secondary" @click="$emit('close')">Abbrechen</button>
-      <button class="admin-btn" :class="buttonClass" :disabled="disabled || loading" @click="$emit('confirm')">
+      <button type="button" class="admin-btn admin-btn--secondary" @click="$emit('close')">{{ t('adminCancel') }}</button>
+      <button type="button" class="admin-btn" :class="buttonClass" :disabled="disabled || loading" @click="$emit('confirm')">
         <span v-if="loading" class="admin-spinner admin-spinner--sm"></span>
         {{ loading ? loadingLabel : confirmLabel }}
       </button>

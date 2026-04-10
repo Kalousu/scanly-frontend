@@ -9,7 +9,6 @@ import {
   deleteProduct,
 } from '../services/api'
 
-// Modal & form state
 const activeModal = ref(null)
 const searchQuery = ref('')
 const searchLoading = ref(false)
@@ -18,10 +17,8 @@ const foundProduct = ref(null)
 
 const form = ref(getEmptyForm())
 
-// Per-action loading/error/success
 const actionState = ref({ loading: false, error: '', success: false })
 
-// Database state
 const showDatabase = ref(false)
 const allProducts = ref([])
 const dbLoading = ref(false)
@@ -29,7 +26,6 @@ const dbError = ref('')
 const dbSearchQuery = ref('')
 const dbCategoryFilter = ref('ALL')
 
-// Action cards displayed on the page
 const actionCards = [
   { id: 'add', title: 'Produkt hinzufügen', description: 'Neues Produkt zum Katalog hinzufügen' },
   { id: 'edit', title: 'Produkt bearbeiten', description: 'Bestehende Produkte und Preise ändern' },

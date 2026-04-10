@@ -5,7 +5,9 @@
     <div class="layout">
       <CartPanel
         :items="orderItems"
-        :total-price="orderTotalPrice"
+        :total-price="payableTotal"
+        :coupon-discount="couponDiscount"
+        :applied-coupon="appliedCoupon"
         :editable="false"
         :show-scan-badge="false"
       />
@@ -141,6 +143,7 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import CouponModal from '../components/CouponModal.vue'
 import { useFormatters } from '../composables/useFormatters'
 import { useErrorToast } from '../composables/useErrorToast'
+import { normalizeCouponCode, validateCouponForSubtotal } from '../services/coupons'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -175,7 +178,11 @@ const couponCode = ref('')
 const couponScanning = ref(false)
 const couponMessage = ref('')
 const couponMessageType = ref('')
-const couponInputRef = ref(null)
+const appliedCoupon = computed(() => cartStore.appliedCoupon)
+const couponDiscount = computed(() => Number(appliedCoupon.value?.discount || 0))
+const payableTotal = computed(() =>
+  Math.max(Number(orderTotalPrice.value || 0) - couponDiscount.value, 0),
+)
 
 function selectLanguage(code) {
   setLanguage(code)
@@ -197,9 +204,9 @@ async function printReceipt(){
         await device.open();
         await device.selectConfiguration(1);
         await device.claimInterface(0);
- 
+
         const endpoint = device.configuration.interfaces[0].alternate.endpoints.find(e => e.direction === 'out');
-        
+
         const printer = new PrinterEncoder();
         printer
           .init()
@@ -241,6 +248,7 @@ async function printReceipt(){
 
         const result = printer.encode();
  
+
         await device.transferOut(endpoint.endpointNumber, result);
         await device.close();
 }
@@ -278,12 +286,13 @@ function onBarcodeScanned(code) {
 }
 
 function openCouponModal() {
-  couponCode.value = ''
+  couponCode.value = cartStore.appliedCoupon?.code || ''
   couponScanning.value = false
-  couponMessage.value = ''
-  couponMessageType.value = ''
+  couponMessage.value = cartStore.appliedCoupon
+    ? `${cartStore.appliedCoupon.label} ist bereits aktiv.`
+    : ''
+  couponMessageType.value = cartStore.appliedCoupon ? 'success' : ''
   modal.value = 'coupon'
-  setTimeout(() => couponInputRef.value?.focus(), 100)
 }
 
 function startCouponScan() {
@@ -291,19 +300,27 @@ function startCouponScan() {
   if (couponScanning.value) {
     couponCode.value = ''
     couponMessage.value = ''
-    // Focus the input so barcode scanner input goes there
-    couponInputRef.value?.focus()
   }
 }
 
 function redeemCoupon() {
-  const code = couponCode.value.trim()
-  if (!code) return
-
-  // Frontend-only placeholder — no backend call yet
-  couponMessage.value = `Coupon „${code}" wird geprüft… (Backend noch nicht verbunden)`
-  couponMessageType.value = 'success'
+  const result = validateCouponForSubtotal(couponCode.value, orderTotalPrice.value)
+  couponCode.value = result.code || normalizeCouponCode(couponCode.value)
+  couponMessage.value = result.message
+  couponMessageType.value = result.ok ? 'success' : 'error'
   couponScanning.value = false
+
+  if (!result.ok) {
+    cartStore.clearCoupon()
+    syncPaymentSummary()
+    return
+  }
+
+  cartStore.applyCoupon(result.coupon)
+  syncPaymentSummary()
+  return
+
+
 }
 
 function openHelp() {
@@ -317,6 +334,33 @@ function toggleLanguage() {
 function closeModal() {
   modal.value = null
   couponScanning.value = false
+}
+
+function syncPaymentSummary() {
+  cartStore.setPaymentSummary({
+    subtotal: Number(orderTotalPrice.value || 0),
+    discount: couponDiscount.value,
+    total: payableTotal.value,
+  })
+}
+
+function refreshCouponAgainstCurrentOrderTotal() {
+  if (!cartStore.appliedCoupon) {
+    syncPaymentSummary()
+    return
+  }
+
+  const result = validateCouponForSubtotal(cartStore.appliedCoupon.code, orderTotalPrice.value)
+  if (!result.ok) {
+    cartStore.clearCoupon()
+    couponMessage.value = 'Coupon wurde entfernt, weil die Bestellung die Bedingungen nicht mehr erfuellt.'
+    couponMessageType.value = 'error'
+    syncPaymentSummary()
+    return
+  }
+
+  cartStore.applyCoupon(result.coupon)
+  syncPaymentSummary()
 }
 
 function cancel() {
@@ -336,6 +380,7 @@ async function pay() {
 
   status.value = 'paying'
   closeModal()
+  syncPaymentSummary()
 
   try {
     await api.post(`/orders/${cartStore.orderId}/checkout`, { paymentMethod: 'Card' })
@@ -357,6 +402,7 @@ async function fetchOrder() {
     console.log(`GET /api/orders/${cartStore.orderId} Response:`, response.data)
     orderItems.value = response.data.orderItems || []
     orderTotalPrice.value = response.data.totalPrice || 0
+    refreshCouponAgainstCurrentOrderTotal()
   } catch (error) {
     console.error(`GET /api/orders/${cartStore.orderId} Error:`, error)
   }

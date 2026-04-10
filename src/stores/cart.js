@@ -1,13 +1,18 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
-// everything cart related lives here
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
-  const orderId = ref(null) // set after backend creates the order
+  const orderId = ref(null)
   const vatEnabled = ref(false)
   const vatRate = ref(19)
   const language = ref('de')
+  const appliedCoupon = ref(null)
+  const paymentSummary = ref({
+    subtotal: 0,
+    discount: 0,
+    total: 0,
+  })
 
   const subtotal = computed(() => items.value.reduce((sum, line) => sum + line.price * line.qty, 0))
 
@@ -39,7 +44,6 @@ export const useCartStore = defineStore('cart', () => {
     })
   }
 
-  // weighted items always get their own line bc every weighing is different
   function addWeighted(item, kg) {
     items.value.push({
       lineId: uid(),
@@ -69,6 +73,28 @@ export const useCartStore = defineStore('cart', () => {
 
   function clearCart() {
     items.value.splice(0, items.value.length)
+    appliedCoupon.value = null
+    paymentSummary.value = {
+      subtotal: 0,
+      discount: 0,
+      total: 0,
+    }
+  }
+
+  function applyCoupon(coupon) {
+    appliedCoupon.value = coupon
+  }
+
+  function clearCoupon() {
+    appliedCoupon.value = null
+  }
+
+  function setPaymentSummary(summary) {
+    paymentSummary.value = {
+      subtotal: Number(summary?.subtotal || 0),
+      discount: Number(summary?.discount || 0),
+      total: Number(summary?.total || 0),
+    }
   }
 
   function uid() {
@@ -81,6 +107,8 @@ export const useCartStore = defineStore('cart', () => {
     vatEnabled,
     vatRate,
     language,
+    appliedCoupon,
+    paymentSummary,
     subtotal,
     vatAmount,
     total,
@@ -91,5 +119,8 @@ export const useCartStore = defineStore('cart', () => {
     inc,
     dec,
     clearCart,
+    applyCoupon,
+    clearCoupon,
+    setPaymentSummary,
   }
 })

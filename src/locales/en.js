@@ -27,7 +27,7 @@ export default {
   paid: 'Paid',
   cancelled: 'Transaction cancelled.',
   language: 'Language',
-  produce: 'Produce',
+  produce: 'Fruits & Vegetables',
   bakery: 'Bakery',
   cancel: 'Cancel',
   pay: 'Pay',
@@ -44,7 +44,7 @@ export default {
   done: 'Done',
   helpItems: [
     'Scanner: just scan',
-    'Produce: select, enter weight, add.',
+    'Fruits & Vegetables: select, enter weight, add.',
     'Bakery: tap to add.',
     'Cancel: empties the cart.',
   ],
@@ -63,7 +63,7 @@ export default {
   cameraNotAvailable: 'No camera detected',
   barcodeNotSupported: 'Barcode scanning not supported in browser – please use hardware scanner.',
   noCamera: 'No camera',
-  produceCategory: 'Produce',
+  produceCategory: 'Fruits & Vegetables',
 
   paybackTitle: 'Pay with',
   paybackAccent: 'Payback?',

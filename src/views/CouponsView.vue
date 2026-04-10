@@ -1,13 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import AdminLayout from '../components/AdminLayout.vue'
-import { MOCK_COUPON_DEFINITIONS, normalizeCouponCode } from '../services/coupons'
-
-const STORAGE_KEY = 'scanly-admin-coupons-mock'
+import { fetchAllCoupons, createCoupon, activateCoupon, deactivateCoupon } from '../services/api'
 
 const coupons = ref([])
+const loading = ref(false)
 const activeModal = ref(false)
-const editingId = ref(null)
 const searchQuery = ref('')
 const statusFilter = ref('ALL')
 const saveMessage = ref('')
@@ -31,7 +29,7 @@ const filteredCoupons = computed(() => {
 
     const matchesQuery =
       !query ||
-      [coupon.code, coupon.label, coupon.typeLabel]
+      [coupon.code, coupon.label, coupon.type]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query))
 
@@ -40,8 +38,8 @@ const filteredCoupons = computed(() => {
 })
 
 const couponKpis = computed(() => {
-  const activeCount = coupons.value.filter((coupon) => coupon.active).length
-  const percentageCount = coupons.value.filter((coupon) => coupon.type === 'percentage').length
+  const activeCount = coupons.value.filter((c) => c.active).length
+  const percentageCount = coupons.value.filter((c) => c.type === 'percentage' || c.type === 'PERCENTAGE').length
 
   return [
     { label: 'Coupons gesamt', value: coupons.value.length },
@@ -50,8 +48,6 @@ const couponKpis = computed(() => {
   ]
 })
 
-const modalTitle = computed(() => (editingId.value ? 'Coupon bearbeiten' : 'Coupon anlegen'))
-
 function getEmptyForm() {
   return {
     code: '',
@@ -59,90 +55,16 @@ function getEmptyForm() {
     type: 'percentage',
     value: 10,
     minOrderValue: 0,
-    active: true,
   }
-}
-
-function createCouponRecord(seed, index) {
-  const value = Number(seed.value || 0)
-  const minOrderValue = Number(seed.minOrderValue || 0)
-  return {
-    id: seed.id || `${normalizeCouponCode(seed.code)}-${index + 1}`,
-    code: normalizeCouponCode(seed.code),
-    label: seed.label,
-    type: seed.type,
-    typeLabel: seed.type === 'percentage' ? 'Prozent' : 'Fixbetrag',
-    value,
-    minOrderValue,
-    active: seed.active ?? true,
-    usageCount: seed.usageCount ?? 0,
-    createdAt: seed.createdAt || new Date().toISOString(),
-    summary:
-      seed.type === 'percentage'
-        ? `${value}% Rabatt`
-        : `${value.toFixed(2)} EUR Rabatt`,
-  }
-}
-
-function getSeedCoupons() {
-  return MOCK_COUPON_DEFINITIONS.map((coupon, index) =>
-    createCouponRecord(
-      {
-        ...coupon,
-        active: index !== 2,
-        usageCount: [18, 7, 2][index] ?? 0,
-      },
-      index,
-    ),
-  )
-}
-
-function loadCoupons() {
-  const raw = localStorage.getItem(STORAGE_KEY)
-
-  if (!raw) {
-    coupons.value = getSeedCoupons()
-    persistCoupons()
-    return
-  }
-
-  try {
-    const parsed = JSON.parse(raw)
-    coupons.value = Array.isArray(parsed)
-      ? parsed.map((coupon, index) => createCouponRecord(coupon, index))
-      : getSeedCoupons()
-  } catch {
-    coupons.value = getSeedCoupons()
-    persistCoupons()
-  }
-}
-
-function persistCoupons() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(coupons.value))
 }
 
 function resetForm() {
   form.value = getEmptyForm()
-  editingId.value = null
   formError.value = ''
 }
 
 function openCreateModal() {
   resetForm()
-  activeModal.value = true
-}
-
-function openEditModal(coupon) {
-  editingId.value = coupon.id
-  formError.value = ''
-  form.value = {
-    code: coupon.code,
-    label: coupon.label,
-    type: coupon.type,
-    value: coupon.value,
-    minOrderValue: coupon.minOrderValue,
-    active: coupon.active,
-  }
   activeModal.value = true
 }
 
@@ -161,12 +83,19 @@ function showSavedMessage(text) {
 }
 
 function formatDiscount(coupon) {
-  return coupon.type === 'percentage'
+  const type = (coupon.type || '').toLowerCase()
+  return type === 'percentage'
     ? `${coupon.value}%`
-    : `${coupon.value.toFixed(2)} EUR`
+    : `${Number(coupon.value).toFixed(2)} EUR`
+}
+
+function formatType(coupon) {
+  const type = (coupon.type || '').toLowerCase()
+  return type === 'percentage' ? 'Prozent' : 'Fixbetrag'
 }
 
 function formatDate(date) {
+  if (!date) return '—'
   return new Intl.DateTimeFormat('de-DE', {
     day: '2-digit',
     month: '2-digit',
@@ -175,24 +104,15 @@ function formatDate(date) {
 }
 
 function validateForm() {
-  const normalizedCode = normalizeCouponCode(form.value.code)
+  const code = (form.value.code || '').trim().toUpperCase()
 
-  if (!normalizedCode || !form.value.label.trim()) {
-    formError.value = 'Bitte Code und Bezeichnung ausfuellen.'
+  if (!code || !form.value.label.trim()) {
+    formError.value = 'Bitte Code und Bezeichnung ausfüllen.'
     return false
   }
 
   if (!Number.isFinite(Number(form.value.value)) || Number(form.value.value) <= 0) {
-    formError.value = 'Der Rabattwert muss groesser als 0 sein.'
-    return false
-  }
-
-  const duplicate = coupons.value.find(
-    (coupon) => coupon.code === normalizedCode && coupon.id !== editingId.value,
-  )
-
-  if (duplicate) {
-    formError.value = 'Dieser Coupon-Code existiert bereits.'
+    formError.value = 'Der Rabattwert muss größer als 0 sein.'
     return false
   }
 
@@ -200,69 +120,61 @@ function validateForm() {
   return true
 }
 
-function saveCoupon() {
+async function saveCoupon() {
   if (!validateForm()) return
 
-  const payload = createCouponRecord(
-    {
-      id: editingId.value || undefined,
-      code: form.value.code,
-      label: form.value.label.trim(),
-      type: form.value.type,
-      value: Number(form.value.value),
-      minOrderValue: Number(form.value.minOrderValue || 0),
-      active: form.value.active,
-      usageCount:
-        coupons.value.find((coupon) => coupon.id === editingId.value)?.usageCount ?? 0,
-      createdAt:
-        coupons.value.find((coupon) => coupon.id === editingId.value)?.createdAt ||
-        new Date().toISOString(),
-    },
-    coupons.value.length,
-  )
-
-  if (editingId.value) {
-    coupons.value = coupons.value.map((coupon) => (coupon.id === editingId.value ? payload : coupon))
-    showSavedMessage(`Coupon ${payload.code} aktualisiert.`)
-  } else {
-    coupons.value = [payload, ...coupons.value]
-    showSavedMessage(`Coupon ${payload.code} angelegt.`)
+  const payload = {
+    code: form.value.code.trim().toUpperCase(),
+    label: form.value.label.trim(),
+    type: form.value.type.toUpperCase(),
+    value: Number(form.value.value),
+    minOrderValue: Number(form.value.minOrderValue || 0),
   }
 
-  persistCoupons()
-  closeModal()
+  try {
+    await createCoupon(payload)
+    showSavedMessage(`Coupon ${payload.code} angelegt.`)
+    closeModal()
+    await loadCoupons()
+  } catch (error) {
+    const msg =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      'Fehler beim Anlegen des Coupons.'
+    formError.value = msg
+  }
 }
 
-function toggleCoupon(coupon) {
-  coupon.active = !coupon.active
-  persistCoupons()
-  showSavedMessage(
-    coupon.active ? `Coupon ${coupon.code} aktiviert.` : `Coupon ${coupon.code} deaktiviert.`,
-  )
+async function loadCoupons() {
+  loading.value = true
+  try {
+    const data = await fetchAllCoupons()
+    coupons.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error('Fehler beim Laden der Coupons:', error)
+    coupons.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
-function duplicateCoupon(coupon) {
-  const draft = createCouponRecord(
-    {
-      ...coupon,
-      id: `${coupon.id}-copy-${Date.now()}`,
-      code: `${coupon.code}COPY`,
-      label: `${coupon.label} (Kopie)`,
-      usageCount: 0,
-      createdAt: new Date().toISOString(),
-    },
-    coupons.value.length,
-  )
-
-  coupons.value = [draft, ...coupons.value]
-  persistCoupons()
-  showSavedMessage(`Coupon ${draft.code} dupliziert.`)
-}
-
-function resetMockCoupons() {
-  coupons.value = getSeedCoupons()
-  persistCoupons()
-  showSavedMessage('Mock-Coupons wurden zurueckgesetzt.')
+async function toggleCouponStatus(coupon) {
+  try {
+    if (coupon.active) {
+      await deactivateCoupon(coupon.id)
+      showSavedMessage(`Coupon ${coupon.code} deaktiviert.`)
+    } else {
+      await activateCoupon(coupon.id)
+      showSavedMessage(`Coupon ${coupon.code} aktiviert.`)
+    }
+    await loadCoupons()
+  } catch (error) {
+    const msg =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      'Fehler beim Ändern des Coupon-Status.'
+    showSavedMessage(msg)
+  }
 }
 
 onMounted(() => {
@@ -274,7 +186,7 @@ onMounted(() => {
   <AdminLayout breadcrumb="Gutscheine" :max-width="1180">
     <div class="admin-page-header admin-page-header--center">
       <h1 class="admin-page-title">Gutscheine & Coupons</h1>
-      <p class="admin-page-subtitle">Mock-Verwaltung fuer Gutschein- und Rabatt-Codes</p>
+      <p class="admin-page-subtitle">Verwaltung für Gutschein- und Rabatt-Codes</p>
     </div>
 
     <div class="admin-kpi-row">
@@ -308,8 +220,8 @@ onMounted(() => {
         </div>
 
         <div class="coupons-toolbar-actions">
-          <button class="admin-btn admin-btn--secondary" @click="resetMockCoupons">
-            Mock-Daten resetten
+          <button class="admin-btn admin-btn--secondary" @click="loadCoupons" :disabled="loading">
+            {{ loading ? 'Laden…' : 'Aktualisieren' }}
           </button>
           <button class="admin-btn admin-btn--primary" @click="openCreateModal">
             Neuer Coupon
@@ -322,7 +234,11 @@ onMounted(() => {
         <span v-if="saveMessage" class="admin-saved-msg">{{ saveMessage }}</span>
       </div>
 
-      <div v-if="filteredCoupons.length > 0" class="admin-table-wrap">
+      <div v-if="loading" class="admin-empty coupons-empty">
+        <p class="coupons-empty-desc">Coupons werden geladen…</p>
+      </div>
+
+      <div v-else-if="filteredCoupons.length > 0" class="admin-table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
@@ -332,48 +248,28 @@ onMounted(() => {
               <th>Rabatt</th>
               <th>Mindestwert</th>
               <th>Status</th>
-              <th>Nutzung</th>
               <th>Erstellt</th>
-              <th>Aktionen</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="coupon in filteredCoupons" :key="coupon.id">
+            <tr v-for="coupon in filteredCoupons" :key="coupon.id || coupon.code">
               <td class="admin-td-id">{{ coupon.code }}</td>
               <td>
-                <div class="coupon-label">{{ coupon.label }}</div>
-                <div class="coupon-summary">{{ coupon.summary }}</div>
+                <div class="coupon-label">{{ coupon.label || '—' }}</div>
               </td>
-              <td>{{ coupon.typeLabel }}</td>
+              <td>{{ formatType(coupon) }}</td>
               <td class="admin-td-amount">{{ formatDiscount(coupon) }}</td>
-              <td>{{ coupon.minOrderValue.toFixed(2) }} EUR</td>
+              <td>{{ Number(coupon.minOrderValue || 0).toFixed(2) }} EUR</td>
               <td>
-                <span
-                  class="coupon-status"
-                  :class="coupon.active ? 'coupon-status--active' : 'coupon-status--inactive'"
+                <button
+                  class="coupon-toggle-btn"
+                  :class="coupon.active ? 'coupon-toggle-btn--active' : 'coupon-toggle-btn--inactive'"
+                  @click="toggleCouponStatus(coupon)"
                 >
                   {{ coupon.active ? 'Aktiv' : 'Inaktiv' }}
-                </span>
+                </button>
               </td>
-              <td>{{ coupon.usageCount }}</td>
-              <td>{{ formatDate(coupon.createdAt) }}</td>
-              <td>
-                <div class="coupon-actions">
-                  <button class="admin-btn admin-btn--ghost" @click="openEditModal(coupon)">
-                    Bearbeiten
-                  </button>
-                  <button class="admin-btn admin-btn--ghost" @click="duplicateCoupon(coupon)">
-                    Duplizieren
-                  </button>
-                  <button
-                    class="admin-btn"
-                    :class="coupon.active ? 'admin-btn--secondary' : 'admin-btn--success'"
-                    @click="toggleCoupon(coupon)"
-                  >
-                    {{ coupon.active ? 'Deaktivieren' : 'Aktivieren' }}
-                  </button>
-                </div>
-              </td>
+              <td>{{ formatDate(coupon.createdAt || coupon.creationDate) }}</td>
             </tr>
           </tbody>
         </table>
@@ -382,7 +278,7 @@ onMounted(() => {
       <div v-else class="admin-empty coupons-empty">
         <h2 class="coupons-empty-title">Keine Coupons gefunden</h2>
         <p class="coupons-empty-desc">
-          Passe die Filter an oder lege direkt einen neuen Mock-Coupon an.
+          Passe die Filter an oder lege direkt einen neuen Coupon an.
         </p>
       </div>
     </div>
@@ -391,7 +287,7 @@ onMounted(() => {
       <div v-if="activeModal" class="admin-modal-overlay" @click.self="closeModal">
         <div class="admin-modal admin-modal--lg">
           <div class="admin-modal-header">
-            <h2 class="admin-modal-title">{{ modalTitle }}</h2>
+            <h2 class="admin-modal-title">Coupon anlegen</h2>
             <button class="admin-modal-close" @click="closeModal">×</button>
           </div>
 
@@ -414,7 +310,7 @@ onMounted(() => {
                   v-model="form.label"
                   type="text"
                   class="admin-input"
-                  placeholder="z.B. 20% Fruehlingsrabatt"
+                  placeholder="z.B. 20% Frühlingsrabatt"
                 />
               </div>
             </div>
@@ -454,23 +350,11 @@ onMounted(() => {
                 />
               </div>
 
-              <div class="admin-form-group">
-                <label class="admin-label">Status</label>
-                <div class="coupon-toggle-row">
-                  <span class="admin-settings-label">
-                    {{ form.active ? 'Coupon ist aktiv' : 'Coupon ist inaktiv' }}
-                  </span>
-                  <label class="admin-toggle">
-                    <input v-model="form.active" type="checkbox" />
-                    <span class="admin-toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
             </div>
 
             <div class="coupon-preview">
               <div class="coupon-preview-label">Vorschau</div>
-              <div class="coupon-preview-code">{{ normalizeCouponCode(form.code) || 'CODE' }}</div>
+              <div class="coupon-preview-code">{{ (form.code || 'CODE').toUpperCase() }}</div>
               <div class="coupon-preview-text">
                 {{ form.label || 'Bezeichnung des Coupons' }}
               </div>
@@ -489,7 +373,7 @@ onMounted(() => {
                 Abbrechen
               </button>
               <button class="admin-btn admin-btn--primary" @click="saveCoupon">
-                {{ editingId ? 'Aenderungen speichern' : 'Coupon anlegen' }}
+                Coupon anlegen
               </button>
             </div>
           </div>
@@ -528,104 +412,47 @@ onMounted(() => {
   color: rgba(255, 255, 255, 0.86);
 }
 
-.coupon-summary {
-  margin-top: 0.2rem;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.38);
-}
-
-.coupon-status {
+.coupon-toggle-btn {
   display: inline-flex;
   align-items: center;
-  padding: 0;
-  border-radius: 0;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.13s;
 }
 
-.coupon-status--active {
+.coupon-toggle-btn:hover {
+  transform: translateY(-1px);
+}
+
+.coupon-toggle-btn:active {
+  transform: scale(0.97);
+}
+
+.coupon-toggle-btn--active {
   color: #6ef0b4;
-  background: transparent;
+  background: rgba(110, 240, 180, 0.08);
+  border-color: rgba(110, 240, 180, 0.25);
 }
 
-.coupon-status--inactive {
+.coupon-toggle-btn--active:hover {
+  background: rgba(110, 240, 180, 0.14);
+  border-color: rgba(110, 240, 180, 0.4);
+}
+
+.coupon-toggle-btn--inactive {
   color: rgba(255, 255, 255, 0.5);
-  background: transparent;
-}
-
-.coupon-actions {
-  display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
-
-.coupon-actions :deep(.admin-btn) {
-  min-width: 112px;
-  justify-content: center;
-  padding: 0.52rem 0.95rem;
-  border-radius: 999px;
-}
-
-.coupon-actions :deep(.admin-btn--ghost) {
-  color: rgba(255, 255, 255, 0.62);
-  background: rgba(255, 255, 255, 0.035);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.coupon-actions :deep(.admin-btn--ghost:hover) {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-.coupon-actions :deep(.admin-btn--secondary) {
-  color: rgba(255, 255, 255, 0.58);
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-.coupon-actions :deep(.admin-btn--secondary:hover) {
-  color: rgba(255, 255, 255, 0.82);
-  background: rgba(255, 255, 255, 0.075);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-.coupon-actions :deep(.admin-btn--success) {
-  color: #071a2a;
-  background: rgba(110, 240, 180, 0.92);
-  border-color: transparent;
-}
-
-.coupon-actions :deep(.admin-btn--success:hover:not(:disabled)) {
-  background: #7af2be;
-}
-
-.coupons-empty {
-  min-height: 220px;
-  justify-content: center;
-  text-align: center;
-}
-
-.coupons-empty-title {
-  margin: 0;
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.coupons-empty-desc {
-  margin: 0;
-  max-width: 420px;
-  font-size: 0.86rem;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.38);
-}
-
-.coupon-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 42px;
+.coupon-toggle-btn--inactive:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .coupon-preview {
@@ -664,6 +491,26 @@ onMounted(() => {
   margin-top: 0.4rem;
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.46);
+}
+
+.coupons-empty {
+  min-height: 220px;
+  justify-content: center;
+  text-align: center;
+}
+
+.coupons-empty-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.coupons-empty-desc {
+  margin: 0;
+  max-width: 420px;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.38);
 }
 
 @media (max-width: 900px) {

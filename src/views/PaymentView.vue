@@ -135,7 +135,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
-import api, { fetchReceiptForOrder } from '@/services/api'
+import api, { fetchReceiptForOrder, validateCoupon } from '@/services/api'
 import { PrinterEncoder } from '@/PrinterEncoder'
 import CartPanel from '../components/CartPanel.vue'
 import LanguageModal from '../components/LanguageModal.vue'
@@ -143,7 +143,6 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import CouponModal from '../components/CouponModal.vue'
 import { useFormatters } from '../composables/useFormatters'
 import { useErrorToast } from '../composables/useErrorToast'
-import { normalizeCouponCode, validateCouponForSubtotal } from '../services/coupons'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -303,24 +302,37 @@ function startCouponScan() {
   }
 }
 
-function redeemCoupon() {
-  const result = validateCouponForSubtotal(couponCode.value, orderTotalPrice.value)
-  couponCode.value = result.code || normalizeCouponCode(couponCode.value)
-  couponMessage.value = result.message
-  couponMessageType.value = result.ok ? 'success' : 'error'
-  couponScanning.value = false
-
-  if (!result.ok) {
-    cartStore.clearCoupon()
-    syncPaymentSummary()
+async function redeemCoupon() {
+  const code = couponCode.value.trim().toUpperCase()
+  if (!code) {
+    couponMessage.value = 'Bitte einen Coupon-Code eingeben.'
+    couponMessageType.value = 'error'
     return
   }
 
-  cartStore.applyCoupon(result.coupon)
-  syncPaymentSummary()
-  return
+  couponScanning.value = false
 
-
+  try {
+    const result = await validateCoupon(code, orderTotalPrice.value)
+    // Backend returned a valid coupon response
+    couponCode.value = code
+    couponMessage.value = result.message || `Coupon ${code} aktiviert.`
+    couponMessageType.value = 'success'
+    cartStore.applyCoupon({
+      code: code,
+      label: result.label || result.message || code,
+      discount: result.discount ?? 0,
+      ...result,
+    })
+    syncPaymentSummary()
+  } catch (error) {
+    const msg = error.response?.data?.message || error.response?.data?.error || 'Coupon nicht gefunden oder nicht gültig.'
+    couponCode.value = code
+    couponMessage.value = msg
+    couponMessageType.value = 'error'
+    cartStore.clearCoupon()
+    syncPaymentSummary()
+  }
 }
 
 function openHelp() {
@@ -344,23 +356,27 @@ function syncPaymentSummary() {
   })
 }
 
-function refreshCouponAgainstCurrentOrderTotal() {
+async function refreshCouponAgainstCurrentOrderTotal() {
   if (!cartStore.appliedCoupon) {
     syncPaymentSummary()
     return
   }
 
-  const result = validateCouponForSubtotal(cartStore.appliedCoupon.code, orderTotalPrice.value)
-  if (!result.ok) {
+  try {
+    const result = await validateCoupon(cartStore.appliedCoupon.code, orderTotalPrice.value)
+    cartStore.applyCoupon({
+      code: cartStore.appliedCoupon.code,
+      label: result.label || result.message || cartStore.appliedCoupon.code,
+      discount: result.discount ?? 0,
+      ...result,
+    })
+    syncPaymentSummary()
+  } catch {
     cartStore.clearCoupon()
-    couponMessage.value = 'Coupon wurde entfernt, weil die Bestellung die Bedingungen nicht mehr erfuellt.'
+    couponMessage.value = 'Coupon wurde entfernt, weil die Bestellung die Bedingungen nicht mehr erfüllt.'
     couponMessageType.value = 'error'
     syncPaymentSummary()
-    return
   }
-
-  cartStore.applyCoupon(result.coupon)
-  syncPaymentSummary()
 }
 
 function cancel() {

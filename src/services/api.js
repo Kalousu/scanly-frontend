@@ -48,4 +48,32 @@ export const fetchReceiptForOrder = async (orderId) => {
   return response.data
 }
 
+// Coupon endpoints
+export const fetchAllCoupons = async () => {
+  const response = await api.get('/coupons')
+  return response.data
+}
+
+export const validateCoupon = async (code, subtotal) => {
+  const response = await api.get(`/coupons/validate/${encodeURIComponent(code)}`, {
+    params: { subtotal },
+  })
+  return response.data
+}
+
+export const createCoupon = async (couponData) => {
+  const response = await api.post('/coupons', couponData)
+  return response.data
+}
+
+export const activateCoupon = async (couponId) => {
+  const response = await api.patch(`/coupons/${couponId}/activate`)
+  return response.data
+}
+
+export const deactivateCoupon = async (couponId) => {
+  const response = await api.patch(`/coupons/${couponId}/deactivate`)
+  return response.data
+}
+
 export default api

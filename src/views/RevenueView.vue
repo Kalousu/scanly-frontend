@@ -113,10 +113,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import AdminLayout from '../components/AdminLayout.vue'
+import AdminLayout from '@/components/AdminLayout.vue'
 import api from '@/services/api'
-import { useFormatters } from '../composables/useFormatters'
-import { useOrderUtils } from '../composables/useOrderUtils'
+import { useFormatters } from '@/composables/useFormatters'
+import { useOrderUtils } from '@/composables/useOrderUtils'
 
 const { formatCurrency, formatDate } = useFormatters()
 const { getItemCount } = useOrderUtils()
@@ -394,7 +394,6 @@ async function loadOrders() {
     const response = await api.get('/orders')
     allOrders.value = Array.isArray(response.data) ? response.data : response.data.orders || response.data.content || []
   } catch (e) {
-    console.error('Failed to load orders:', e)
     error.value = e.message || 'Unbekannter Fehler'
   } finally {
     loading.value = false
@@ -405,10 +404,6 @@ onMounted(() => {
   loadOrders()
 })
 </script>
-
-<style>
-@import '@/assets/admin-shared.css';
-</style>
 
 <style scoped>
 /* Revenue-specific styles only */

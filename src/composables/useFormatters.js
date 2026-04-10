@@ -1,4 +1,4 @@
-import { useLanguage } from '../components/Uselanguage'
+import { useLanguage } from '@/components/Uselanguage'
 
 // helpers for formatting prices, dates, tax rates etc
 export function useFormatters() {
@@ -35,7 +35,6 @@ export function useFormatters() {
     const map = {
       1.19: '19 %',
       1.07: '7 %',
-      1.0: '0 %',
       1: '0 %',
     }
     return map[rate] ?? `${Math.round((rate - 1) * 100)} %`

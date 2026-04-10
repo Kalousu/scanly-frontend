@@ -76,6 +76,9 @@
             </div>
 
             <div class="manual-entry">
+              <p v-if="scanError" class="error-message" role="alert">
+                {{ errorMessage }}
+              </p>
               <button class="link-btn" @click="switchToManual" type="button">
                 {{ t('paybackManualSwitch') }}
               </button>
@@ -143,8 +146,8 @@
 <script setup>
 import { ref, onUnmounted, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { useLanguage } from '../components/Uselanguage'
-import { useSettingsStore } from '../stores/settings'
+import { useLanguage } from '@/components/Uselanguage'
+import { useSettingsStore } from '@/stores/settings'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
@@ -172,6 +175,7 @@ const videoRef = ref(null)
 const inputRef = ref(null)
 const showKeyboard = ref(false)
 const numericKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+const PAYBACK_DEMO_SCAN_DELAY_MS = 2000
 
 let stream = null
 
@@ -239,12 +243,23 @@ function confirm() {
 }
 
 async function startCamera() {
+  errorMessage.value = ''
+  scanError.value = false
   try {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error(t('cameraNotAvailable'))
+    }
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     if (videoRef.value) { videoRef.value.srcObject = stream; cameraActive.value = true }
-    setTimeout(() => { simulateScan() }, 2000)
-  } catch {
+    setTimeout(() => { completeDemoScan() }, PAYBACK_DEMO_SCAN_DELAY_MS)
+  } catch (error) {
     cameraActive.value = false
+    scanError.value = true
+    if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') {
+      errorMessage.value = t('cameraPermissionDenied')
+      return
+    }
+    errorMessage.value = error?.message || t('cameraNotAvailable')
   }
 }
 
@@ -253,7 +268,7 @@ function stopCamera() {
   cameraActive.value = false
 }
 
-function simulateScan() {
+function completeDemoScan() {
   scanSuccess.value = true
   setTimeout(() => { router.push('/payment') }, 1500)
 }
@@ -261,8 +276,8 @@ function simulateScan() {
 onUnmounted(() => { stopCamera() })
 </script>
 
-<style>
-:root {
+<style scoped>
+.page {
   --bg-0: #071A2A;
   --bg-1: #0B2C44;
   --bg-2: #092538;
@@ -277,18 +292,6 @@ onUnmounted(() => { stopCamera() })
   --r-xl: 28px;
   --r-lg: 22px;
   --r-pill: 999px;
-}
-
-html, body, #app {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-}
-</style>
-
-<style scoped>
-.page {
   position: fixed;
   inset: 0;
   display: flex;

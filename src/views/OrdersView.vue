@@ -177,9 +177,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/services/api'
-import AdminLayout from '../components/AdminLayout.vue'
-import { useFormatters } from '../composables/useFormatters'
-import { useOrderUtils } from '../composables/useOrderUtils'
+import AdminLayout from '@/components/AdminLayout.vue'
+import { useFormatters } from '@/composables/useFormatters'
+import { useOrderUtils } from '@/composables/useOrderUtils'
 
 const { formatCurrency, formatDate } = useFormatters()
 const { getItemCount } = useOrderUtils()
@@ -263,7 +263,6 @@ async function loadOrders() {
       ? response.data
       : response.data.orders || response.data.content || []
   } catch (e) {
-    console.error('Failed to load orders:', e)
     error.value = e.message || 'Unbekannter Fehler'
   } finally {
     loading.value = false
@@ -274,10 +273,6 @@ onMounted(() => {
   loadOrders()
 })
 </script>
-
-<style>
-@import '@/assets/admin-shared.css';
-</style>
 
 <style scoped>
 /* Orders-specific styles only */

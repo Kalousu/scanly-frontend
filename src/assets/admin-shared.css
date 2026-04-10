@@ -1,7 +1,7 @@
 /* ============================================================
    ADMIN SHARED STYLES
    Extracted common patterns used across Admin views/components.
-   Import in components via: @import '@/assets/admin-shared.css';
+   Loaded once through src/assets/main.css.
    ============================================================ */
 
 /*Page Header*/

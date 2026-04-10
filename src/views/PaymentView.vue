@@ -59,7 +59,7 @@
             <button
               class="btn btn--pay btn--pay--primary"
               :disabled="orderItems.length === 0 || status === 'paying' || status === 'paid'"
-              @click="pay(); printReceipt()"
+              @click="pay"
             >
               <span v-if="status === 'paying'" class="spinner"></span>
               <span v-else>{{ t('pay') }}</span>
@@ -133,22 +133,20 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useCartStore } from '../stores/cart'
-import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
+import { useCartStore } from '@/stores/cart'
+import { useLanguage, translations as allTranslations } from '@/components/Uselanguage'
 import api, { fetchReceiptForOrder, validateCoupon } from '@/services/api'
 import { PrinterEncoder } from '@/PrinterEncoder'
-import CartPanel from '../components/CartPanel.vue'
-import LanguageModal from '../components/LanguageModal.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import CouponModal from '../components/CouponModal.vue'
-import { useFormatters } from '../composables/useFormatters'
-import { useErrorToast } from '../composables/useErrorToast'
+import CartPanel from '@/components/CartPanel.vue'
+import LanguageModal from '@/components/LanguageModal.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import CouponModal from '@/components/CouponModal.vue'
+import { useErrorToast } from '@/composables/useErrorToast'
 
 const router = useRouter()
 const cartStore = useCartStore()
-const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
+const { currentLang, languages, t, setLanguage } = useLanguage()
 
-const { formatPrice } = useFormatters()
 const { errorMessage, showError } = useErrorToast()
 
 const translations_local = allTranslations
@@ -162,7 +160,6 @@ const status = ref('idle')
 const modal = ref(null)
 
 const vatEnabled = ref(false)
-const vatRate = ref(19)
 
 const orderItems = ref([])
 const orderTotalPrice = ref(0)
@@ -189,67 +186,76 @@ function selectLanguage(code) {
 }
 
 
-// connects to usb thermal printer via WebUSB and prints a test receipt
+// Prints the backend receipt via WebUSB after checkout succeeds.
 async function printReceipt(){
   const orderId = cartStore.orderId
   if(!orderId) {
-    console.error('No OrderId found')
+    showError('Keine Order vorhanden')
     return
   }
-  const receiptData = await fetchReceiptForOrder(orderId)
-  const device = await navigator.usb.requestDevice({
-          filters: [{ vendorId: 0x0483, productId: 0x5840 }]
-        });
-        await device.open();
-        await device.selectConfiguration(1);
-        await device.claimInterface(0);
+  let device = null
+  try {
+    const receiptData = await fetchReceiptForOrder(orderId)
+    device = await navigator.usb.requestDevice({
+      filters: [{ vendorId: 0x0483, productId: 0x5840 }],
+    })
+    await device.open()
+    await device.selectConfiguration(1)
+    await device.claimInterface(0)
 
-        const endpoint = device.configuration.interfaces[0].alternate.endpoints.find(e => e.direction === 'out');
+    const endpoint = device.configuration.interfaces[0].alternate.endpoints.find(
+      (e) => e.direction === 'out',
+    )
+    if (!endpoint) {
+      throw new Error('Kein Drucker-Endpunkt gefunden.')
+    }
 
-        const printer = new PrinterEncoder();
-        printer
-          .init()
-          .setCodepage()
-          .setGerman()
-          .center()
-          .setBold()
-          .setItalic()
-          .setUnderline()
-          .println(0xC3)
-          .beep()
-          .unsetUnderline()
-          .unsetBold()
-          .println('Artikel A        3.50 EUR')
-          .println('Artikel B        5.00 EUR')
-        // Print each receipt item from the API response
-        if (receiptData.receiptItemResponseList && receiptData.receiptItemResponseList.length > 0) {
-          printer.printEURLabel()
-          receiptData.receiptItemResponseList.forEach(item => {
-            printer.printPrice(
-              item.productName,
-              item.totalPriceGross,
-              item.unitPriceGross,
-              item.amount,
-              item.taxLabel
-            )
-          })
-          printer.lineSeparator()
-          printer.setBold()
-          printer.printSum(receiptData.totalAmount)
-          printer.unsetBold()
-          printer.feed(1)
-          printer.printTaxGroupTable(receiptData.receiptTaxGroupResponseList)
-        }
+    const printer = new PrinterEncoder()
+    printer
+      .init()
+      .setCodepage()
+      .setGerman()
+      .center()
+      .setBold()
+      .setItalic()
+      .setUnderline()
+      .println(0xC3)
+      .beep()
+      .unsetUnderline()
+      .unsetBold()
 
-        printer.unsetItalic()
-        printer.feed(1)
-        printer.cut()
+    if (receiptData.receiptItemResponseList && receiptData.receiptItemResponseList.length > 0) {
+      printer.printEURLabel()
+      receiptData.receiptItemResponseList.forEach((item) => {
+        printer.printPrice(
+          item.productName,
+          item.totalPriceGross,
+          item.unitPriceGross,
+          item.amount,
+          item.taxLabel,
+        )
+      })
+      printer.lineSeparator()
+      printer.setBold()
+      printer.printSum(receiptData.totalAmount)
+      printer.unsetBold()
+      printer.feed(1)
+      printer.printTaxGroupTable(receiptData.receiptTaxGroupResponseList)
+    }
 
-        const result = printer.encode();
- 
+    printer.unsetItalic()
+    printer.feed(1)
+    printer.cut()
 
-        await device.transferOut(endpoint.endpointNumber, result);
-        await device.close();
+    await device.transferOut(endpoint.endpointNumber, printer.encode())
+  } catch (error) {
+    const errorMsg = error?.message || 'Bon konnte nicht gedruckt werden.'
+    showError(`Bon-Druck fehlgeschlagen: ${errorMsg}`)
+  } finally {
+    if (device?.opened) {
+      await device.close()
+    }
+  }
 }
 
 function handleKeydown(e) {
@@ -280,7 +286,7 @@ function handleKeydown(e) {
   }
 }
 
-function onBarcodeScanned(code) {
+function onBarcodeScanned() {
   status.value = 'idle'
 }
 
@@ -336,8 +342,6 @@ async function redeemCoupon() {
 }
 
 function openHelp() {
-  console.log('lang', currentLang.value)
-  console.log('helpPayment', helpPayment.value)
   modal.value = 'help'
 }
 function toggleLanguage() {
@@ -400,11 +404,11 @@ async function pay() {
 
   try {
     await api.post(`/orders/${cartStore.orderId}/checkout`, { paymentMethod: 'Card' })
+    await printReceipt()
     status.value = 'paid'
     await new Promise((r) => setTimeout(r, 900))
     router.push('/summary')
   } catch (error) {
-    console.error('Checkout-Fehler:', error)
     const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
     showError(`Checkout fehlgeschlagen: ${errorMsg}`)
     status.value = 'idle'
@@ -415,12 +419,12 @@ async function fetchOrder() {
   if (!cartStore.orderId) return
   try {
     const response = await api.get(`/orders/${cartStore.orderId}`)
-    console.log(`GET /api/orders/${cartStore.orderId} Response:`, response.data)
     orderItems.value = response.data.orderItems || []
     orderTotalPrice.value = response.data.totalPrice || 0
     refreshCouponAgainstCurrentOrderTotal()
   } catch (error) {
-    console.error(`GET /api/orders/${cartStore.orderId} Error:`, error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Bestellung konnte nicht geladen werden: ${errorMsg}`)
   }
 }
 
@@ -434,39 +438,7 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style>
-html,
-body {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  font-family:
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
-}
-body {
-  background: linear-gradient(160deg, #071a2a 0%, #0b2c44 60%, #092538 100%);
-}
-
-:root {
-  --stroke: rgba(255, 255, 255, 0.12);
-  --stroke-md: rgba(255, 255, 255, 0.17);
-  --stroke-hover: rgba(24, 231, 242, 0.35);
-  --text: rgba(255, 255, 255, 0.96);
-  --muted: rgba(255, 255, 255, 0.65);
-  --muted2: rgba(255, 255, 255, 0.42);
-  --cyan: #18e7f2;
-  --cyan2: #1bc7ff;
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  --glow: 0 18px 45px rgba(24, 231, 242, 0.26);
-  --glow-sm: 0 0 16px rgba(24, 231, 242, 0.2);
-  --panel: rgba(11, 32, 49, 0.88);
-  --panel-strong: rgba(10, 28, 44, 0.95);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
-}
-
+<style scoped>
 .delete-overlay {
   position: fixed;
   inset: 0;
@@ -586,6 +558,20 @@ body {
 
 <style scoped>
 .checkout-page {
+  --stroke: rgba(255, 255, 255, 0.12);
+  --stroke-md: rgba(255, 255, 255, 0.17);
+  --stroke-hover: rgba(24, 231, 242, 0.35);
+  --text: rgba(255, 255, 255, 0.96);
+  --muted: rgba(255, 255, 255, 0.65);
+  --muted2: rgba(255, 255, 255, 0.42);
+  --cyan: #18e7f2;
+  --cyan2: #1bc7ff;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --glow: 0 18px 45px rgba(24, 231, 242, 0.26);
+  --glow-sm: 0 0 16px rgba(24, 231, 242, 0.2);
+  --panel: rgba(11, 32, 49, 0.88);
+  --panel-strong: rgba(10, 28, 44, 0.95);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
   position: fixed;
   inset: 0;
   display: flex;

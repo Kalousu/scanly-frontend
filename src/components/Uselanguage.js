@@ -1,10 +1,10 @@
 // simple i18n, selected language is stored in localstorage
 // currentLang is defined outside the composable so all components share the same ref
 import { ref, computed } from 'vue'
-import de from '../locales/de'
-import en from '../locales/en'
-import it from '../locales/it'
-import ru from '../locales/ru'
+import de from '@/locales/de'
+import en from '@/locales/en'
+import it from '@/locales/it'
+import ru from '@/locales/ru'
 
 const LANG_KEY = 'checkout_lang'
 

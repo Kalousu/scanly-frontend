@@ -71,8 +71,8 @@
 </template>
 
 <script setup>
-import { useLanguage } from '../components/Uselanguage'
-import { useFormatters } from '../composables/useFormatters'
+import { useLanguage } from '@/components/Uselanguage'
+import { useFormatters } from '@/composables/useFormatters'
 
 defineProps({
   items: { type: Array, required: true },

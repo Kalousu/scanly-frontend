@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useCartStore } from '../stores/cart'
-import { useLanguage } from '../components/Uselanguage'
+import { useCartStore } from '@/stores/cart'
+import { useLanguage } from '@/components/Uselanguage'
 
 const router = useRouter()
 const cart = useCartStore()

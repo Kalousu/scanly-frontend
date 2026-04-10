@@ -198,24 +198,21 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useCartStore } from '../stores/cart'
-import { useSettingsStore } from '../stores/settings'
-import { storeToRefs } from 'pinia'
-import { useLanguage, translations as allTranslations } from '../components/Uselanguage'
+import { useCartStore } from '@/stores/cart'
+import { useSettingsStore } from '@/stores/settings'
+import { useLanguage, translations as allTranslations } from '@/components/Uselanguage'
 import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
-import CartPanel from '../components/CartPanel.vue'
-import LanguageModal from '../components/LanguageModal.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import ProductPickerModal from '../components/ProductPickerModal.vue'
-import { useFormatters } from '../composables/useFormatters'
-import { useErrorToast } from '../composables/useErrorToast'
+import CartPanel from '@/components/CartPanel.vue'
+import LanguageModal from '@/components/LanguageModal.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import ProductPickerModal from '@/components/ProductPickerModal.vue'
+import { useErrorToast } from '@/composables/useErrorToast'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const settingsStore = useSettingsStore()
 const { currentLang, languages, t, tFn, setLanguage } = useLanguage()
 
-const { formatPrice } = useFormatters()
 const { errorMessage, showError } = useErrorToast()
 
 const translations_local = allTranslations
@@ -230,7 +227,6 @@ const modal = ref(null)
 
 const cameraNoDevice = ref(false)
 const vatEnabled = ref(false)
-const vatRate = ref(19)
 
 const orderItems = ref([])
 const orderTotalPrice = ref(0)
@@ -264,16 +260,6 @@ const confirmDeleteItem = ref(null)
 const showCancelConfirm = ref(false)
 
 
-function isFruitsVegetables(item) {
-  const cat = item.productCategory || item.category
-  if (cat) return cat === 'FRUITS_VEGETABLES'
-  return !Number.isInteger(item.amount)
-}
-
-function round2(n) {
-  return Math.round(n * 100) / 100
-}
-
 function getLocalizedName(item) {
   if (typeof item.name === 'object') {
     return item.name[currentLang.value] || item.name.de || Object.values(item.name)[0]
@@ -283,24 +269,6 @@ function getLocalizedName(item) {
 
 function getItemName(item) {
   return getLocalizedName(item)
-}
-
-function getLocalizedCategory(item) {
-  if (typeof item.category === 'object') {
-    return item.category[currentLang.value] || item.category.de || Object.values(item.category)[0]
-  }
-  return item.category || t('bakery')
-}
-
-function addItem(item) {
-  status.value = 'idle'
-  cartStore.addItem({
-    sku: item.sku,
-    name: item.name,
-    category: item.category,
-    price: item.price,
-    unit: 'each',
-  })
 }
 
 function selectBakeryItem(item) {
@@ -321,7 +289,6 @@ async function confirmBakeryItem() {
     })
     await fetchOrder()
   } catch (error) {
-    console.error('Fehler beim Hinzufügen der Backware:', error)
     const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
     showError(`Fehler: ${errorMsg}`)
   }
@@ -350,7 +317,6 @@ async function confirmWeighted() {
     })
     await fetchOrder()
   } catch (error) {
-    console.error('Fehler beim Hinzufügen des Produkts:', error)
     const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
     showError(`Fehler: ${errorMsg}`)
   }
@@ -367,7 +333,6 @@ async function updateItemQuantity(item, delta) {
     })
     await fetchOrder()
   } catch (error) {
-    console.error('Fehler beim Ändern der Menge:', error)
     const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
     showError(`Fehler: ${errorMsg}`)
   }
@@ -379,21 +344,10 @@ async function deleteItem() {
     await api.delete(`/orders/${cartStore.orderId}/items/${confirmDeleteItem.value.id}`)
     await fetchOrder()
   } catch (error) {
-    console.error('Fehler beim Löschen des Artikels:', error)
     const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
     showError(`Fehler: ${errorMsg}`)
   }
   confirmDeleteItem.value = null
-}
-
-function removeLine(lineId) {
-  cartStore.removeLine(lineId)
-}
-function inc(line) {
-  cartStore.inc(line)
-}
-function dec(line) {
-  cartStore.dec(line)
 }
 
 function handleKeydown(e) {
@@ -428,11 +382,11 @@ async function fetchOrder() {
   if (!cartStore.orderId) return
   try {
     const response = await api.get(`/orders/${cartStore.orderId}`)
-    console.log(`GET /api/orders/${cartStore.orderId} Response:`, response.data)
     orderItems.value = response.data.orderItems || []
     orderTotalPrice.value = response.data.totalPrice || 0
   } catch (error) {
-    console.error(`GET /api/orders/${cartStore.orderId} Error:`, error)
+    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
+    showError(`Bestellung konnte nicht geladen werden: ${errorMsg}`)
   }
 }
 
@@ -450,12 +404,10 @@ async function onBarcodeScanned(code) {
       code: code,
       amount: 1,
     })
-    console.log(`POST /api/orders/${cartStore.orderId}/items - code: ${code}`)
 
     await fetchOrder()
     status.value = 'idle'
   } catch (error) {
-    console.error(`POST /api/orders/${cartStore.orderId}/items Error:`, error)
     const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
     showError(`${t('error')} (${code}): ${errorMsg}`)
     status.value = 'idle'
@@ -482,8 +434,7 @@ async function openProduce() {
         pricePerKg: p.price,
         category: p.category,
       }))
-    } catch (err) {
-      console.error('Fehler beim Laden der Produkte:', err)
+    } catch {
       showError('Produkte konnten nicht geladen werden.')
     } finally {
       produceLoading.value = false
@@ -504,8 +455,7 @@ async function openBakery() {
         price: p.price,
         category: p.category,
       }))
-    } catch (err) {
-      console.error('Fehler beim Laden der Backwaren:', err)
+    } catch {
       showError('Backwaren konnten nicht geladen werden.')
     } finally {
       bakeryLoading.value = false
@@ -526,8 +476,9 @@ async function confirmCancel() {
     if (cartStore.orderId) {
       await api.delete(`/orders/${cartStore.orderId}`)
     }
-  } catch (error) {
-    console.error('Fehler beim Abbrechen der Bestellung:', error)
+  } catch {
+    showError('Bestellung konnte nicht im Backend abgebrochen werden.')
+    return
   }
   cartStore.clearCart()
   scanBuffer.value = ''
@@ -632,7 +583,11 @@ function stopCamera() {
 
 function toggleCamera() {
   if (cameraNoDevice.value) return
-  cameraActive.value ? stopCamera() : startCamera()
+  if (cameraActive.value) {
+    stopCamera()
+  } else {
+    startCamera()
+  }
 }
 
 function startBarcodeScanning() {
@@ -652,7 +607,7 @@ function startBarcodeScanning() {
         }, settingsStore.cameraCooldown)
       }
     } catch {
-
+      // BarcodeDetector can fail on individual frames; keep scanning the next frame.
     }
   }, 250)
 }
@@ -678,39 +633,7 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style>
-html,
-body {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  font-family:
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
-}
-body {
-  background: linear-gradient(160deg, #071a2a 0%, #0b2c44 60%, #092538 100%);
-}
-
-:root {
-  --stroke: rgba(255, 255, 255, 0.12);
-  --stroke-md: rgba(255, 255, 255, 0.17);
-  --stroke-hover: rgba(24, 231, 242, 0.35);
-  --text: rgba(255, 255, 255, 0.96);
-  --muted: rgba(255, 255, 255, 0.65);
-  --muted2: rgba(255, 255, 255, 0.42);
-  --cyan: #18e7f2;
-  --cyan2: #1bc7ff;
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  --glow: 0 18px 45px rgba(24, 231, 242, 0.26);
-  --glow-sm: 0 0 16px rgba(24, 231, 242, 0.2);
-  --panel: rgba(11, 32, 49, 0.88);
-  --panel-strong: rgba(10, 28, 44, 0.95);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
-}
-
+<style scoped>
 .delete-overlay {
   position: fixed;
   inset: 0;
@@ -830,6 +753,20 @@ body {
 
 <style scoped>
 .checkout-page {
+  --stroke: rgba(255, 255, 255, 0.12);
+  --stroke-md: rgba(255, 255, 255, 0.17);
+  --stroke-hover: rgba(24, 231, 242, 0.35);
+  --text: rgba(255, 255, 255, 0.96);
+  --muted: rgba(255, 255, 255, 0.65);
+  --muted2: rgba(255, 255, 255, 0.42);
+  --cyan: #18e7f2;
+  --cyan2: #1bc7ff;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --glow: 0 18px 45px rgba(24, 231, 242, 0.26);
+  --glow-sm: 0 0 16px rgba(24, 231, 242, 0.2);
+  --panel: rgba(11, 32, 49, 0.88);
+  --panel-strong: rgba(10, 28, 44, 0.95);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.32);
   position: fixed;
   inset: 0;
   display: flex;

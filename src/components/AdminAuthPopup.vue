@@ -67,7 +67,7 @@
 <script setup>
 import { ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps({
   visible: {

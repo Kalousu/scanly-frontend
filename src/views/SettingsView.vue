@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useSettingsStore } from '../stores/settings'
-import AdminLayout from '../components/AdminLayout.vue'
+import { useSettingsStore } from '@/stores/settings'
+import AdminLayout from '@/components/AdminLayout.vue'
 
 const settings = useSettingsStore()
 
@@ -102,10 +102,6 @@ function saveSettings() {
       </div>
   </AdminLayout>
 </template>
-
-<style>
-@import '@/assets/admin-shared.css';
-</style>
 
 <style scoped>
 .settings-section {

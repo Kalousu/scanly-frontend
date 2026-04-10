@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue'
-import AdminLayout from '../components/AdminLayout.vue'
+import AdminLayout from '@/components/AdminLayout.vue'
 import {
   fetchProductByBarcode,
   fetchAllProducts,
   createProduct,
   updateProduct,
   deleteProduct,
-} from '../services/api'
+} from '@/services/api'
 
 const activeModal = ref(null)
 const searchQuery = ref('')
@@ -150,9 +150,8 @@ async function loadAllProducts() {
   try {
     const data = await fetchAllProducts()
     allProducts.value = Array.isArray(data) ? data : (data.products || data.content || [])
-  } catch (err) {
+  } catch {
     dbError.value = 'Fehler beim Laden der Produkte. Bitte versuche es erneut.'
-    console.error('loadAllProducts:', err)
   } finally {
     dbLoading.value = false
   }
@@ -193,8 +192,7 @@ async function executeAction(apiCall, errorMessage) {
     await apiCall()
     actionState.value.success = true
     setTimeout(() => closeModal(), 1200)
-  } catch (err) {
-    console.error(err)
+  } catch {
     actionState.value.error = errorMessage
   } finally {
     actionState.value.loading = false
@@ -552,10 +550,6 @@ function removeProduct() {
     </Transition>
   </AdminLayout>
 </template>
-
-<style>
-@import '@/assets/admin-shared.css';
-</style>
 
 <style scoped>
 /* Products-specific styles only */

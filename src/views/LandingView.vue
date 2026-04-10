@@ -40,6 +40,7 @@
         <button type="button" class="start" @click="onStart">
           <span class="start-text">{{ t('start') }}</span>
         </button>
+        <p v-if="startError" class="start-error" role="alert">{{ startError }}</p>
       </div>
     </main>
 
@@ -76,10 +77,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import HelpModal from '../components/HelpModal.vue'
-import AdminAuthPopup from '../components/AdminAuthPopup.vue'
-import { useLanguage, translations } from '../components/Uselanguage'
-import { useCartStore } from '../stores/cart'
+import HelpModal from '@/components/HelpModal.vue'
+import AdminAuthPopup from '@/components/AdminAuthPopup.vue'
+import { useLanguage, translations } from '@/components/Uselanguage'
+import { useCartStore } from '@/stores/cart'
 import api from '@/services/api'
 
 const router = useRouter()
@@ -88,29 +89,21 @@ const { currentLang, languages, t, setLanguage } = useLanguage()
 
 const isHelpOpen = ref(false)
 const isAdminAuthOpen = ref(false)
+const startError = ref('')
 
 async function onStart() {
+  startError.value = ''
   try {
     const response = await api.post('/orders')
-    console.log('POST /api/orders Response:', response.data)
     cartStore.orderId = response.data.id ?? response.data.orderId ?? response.data
     cartStore.clearCoupon()
     cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
-  } catch (error) {
-    console.error('POST /api/orders Error:', error)
+    router.push('/checkout')
+  } catch {
+    startError.value = 'Bestellung konnte nicht gestartet werden. Bitte erneut versuchen.'
   }
-  router.push('/checkout')
 }
 </script>
-
-<style>
-html,
-body,
-#app {
-  margin: 0;
-  height: 100%;
-}
-</style>
 
 <style scoped>
 .checkout {
@@ -339,6 +332,13 @@ body,
 .start:active {
   transform: translateY(0);
   box-shadow: 0 3px 12px rgba(30, 195, 255, 0.25);
+}
+
+.start-error {
+  margin: 18px 0 0;
+  color: #fca5a5;
+  font-size: 0.95rem;
+  font-weight: 650;
 }
 
 .language-bar {

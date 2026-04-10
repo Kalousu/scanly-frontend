@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import AdminLayout from '../components/AdminLayout.vue'
-import { fetchAllCoupons, createCoupon, activateCoupon, deactivateCoupon } from '../services/api'
+import AdminLayout from '@/components/AdminLayout.vue'
+import { fetchAllCoupons, createCoupon, activateCoupon, deactivateCoupon } from '@/services/api'
 
 const coupons = ref([])
 const loading = ref(false)
@@ -150,9 +150,9 @@ async function loadCoupons() {
   try {
     const data = await fetchAllCoupons()
     coupons.value = Array.isArray(data) ? data : []
-  } catch (error) {
-    console.error('Fehler beim Laden der Coupons:', error)
+  } catch {
     coupons.value = []
+    showSavedMessage('Coupons konnten nicht geladen werden.')
   } finally {
     loading.value = false
   }
@@ -382,10 +382,6 @@ onMounted(() => {
     </Transition>
   </AdminLayout>
 </template>
-
-<style>
-@import '@/assets/admin-shared.css';
-</style>
 
 <style scoped>
 .coupons-toolbar-actions {

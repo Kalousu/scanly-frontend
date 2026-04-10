@@ -33,7 +33,7 @@ const defaults = {
   scannerBuffer: 350,
   cameraAutoStart: true,
 
-  // Admin credentials (frontend-only, no real auth)
+  // Demo admin credentials are stored locally until backend auth is connected.
   adminUsername: 'admin',
   adminPassword: 'admin',
 }

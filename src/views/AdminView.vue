@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import AdminLayout from '../components/AdminLayout.vue'
+import AdminLayout from '@/components/AdminLayout.vue'
 
 const router = useRouter()
 
@@ -62,10 +62,6 @@ function navigateTo(route) {
     </div>
   </AdminLayout>
 </template>
-
-<style>
-@import '@/assets/admin-shared.css';
-</style>
 
 <style scoped>
 .grid {

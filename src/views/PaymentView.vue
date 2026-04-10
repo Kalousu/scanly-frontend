@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="checkout-page">
     <div class="bg-grid" aria-hidden="true"></div>
 
@@ -13,87 +13,35 @@
       />
 
       <main class="panel scan-panel">
-        <div class="top-actions">
-          <button class="action-pill" @click="toggleLanguage">{{ t('language') }}</button>
-          <button class="action-pill" @click="openHelp">{{ t('help') }}</button>
-          <button
-            class="action-pill"
-            :class="{ 'action-pill--active': vatEnabled }"
-            @click="vatEnabled = !vatEnabled"
-          >
-            MwSt
-          </button>
-        </div>
+        <PaymentHeaderActions
+          :vat-enabled="vatEnabled"
+          :t="t"
+          @language="modal = 'lang'"
+          @help="modal = 'help'"
+          @toggle-vat="vatEnabled = !vatEnabled"
+        />
 
-        <div class="hero-block">
-          <div class="hero-eyebrow">
-            <img src="../assets/logo-removebg-preview.png" alt="Scanly" />
-          </div>
-
-          <div class="status-text">
-            <template v-if="status === 'idle'">
-              {{ t('payText') }}
-            </template>
-            <template v-else-if="status === 'scanning'">
-              <span class="status--scanning">{{ t('scanning') }}</span>
-            </template>
-            <template v-else-if="status === 'paying'">
-              <span class="status--paying">{{ t('paying') }}</span>
-            </template>
-            <template v-else-if="status === 'paid'">
-              <span class="status--paid">{{ t('paid') }}</span>
-            </template>
-            <template v-else-if="status === 'cancelled'">
-              <span class="status--cancelled">{{ t('cancelled') }}</span>
-            </template>
-          </div>
-
-          <div class="hero-sub">
-            <span v-if="status === 'idle'">{{ t('paySub') }}</span>
-            <span v-else>{{ t('heroSubSmall') }}</span>
-          </div>
-        </div>
+        <PaymentHeroStatus :status="status" :t="t" />
 
         <div class="flow-block">
-          <div class="action-row">
-            <button
-              class="btn btn--pay btn--pay--primary"
-              :disabled="orderItems.length === 0 || status === 'paying' || status === 'paid'"
-              @click="pay"
-            >
-              <span v-if="status === 'paying'" class="spinner"></span>
-              <span v-else>{{ t('pay') }}</span>
-            </button>
-
-            <button class="btn btn--coupon-main" @click="openCouponModal">
-              Coupon einlösen
-            </button>
-
-            <button
-              class="btn btn--cancel btn--cancel--secondary"
-              @click="cancel"
-              :disabled="status === 'paying'"
-            >
-              {{ t('cancel') }}
-            </button>
-          </div>
+          <PaymentActions
+            :item-count="orderItems.length"
+            :status="status"
+            :t="t"
+            @pay="pay"
+            @coupon="openCouponModal(modal)"
+            @cancel="showCancelConfirm = true"
+          />
         </div>
 
-        <div v-if="errorMessage" class="error-toast" role="alert">⚠️ {{ errorMessage }}</div>
+        <div v-if="errorMessage" class="error-toast" role="alert">{{ errorMessage }}</div>
 
-        <div v-if="modal === 'help'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">{{ t('helpTitle') }}</h3>
-            <ul class="help-list">
-              <li v-for="(item, i) in helpPayment" :key="i">{{ item }}</li>
-            </ul>
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--done" @click="closeModal">
-                {{ t('close') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <PaymentHelpModal
+          :visible="modal === 'help'"
+          :items="helpPayment"
+          :t="t"
+          @close="closeModal"
+        />
 
         <CouponModal
           :visible="modal === 'coupon'"
@@ -131,256 +79,78 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useLanguage, translations as allTranslations } from '@/components/Uselanguage'
-import api, { fetchReceiptForOrder, validateCoupon } from '@/services/api'
-import { PrinterEncoder } from '@/PrinterEncoder'
 import CartPanel from '@/components/CartPanel.vue'
 import LanguageModal from '@/components/LanguageModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import CouponModal from '@/components/CouponModal.vue'
+import PaymentActions from '@/components/payment/PaymentActions.vue'
+import PaymentHeaderActions from '@/components/payment/PaymentHeaderActions.vue'
+import PaymentHelpModal from '@/components/payment/PaymentHelpModal.vue'
+import PaymentHeroStatus from '@/components/payment/PaymentHeroStatus.vue'
+import { useCouponRedemption } from '@/composables/useCouponRedemption'
 import { useErrorToast } from '@/composables/useErrorToast'
+import { useKeyboardBarcodeScanner } from '@/composables/useKeyboardBarcodeScanner'
+import { useOrderSession } from '@/composables/useOrderSession'
+import { usePaymentFlow } from '@/composables/usePaymentFlow'
+import { useReceiptPrinter } from '@/composables/useReceiptPrinter'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const { currentLang, languages, t, setLanguage } = useLanguage()
-
 const { errorMessage, showError } = useErrorToast()
 
-const translations_local = allTranslations
+const translationsLocal = allTranslations
 
 const helpPayment = computed(() => {
-  const items = translations_local[currentLang.value]?.helpPayment
-  return items ?? translations_local.de.helpPayment
+  const items = translationsLocal[currentLang.value]?.helpPayment
+  return items ?? translationsLocal.de.helpPayment
 })
 
 const status = ref('idle')
 const modal = ref(null)
-
 const vatEnabled = ref(false)
-
-const orderItems = ref([])
-const orderTotalPrice = ref(0)
-
-const scanBuffer = ref('')
-let scanTimer = null
-
 const showCancelConfirm = ref(false)
 
-// Coupon state
-const couponCode = ref('')
-const couponScanning = ref(false)
-const couponMessage = ref('')
-const couponMessageType = ref('')
-const appliedCoupon = computed(() => cartStore.appliedCoupon)
-const couponDiscount = computed(() => Number(appliedCoupon.value?.discount || 0))
-const payableTotal = computed(() =>
-  Math.max(Number(orderTotalPrice.value || 0) - couponDiscount.value, 0),
-)
+const { orderItems, orderTotalPrice, fetchOrder } = useOrderSession(cartStore, showError)
+
+const {
+  couponCode,
+  couponScanning,
+  couponMessage,
+  couponMessageType,
+  appliedCoupon,
+  couponDiscount,
+  payableTotal,
+  openCouponModal,
+  startCouponScan,
+  stopCouponScan,
+  redeemCoupon,
+  refreshCouponAgainstCurrentOrderTotal,
+  syncPaymentSummary,
+} = useCouponRedemption(cartStore, orderTotalPrice)
+
+const { printReceipt } = useReceiptPrinter(showError)
 
 function selectLanguage(code) {
   setLanguage(code)
   closeModal()
 }
 
-
-// Prints the backend receipt via WebUSB after checkout succeeds.
-async function printReceipt(){
-  const orderId = cartStore.orderId
-  if(!orderId) {
-    showError('Keine Order vorhanden')
-    return
+function onBarcodeScanned(code) {
+  if (modal.value === 'coupon' && couponScanning.value) {
+    couponCode.value = code
+    couponScanning.value = false
   }
-  let device = null
-  try {
-    const receiptData = await fetchReceiptForOrder(orderId)
-    device = await navigator.usb.requestDevice({
-      filters: [{ vendorId: 0x0483, productId: 0x5840 }],
-    })
-    await device.open()
-    await device.selectConfiguration(1)
-    await device.claimInterface(0)
-
-    const endpoint = device.configuration.interfaces[0].alternate.endpoints.find(
-      (e) => e.direction === 'out',
-    )
-    if (!endpoint) {
-      throw new Error('Kein Drucker-Endpunkt gefunden.')
-    }
-
-    const printer = new PrinterEncoder()
-    printer
-      .init()
-      .setCodepage()
-      .setGerman()
-      .center()
-      .setBold()
-      .setItalic()
-      .setUnderline()
-      .println(0xC3)
-      .beep()
-      .unsetUnderline()
-      .unsetBold()
-
-    if (receiptData.receiptItemResponseList && receiptData.receiptItemResponseList.length > 0) {
-      printer.printEURLabel()
-      receiptData.receiptItemResponseList.forEach((item) => {
-        printer.printPrice(
-          item.productName,
-          item.totalPriceGross,
-          item.unitPriceGross,
-          item.amount,
-          item.taxLabel,
-        )
-      })
-      printer.lineSeparator()
-      printer.setBold()
-      printer.printSum(receiptData.totalAmount)
-      printer.unsetBold()
-      printer.feed(1)
-      printer.printTaxGroupTable(receiptData.receiptTaxGroupResponseList)
-    }
-
-    printer.unsetItalic()
-    printer.feed(1)
-    printer.cut()
-
-    await device.transferOut(endpoint.endpointNumber, printer.encode())
-  } catch (error) {
-    const errorMsg = error?.message || 'Bon konnte nicht gedruckt werden.'
-    showError(`Bon-Druck fehlgeschlagen: ${errorMsg}`)
-  } finally {
-    if (device?.opened) {
-      await device.close()
-    }
-  }
-}
-
-function handleKeydown(e) {
-  const tag = (e.target?.tagName || '').toLowerCase()
-
-  if (e.key === 'Escape' && modal.value) {
-    closeModal()
-    return
-  }
-
-  if (tag === 'input' || tag === 'textarea') return
-  if (modal.value) return
-
-  if (scanTimer) window.clearTimeout(scanTimer)
-
-  if (e.key === 'Enter') {
-    const code = scanBuffer.value.trim()
-    scanBuffer.value = ''
-    if (code) onBarcodeScanned(code)
-    return
-  }
-
-  if (e.key.length === 1) {
-    scanBuffer.value += e.key
-    scanTimer = window.setTimeout(() => {
-      scanBuffer.value = ''
-    }, 300)
-  }
-}
-
-function onBarcodeScanned() {
   status.value = 'idle'
 }
 
-function openCouponModal() {
-  couponCode.value = cartStore.appliedCoupon?.code || ''
-  couponScanning.value = false
-  couponMessage.value = cartStore.appliedCoupon
-    ? `${cartStore.appliedCoupon.label} ist bereits aktiv.`
-    : ''
-  couponMessageType.value = cartStore.appliedCoupon ? 'success' : ''
-  modal.value = 'coupon'
-}
-
-function startCouponScan() {
-  couponScanning.value = !couponScanning.value
-  if (couponScanning.value) {
-    couponCode.value = ''
-    couponMessage.value = ''
-  }
-}
-
-async function redeemCoupon() {
-  const code = couponCode.value.trim().toUpperCase()
-  if (!code) {
-    couponMessage.value = 'Bitte einen Coupon-Code eingeben.'
-    couponMessageType.value = 'error'
-    return
-  }
-
-  couponScanning.value = false
-
-  try {
-    const result = await validateCoupon(code, orderTotalPrice.value)
-    // Backend returned a valid coupon response
-    couponCode.value = code
-    couponMessage.value = result.message || `Coupon ${code} aktiviert.`
-    couponMessageType.value = 'success'
-    cartStore.applyCoupon({
-      code: code,
-      label: result.label || result.message || code,
-      discount: result.discount ?? 0,
-      ...result,
-    })
-    syncPaymentSummary()
-  } catch (error) {
-    const msg = error.response?.data?.message || error.response?.data?.error || 'Coupon nicht gefunden oder nicht gültig.'
-    couponCode.value = code
-    couponMessage.value = msg
-    couponMessageType.value = 'error'
-    cartStore.clearCoupon()
-    syncPaymentSummary()
-  }
-}
-
-function openHelp() {
-  modal.value = 'help'
-}
-function toggleLanguage() {
-  modal.value = 'lang'
-}
 function closeModal() {
   modal.value = null
-  couponScanning.value = false
-}
-
-function syncPaymentSummary() {
-  cartStore.setPaymentSummary({
-    subtotal: Number(orderTotalPrice.value || 0),
-    discount: couponDiscount.value,
-    total: payableTotal.value,
-  })
-}
-
-async function refreshCouponAgainstCurrentOrderTotal() {
-  if (!cartStore.appliedCoupon) {
-    syncPaymentSummary()
-    return
-  }
-
-  try {
-    const result = await validateCoupon(cartStore.appliedCoupon.code, orderTotalPrice.value)
-    cartStore.applyCoupon({
-      code: cartStore.appliedCoupon.code,
-      label: result.label || result.message || cartStore.appliedCoupon.code,
-      discount: result.discount ?? 0,
-      ...result,
-    })
-    syncPaymentSummary()
-  } catch {
-    cartStore.clearCoupon()
-    couponMessage.value = 'Coupon wurde entfernt, weil die Bestellung die Bedingungen nicht mehr erfüllt.'
-    couponMessageType.value = 'error'
-    syncPaymentSummary()
-  }
+  stopCouponScan()
 }
 
 function cancel() {
@@ -389,56 +159,38 @@ function cancel() {
   router.push('/checkout')
 }
 
-// sends checkout request to backend, navigates to summary on success
-async function pay() {
-  if (orderItems.value.length === 0) return
-  if (status.value === 'paying') return
-  if (!cartStore.orderId) {
-    showError('Keine Order vorhanden')
-    return
-  }
-
-  status.value = 'paying'
-  closeModal()
-  syncPaymentSummary()
-
-  try {
-    await api.post(`/orders/${cartStore.orderId}/checkout`, { paymentMethod: 'Card' })
-    await printReceipt()
-    status.value = 'paid'
-    await new Promise((r) => setTimeout(r, 900))
-    router.push('/summary')
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`Checkout fehlgeschlagen: ${errorMsg}`)
-    status.value = 'idle'
-  }
+function confirmCancel() {
+  showCancelConfirm.value = false
+  cancel()
 }
 
-async function fetchOrder() {
-  if (!cartStore.orderId) return
-  try {
-    const response = await api.get(`/orders/${cartStore.orderId}`)
-    orderItems.value = response.data.orderItems || []
-    orderTotalPrice.value = response.data.totalPrice || 0
-    refreshCouponAgainstCurrentOrderTotal()
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`Bestellung konnte nicht geladen werden: ${errorMsg}`)
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-  fetchOrder()
+const { pay } = usePaymentFlow({
+  cartStore,
+  orderItems,
+  status,
+  showError,
+  closeModal,
+  syncPaymentSummary,
+  printReceipt,
 })
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  if (scanTimer) clearTimeout(scanTimer)
+
+useKeyboardBarcodeScanner({
+  onScan: onBarcodeScanned,
+  isEnabled: (event) => {
+    if (event.key === 'Escape' && modal.value) {
+      closeModal()
+      return false
+    }
+    return modal.value === 'coupon' && couponScanning.value
+  },
+})
+
+onMounted(async () => {
+  await fetchOrder()
+  await refreshCouponAgainstCurrentOrderTotal()
 })
 </script>
-
-<style scoped>
+<style>
 .delete-overlay {
   position: fixed;
   inset: 0;
@@ -556,7 +308,7 @@ onBeforeUnmount(() => {
 }
 </style>
 
-<style scoped>
+<style>
 .checkout-page {
   --stroke: rgba(255, 255, 255, 0.12);
   --stroke-md: rgba(255, 255, 255, 0.17);
@@ -1601,3 +1353,4 @@ onBeforeUnmount(() => {
   color: #f87171;
 }
 </style>
+

@@ -147,6 +147,7 @@
 import { ref, onUnmounted, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLanguage } from '@/components/Uselanguage'
+import { useCameraStream } from '@/composables/useCameraStream'
 import { useSettingsStore } from '@/stores/settings'
 
 const router = useRouter()
@@ -162,7 +163,6 @@ onMounted(() => {
 
 const showScanner = ref(false)
 const mode = ref('scanner')
-const cameraActive = ref(false)
 const scanSuccess = ref(false)
 const scanError = ref(false)
 const cardNumber = ref('')
@@ -171,14 +171,19 @@ const inputFocused = ref(false)
 const errorMessage = ref('')
 const isValid = ref(false)
 
-const videoRef = ref(null)
+const {
+  cameraActive,
+  cameraError,
+  videoRef,
+  startStream,
+  stopStream,
+} = useCameraStream({ t })
 const inputRef = ref(null)
 const showKeyboard = ref(false)
 const numericKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 const PAYBACK_DEMO_SCAN_DELAY_MS = 2000
 
-let stream = null
-
+let demoScanTimer = null
 
 function openScanner() {
   showScanner.value = true
@@ -246,26 +251,20 @@ async function startCamera() {
   errorMessage.value = ''
   scanError.value = false
   try {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error(t('cameraNotAvailable'))
-    }
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    if (videoRef.value) { videoRef.value.srcObject = stream; cameraActive.value = true }
-    setTimeout(() => { completeDemoScan() }, PAYBACK_DEMO_SCAN_DELAY_MS)
-  } catch (error) {
-    cameraActive.value = false
+    await startStream({ video: { facingMode: 'environment' }, audio: false })
+    demoScanTimer = window.setTimeout(() => { completeDemoScan() }, PAYBACK_DEMO_SCAN_DELAY_MS)
+  } catch {
     scanError.value = true
-    if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') {
-      errorMessage.value = t('cameraPermissionDenied')
-      return
-    }
-    errorMessage.value = error?.message || t('cameraNotAvailable')
+    errorMessage.value = cameraError.value || t('cameraNotAvailable')
   }
 }
 
 function stopCamera() {
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null }
-  cameraActive.value = false
+  if (demoScanTimer) {
+    window.clearTimeout(demoScanTimer)
+    demoScanTimer = null
+  }
+  stopStream()
 }
 
 function completeDemoScan() {

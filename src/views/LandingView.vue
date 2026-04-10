@@ -81,7 +81,7 @@ import HelpModal from '@/components/HelpModal.vue'
 import AdminAuthPopup from '@/components/AdminAuthPopup.vue'
 import { useLanguage, translations } from '@/components/Uselanguage'
 import { useCartStore } from '@/stores/cart'
-import api from '@/services/api'
+import { createOrder } from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -94,8 +94,8 @@ const startError = ref('')
 async function onStart() {
   startError.value = ''
   try {
-    const response = await api.post('/orders')
-    cartStore.orderId = response.data.id ?? response.data.orderId ?? response.data
+    const order = await createOrder()
+    cartStore.orderId = order.id ?? order.orderId ?? order
     cartStore.clearCoupon()
     cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
     router.push('/checkout')

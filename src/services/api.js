@@ -48,6 +48,48 @@ export const fetchReceiptForOrder = async (orderId) => {
   return response.data
 }
 
+export const createOrder = async () => {
+  const response = await api.post('/orders')
+  return response.data
+}
+
+export const fetchOrders = async () => {
+  const response = await api.get('/orders')
+  return response.data
+}
+
+export const fetchOrder = async (orderId) => {
+  const response = await api.get(`/orders/${orderId}`)
+  return response.data
+}
+
+export const fetchOrderById = fetchOrder
+
+export const addOrderItem = async (orderId, code, amount = 1) => {
+  const response = await api.post(`/orders/${orderId}/items`, { code, amount })
+  return response.data
+}
+
+export const updateOrderItemQuantity = async (orderId, itemId, delta) => {
+  const response = await api.patch(`/orders/${orderId}/items/${itemId}`, { delta })
+  return response.data
+}
+
+export const deleteOrderItem = async (orderId, itemId) => {
+  const response = await api.delete(`/orders/${orderId}/items/${itemId}`)
+  return response.data
+}
+
+export const deleteOrder = async (orderId) => {
+  const response = await api.delete(`/orders/${orderId}`)
+  return response.data
+}
+
+export const checkoutOrder = async (orderId, paymentMethod = 'Card') => {
+  const response = await api.post(`/orders/${orderId}/checkout`, { paymentMethod })
+  return response.data
+}
+
 // Coupon endpoints
 export const fetchAllCoupons = async () => {
   const response = await api.get('/coupons')

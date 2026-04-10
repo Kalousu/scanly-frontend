@@ -13,108 +13,37 @@
       />
 
       <main class="panel scan-panel">
-        <div class="top-actions">
-          <button class="action-pill" @click="toggleLanguage">{{ t('language') }}</button>
-          <button class="action-pill" @click="openHelp">{{ t('help') }}</button>
-          <button
-            class="action-pill"
-            :class="{ 'action-pill--active': vatEnabled }"
-            @click="vatEnabled = !vatEnabled"
-          >
-            MwSt
-          </button>
-        </div>
+        <CheckoutHeaderActions
+          :vat-enabled="vatEnabled"
+          :t="t"
+          @language="modal = 'lang'"
+          @help="modal = 'help'"
+          @toggle-vat="vatEnabled = !vatEnabled"
+        />
 
-        <div class="hero-block">
-          <div class="hero-eyebrow"><img src="../assets/logo-removebg-preview.png" /></div>
-          <div class="status-text">
-            <span v-if="status === 'idle'">{{ t('scanPrompt') }}</span>
-            <span v-else-if="status === 'scanning'" class="status--scanning">{{
-              t('scanning')
-            }}</span>
-            <span v-else-if="status === 'cancelled'" class="status--cancelled">{{
-              t('cancelled')
-            }}</span>
-          </div>
-          <div class="hero-sub" v-if="status === 'idle'">{{ t('heroSub') }}</div>
-        </div>
+        <CheckoutHeroStatus :status="status" :t="t" />
 
         <div class="flow-block">
-          <div class="camera-wrap">
-            <div
-              class="camera-window"
-              :class="{
-                'camera-window--error': cameraError && !cameraNoDevice,
-                'camera-window--nodevice': cameraNoDevice,
-              }"
-            >
-              <video
-                v-show="cameraActive && !cameraError"
-                ref="videoRef"
-                autoplay
-                playsinline
-                muted
-              ></video>
+          <CheckoutScannerPanel
+            ref="scannerPanelRef"
+            :auto-start="settingsStore.cameraAutoStart"
+            :cooldown="settingsStore.cameraCooldown"
+            :t="t"
+            @scan="onBarcodeScanned"
+          />
 
-              <div v-if="cameraLoading" class="cam-overlay cam-overlay--loading">
-                <div class="spinner-ring"></div>
-                <span>{{ t('cameraLoading') }}</span>
-              </div>
+          <CheckoutCategoryActions :t="t" @produce="openProduce" @bakery="openBakery" />
 
-              <div v-else-if="cameraNoDevice" class="cam-overlay cam-overlay--neutral">
-                <div class="cam-nodevice-icon">⚠️</div>
-                <span class="cam-nodevice-title">{{ t('cameraNotAvailable') }}</span>
-                <span class="cam-subhint">{{ t('barcodeNotSupported') }}</span>
-              </div>
-
-              <div v-else-if="cameraError" class="cam-overlay cam-overlay--error">
-                <span class="cam-error-icon">⚠️</span>
-                <span>{{ cameraError }}</span>
-                <button class="retry-btn" @click="startCamera">{{ t('retry') }}</button>
-              </div>
-
-              <div v-else-if="!cameraActive" class="cam-overlay cam-overlay--inactive">
-                <span>{{ t('cameraOff') }}</span>
-              </div>
-
-              <button
-                class="cam-toggle"
-                :class="{ 'cam-toggle--active': cameraActive }"
-                :disabled="cameraNoDevice"
-                @click="toggleCamera"
-              >
-                {{ cameraNoDevice ? t('noCamera') : cameraActive ? t('cameraOn') : t('cameraOff') }}
-              </button>
-            </div>
-          </div>
-
-          <div class="category-row">
-            <button class="category-btn" @click="openProduce">
-              <span class="category-label">{{ t('produce') }}</span>
-              <span class="category-hint">PLU · {{ t('weightLabel') }}</span>
-            </button>
-            <button class="category-btn" @click="openBakery">
-              <span class="category-label">{{ t('bakery') }}</span>
-              <span class="category-hint">{{ t('bakerySubtitle') }}</span>
-            </button>
-          </div>
-
-          <div class="action-row">
-            <button class="btn btn--cancel" @click="cancel" :disabled="status === 'paying'">
-              {{ t('cancel') }}
-            </button>
-            <button
-              class="btn btn--pay"
-              :disabled="orderItems.length === 0 || status === 'paying'"
-              @click="pay"
-            >
-              <span v-if="status === 'paying'" class="spinner"></span>
-              <span v-else>{{ t('pay') }}</span>
-            </button>
-          </div>
+          <CheckoutFlowActions
+            :item-count="orderItems.length"
+            :status="status"
+            :t="t"
+            @cancel="showCancelConfirm = true"
+            @pay="pay"
+          />
         </div>
 
-        <div v-if="errorMessage" class="error-toast" role="alert">⚠️ {{ errorMessage }}</div>
+        <div v-if="errorMessage" class="error-toast" role="alert">{{ errorMessage }}</div>
 
         <ProductPickerModal
           :visible="modal === 'vegetables'"
@@ -148,65 +77,57 @@
           @close="closeModal"
         />
 
-        <div v-if="modal === 'help'" class="modal-backdrop" @click.self="closeModal">
-          <div class="modal-card modal-card--sm">
-            <h3 class="modal-title">{{ t('helpTitle') }}</h3>
-            <ul class="help-list">
-              <li v-for="(item, i) in helpItems" :key="i" v-html="item"></li>
-            </ul>
-            <div class="modal-actions">
-              <button class="modal-btn modal-btn--done" @click="closeModal">
-                {{ t('close') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <CheckoutHelpModal
+          :visible="modal === 'help'"
+          :items="helpItems"
+          :t="t"
+          @close="closeModal"
+        />
 
         <LanguageModal
           :visible="modal === 'lang'"
           :current-lang="currentLang"
           :languages="languages"
           :t="t"
-          @select="(code) => { setLanguage(code); closeModal() }"
+          @select="selectLanguage"
           @close="closeModal"
         />
       </main>
     </div>
 
-    <ConfirmDialog
-      :visible="showCancelConfirm"
-      :title="t('cancelOrderTitle')"
-      :message="t('cancelOrderMessage')"
-      :cancel-label="t('back')"
-      :confirm-label="t('cancelOrderConfirm')"
-      @cancel="showCancelConfirm = false"
-      @confirm="confirmCancel"
-    />
-
-    <ConfirmDialog
-      :visible="!!confirmDeleteItem"
-      :title="t('deleteProductTitle')"
-      :message="tFn('deleteProductMessage', confirmDeleteItem?.productName ?? '')"
-      :cancel-label="t('cancel')"
-      :confirm-label="t('deleteProductConfirm')"
-      @cancel="confirmDeleteItem = null"
-      @confirm="deleteItem"
+    <CheckoutConfirmDialogs
+      :show-cancel-confirm="showCancelConfirm"
+      :delete-item="confirmDeleteItem"
+      :t="t"
+      :t-fn="tFn"
+      @cancel-order-dismiss="showCancelConfirm = false"
+      @cancel-order-confirm="confirmCancel"
+      @delete-item-dismiss="confirmDeleteItem = null"
+      @delete-item-confirm="deleteItem"
     />
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useSettingsStore } from '@/stores/settings'
 import { useLanguage, translations as allTranslations } from '@/components/Uselanguage'
-import api, { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
 import CartPanel from '@/components/CartPanel.vue'
 import LanguageModal from '@/components/LanguageModal.vue'
-import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import ProductPickerModal from '@/components/ProductPickerModal.vue'
+import CheckoutCategoryActions from '@/components/checkout/CheckoutCategoryActions.vue'
+import CheckoutConfirmDialogs from '@/components/checkout/CheckoutConfirmDialogs.vue'
+import CheckoutFlowActions from '@/components/checkout/CheckoutFlowActions.vue'
+import CheckoutHeaderActions from '@/components/checkout/CheckoutHeaderActions.vue'
+import CheckoutHelpModal from '@/components/checkout/CheckoutHelpModal.vue'
+import CheckoutHeroStatus from '@/components/checkout/CheckoutHeroStatus.vue'
+import CheckoutScannerPanel from '@/components/checkout/CheckoutScannerPanel.vue'
 import { useErrorToast } from '@/composables/useErrorToast'
+import { useKeyboardBarcodeScanner } from '@/composables/useKeyboardBarcodeScanner'
+import { useOrderSession } from '@/composables/useOrderSession'
+import { useProductCatalogPicker } from '@/composables/useProductCatalogPicker'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -224,265 +145,90 @@ const helpItems = computed(() => {
 
 const status = ref('idle')
 const modal = ref(null)
-
-const cameraNoDevice = ref(false)
 const vatEnabled = ref(false)
-
-const orderItems = ref([])
-const orderTotalPrice = ref(0)
-
-const scanBuffer = ref('')
-let scanTimer = null
-
-const cameraActive = ref(false)
-const cameraLoading = ref(false)
-const cameraError = ref('')
-const videoRef = ref(null)
-let mediaStream = null
-
-const barcodeSupported = ref(null)
-let barcodeDetector = null
-let scanInterval = null
-let scanCooldown = false
-
-
-const produceCatalog = ref([])
-const produceLoading = ref(false)
-
-const bakeryCatalog = ref([])
-const bakeryLoading = ref(false)
-const selectedBakery = ref(null)
-const bakeryAmount = ref(1)
-
-const selectedProduce = ref(null)
-const weightKg = ref(0.25)
 const confirmDeleteItem = ref(null)
 const showCancelConfirm = ref(false)
+const scannerPanelRef = ref(null)
 
+const {
+  orderItems,
+  orderTotalPrice,
+  fetchOrder,
+  addItemByCode,
+  updateItemQuantity,
+  removeItem,
+  cancelOrder,
+} = useOrderSession(cartStore, showError)
 
-function getLocalizedName(item) {
-  if (typeof item.name === 'object') {
-    return item.name[currentLang.value] || item.name.de || Object.values(item.name)[0]
-  }
-  return item.name
-}
+const {
+  produceCatalog,
+  produceLoading,
+  selectedProduce,
+  weightKg,
+  bakeryCatalog,
+  bakeryLoading,
+  selectedBakery,
+  bakeryAmount,
+  getLocalizedName,
+  addWeighted,
+  selectBakeryItem,
+  openProduce,
+  openBakery,
+} = useProductCatalogPicker({ modal, showError })
 
 function getItemName(item) {
-  return getLocalizedName(item)
-}
-
-function selectBakeryItem(item) {
-  selectedBakery.value = item
-  bakeryAmount.value = 1
+  return getLocalizedName(item, currentLang.value)
 }
 
 async function confirmBakeryItem() {
   if (!selectedBakery.value) return
-  if (!cartStore.orderId) {
-    showError('Keine Order vorhanden')
-    return
+  const added = await addItemByCode(selectedBakery.value.sku, bakeryAmount.value)
+  if (added) {
+    selectedBakery.value = null
+    bakeryAmount.value = 1
+    closeModal()
   }
-  try {
-    await api.post(`/orders/${cartStore.orderId}/items`, {
-      code: selectedBakery.value.sku,
-      amount: bakeryAmount.value,
-    })
-    await fetchOrder()
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`Fehler: ${errorMsg}`)
-  }
-  selectedBakery.value = null
-  bakeryAmount.value = 1
-  closeModal()
-}
-
-function addWeighted(p) {
-  selectedProduce.value = p
-  weightKg.value = 0.25
 }
 
 async function confirmWeighted() {
   if (!selectedProduce.value) return
   const kg = Number(weightKg.value)
   if (!Number.isFinite(kg) || kg <= 0) return
-  if (!cartStore.orderId) {
-    showError('Keine Order vorhanden')
-    return
-  }
-  try {
-    await api.post(`/orders/${cartStore.orderId}/items`, {
-      code: selectedProduce.value.sku,
-      amount: kg,
-    })
-    await fetchOrder()
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`Fehler: ${errorMsg}`)
-  }
-  selectedProduce.value = null
-  weightKg.value = 0.25
-  closeModal()
-}
-
-async function updateItemQuantity(item, delta) {
-  if (!cartStore.orderId) return
-  try {
-    await api.patch(`/orders/${cartStore.orderId}/items/${item.id}`, {
-      delta: delta,
-    })
-    await fetchOrder()
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`Fehler: ${errorMsg}`)
+  const added = await addItemByCode(selectedProduce.value.sku, kg)
+  if (added) {
+    selectedProduce.value = null
+    weightKg.value = 0.25
+    closeModal()
   }
 }
 
 async function deleteItem() {
-  if (!confirmDeleteItem.value || !cartStore.orderId) return
-  try {
-    await api.delete(`/orders/${cartStore.orderId}/items/${confirmDeleteItem.value.id}`)
-    await fetchOrder()
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`Fehler: ${errorMsg}`)
-  }
+  await removeItem(confirmDeleteItem.value)
   confirmDeleteItem.value = null
-}
-
-function handleKeydown(e) {
-  const tag = (e.target?.tagName || '').toLowerCase()
-
-  if (e.key === 'Escape' && modal.value) {
-    closeModal()
-    return
-  }
-
-  if (tag === 'input' || tag === 'textarea') return
-  if (modal.value) return
-
-  if (cameraActive.value && barcodeSupported.value === true) return
-
-  if (scanTimer) window.clearTimeout(scanTimer)
-
-  if (e.key === 'Enter') {
-    const code = scanBuffer.value.trim()
-    scanBuffer.value = ''
-    if (code) onBarcodeScanned(code)
-    return
-  }
-
-  if (e.key.length === 1) scanBuffer.value += e.key
-  scanTimer = window.setTimeout(() => {
-    scanBuffer.value = ''
-  }, settingsStore.scannerBuffer)
-}
-
-async function fetchOrder() {
-  if (!cartStore.orderId) return
-  try {
-    const response = await api.get(`/orders/${cartStore.orderId}`)
-    orderItems.value = response.data.orderItems || []
-    orderTotalPrice.value = response.data.totalPrice || 0
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`Bestellung konnte nicht geladen werden: ${errorMsg}`)
-  }
 }
 
 async function onBarcodeScanned(code) {
   status.value = 'scanning'
 
-  if (!cartStore.orderId) {
-    showError(`${t('error')} - Keine Order vorhanden`)
-    status.value = 'idle'
-    return
-  }
-
-  try {
-    await api.post(`/orders/${cartStore.orderId}/items`, {
-      code: code,
-      amount: 1,
-    })
-
-    await fetchOrder()
-    status.value = 'idle'
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message
-    showError(`${t('error')} (${code}): ${errorMsg}`)
-    status.value = 'idle'
-  }
+  await addItemByCode(code, 1)
+  status.value = 'idle'
 }
 
-function openHelp() {
-  modal.value = 'help'
-}
-function toggleLanguage() {
-  modal.value = 'lang'
-}
-async function openProduce() {
-  modal.value = 'vegetables'
-  selectedProduce.value = null
-  weightKg.value = 0.25
-  if (produceCatalog.value.length === 0) {
-    produceLoading.value = true
-    try {
-      const products = await fetchFruitsAndVegetables()
-      produceCatalog.value = products.map((p) => ({
-        sku: p.code,
-        name: p.name,
-        pricePerKg: p.price,
-        category: p.category,
-      }))
-    } catch {
-      showError('Produkte konnten nicht geladen werden.')
-    } finally {
-      produceLoading.value = false
-    }
-  }
-}
-async function openBakery() {
-  modal.value = 'bakery'
-  selectedBakery.value = null
-  bakeryAmount.value = 1
-  if (bakeryCatalog.value.length === 0) {
-    bakeryLoading.value = true
-    try {
-      const products = await fetchBakeryProducts()
-      bakeryCatalog.value = products.map((p) => ({
-        sku: p.code,
-        name: p.name,
-        price: p.price,
-        category: p.category,
-      }))
-    } catch {
-      showError('Backwaren konnten nicht geladen werden.')
-    } finally {
-      bakeryLoading.value = false
-    }
-  }
+function selectLanguage(code) {
+  setLanguage(code)
+  closeModal()
 }
 function closeModal() {
   modal.value = null
 }
 
-function cancel() {
-  showCancelConfirm.value = true
-}
-
 async function confirmCancel() {
   showCancelConfirm.value = false
-  try {
-    if (cartStore.orderId) {
-      await api.delete(`/orders/${cartStore.orderId}`)
-    }
-  } catch {
-    showError('Bestellung konnte nicht im Backend abgebrochen werden.')
-    return
-  }
+  const cancelled = await cancelOrder()
+  if (!cancelled) return
   cartStore.clearCart()
-  scanBuffer.value = ''
-  stopCamera()
+  clearBuffer()
+  scannerPanelRef.value?.stopCamera()
   closeModal()
   router.push('/')
 }
@@ -491,7 +237,7 @@ async function pay() {
   if (orderItems.value.length === 0) return
   status.value = 'paying'
   closeModal()
-  stopCamera()
+  scannerPanelRef.value?.stopCamera()
 
   await new Promise((r) => setTimeout(r, 400))
   status.value = 'paid'
@@ -501,139 +247,29 @@ async function pay() {
   router.push(settingsStore.paybackEnabled ? '/payback' : '/payment')
 }
 
-async function startCamera() {
-  cameraLoading.value = true
-  cameraError.value = ''
-  cameraNoDevice.value = false
-
-  try {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      cameraNoDevice.value = true
-      throw new Error(t('cameraNotAvailable'))
-    }
-
-    const constraints = {
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-      audio: false,
-    }
-
-    mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
-
-    if (videoRef.value) {
-      videoRef.value.srcObject = mediaStream
-      await videoRef.value.play()
-    }
-
-    cameraActive.value = true
-    cameraLoading.value = false
-    cameraError.value = ''
-    cameraNoDevice.value = false
-
-    if (barcodeSupported.value === null) {
-      if ('BarcodeDetector' in window) {
-        try {
-          barcodeDetector = new BarcodeDetector({
-            formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e'],
-          })
-          barcodeSupported.value = true
-        } catch {
-          barcodeSupported.value = false
-          barcodeDetector = null
-        }
-      } else {
-        barcodeSupported.value = false
-        barcodeDetector = null
-      }
-    }
-
-    if (barcodeSupported.value === true && barcodeDetector) {
-      startBarcodeScanning()
-    }
-  } catch (err) {
-    cameraLoading.value = false
-    cameraActive.value = false
-    cameraError.value = err?.message || t('cameraNotAvailable')
-
-    if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
-      cameraError.value = t('cameraPermissionDenied')
-      return
-    }
-
-    if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
-      cameraNoDevice.value = true
-      cameraError.value = t('cameraNotAvailable')
-      return
-    }
-  }
+function isCameraScannerActive() {
+  const nativeScanning = scannerPanelRef.value?.isNativeScanning
+  return nativeScanning?.value ?? Boolean(nativeScanning)
 }
 
-function stopCamera() {
-  if (mediaStream) {
-    mediaStream.getTracks().forEach((t) => t.stop())
-    mediaStream = null
-  }
-  if (videoRef.value) videoRef.value.srcObject = null
-  cameraActive.value = false
-  stopBarcodeScanning()
-}
-
-function toggleCamera() {
-  if (cameraNoDevice.value) return
-  if (cameraActive.value) {
-    stopCamera()
-  } else {
-    startCamera()
-  }
-}
-
-function startBarcodeScanning() {
-  if (scanInterval || !barcodeDetector) return
-  scanInterval = setInterval(async () => {
-    if (!cameraActive.value || !videoRef.value || scanCooldown) return
-    try {
-      const video = videoRef.value
-      if (video.readyState !== video.HAVE_ENOUGH_DATA) return
-      const barcodes = await barcodeDetector.detect(video)
-      if (barcodes.length > 0) {
-        const code = barcodes[0].rawValue
-        scanCooldown = true
-        onBarcodeScanned(code)
-        setTimeout(() => {
-          scanCooldown = false
-        }, settingsStore.cameraCooldown)
-      }
-    } catch {
-      // BarcodeDetector can fail on individual frames; keep scanning the next frame.
+const { clearBuffer } = useKeyboardBarcodeScanner({
+  timeout: settingsStore.scannerBuffer,
+  onScan: onBarcodeScanned,
+  isEnabled: (event) => {
+    if (event.key === 'Escape' && modal.value) {
+      closeModal()
+      return false
     }
-  }, 250)
-}
-
-function stopBarcodeScanning() {
-  if (scanInterval) {
-    clearInterval(scanInterval)
-    scanInterval = null
-  }
-}
+    return !modal.value && !isCameraScannerActive()
+  },
+})
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
   fetchOrder()
-  if (settingsStore.cameraAutoStart) {
-    startCamera()
-  }
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  stopCamera()
-  if (scanTimer) clearTimeout(scanTimer)
 })
 </script>
 
-<style scoped>
+<style>
 .delete-overlay {
   position: fixed;
   inset: 0;
@@ -751,7 +387,7 @@ onBeforeUnmount(() => {
 }
 </style>
 
-<style scoped>
+<style>
 .checkout-page {
   --stroke: rgba(255, 255, 255, 0.12);
   --stroke-md: rgba(255, 255, 255, 0.17);

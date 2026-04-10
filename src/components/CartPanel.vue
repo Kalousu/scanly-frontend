@@ -20,7 +20,7 @@
           <div class="ci-left">
             <div class="ci-name">{{ item.productName }}</div>
             <div class="ci-meta">
-              <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round((item.taxRate - 1) * 100) }}%</span>
+              <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round(item.taxRate * 100) }}%</span>
             </div>
           </div>
 

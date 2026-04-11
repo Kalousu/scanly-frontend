@@ -3,8 +3,9 @@
         <div class="admin-modal-body">
           <div class="admin-form-row">
             <div class="admin-form-group">
-              <label class="admin-label">{{ t('adminCouponCodeLabel') }}</label>
+              <label class="admin-label" for="coupon-form-code">{{ t('adminCouponCodeLabel') }}</label>
               <input
+                id="coupon-form-code"
                 :value="form.code"
                 type="text"
                 class="admin-input"
@@ -15,8 +16,9 @@
             </div>
 
             <div class="admin-form-group">
-              <label class="admin-label">{{ t('adminCouponLabelLabel') }}</label>
+              <label class="admin-label" for="coupon-form-label">{{ t('adminCouponLabelLabel') }}</label>
               <input
+                id="coupon-form-label"
                 :value="form.label"
                 type="text"
                 class="admin-input"
@@ -28,8 +30,9 @@
 
           <div class="admin-form-row">
             <div class="admin-form-group">
-              <label class="admin-label">{{ t('adminCouponTypeLabel') }}</label>
+              <label class="admin-label" for="coupon-form-type">{{ t('adminCouponTypeLabel') }}</label>
               <select
+                id="coupon-form-type"
                 :value="form.type"
                 class="admin-input"
                 @change="updateField('type', $event.target.value)"
@@ -40,10 +43,11 @@
             </div>
 
             <div class="admin-form-group">
-              <label class="admin-label">
+              <label class="admin-label" for="coupon-form-value">
                 {{ form.type === 'percentage' ? t('adminCouponDiscountPercent') : t('adminCouponDiscountFixed') }}
               </label>
               <input
+                id="coupon-form-value"
                 :value="form.value"
                 type="number"
                 min="0"
@@ -56,8 +60,9 @@
 
           <div class="admin-form-row">
             <div class="admin-form-group">
-              <label class="admin-label">{{ t('adminCouponMinOrderLabel') }}</label>
+              <label class="admin-label" for="coupon-form-min-order">{{ t('adminCouponMinOrderLabel') }}</label>
               <input
+                id="coupon-form-min-order"
                 :value="form.minOrderValue"
                 type="number"
                 min="0"

@@ -10,6 +10,7 @@ export default {
   helpModalBody:
     'Scanly is your personal self-checkout assistant. Simply scan your items, place them in your bag, and pay – no queuing at the checkout required.',
   helpSteps: ['Scan items with the scanner', 'Place items in your bag', 'Print receipt & pay'],
+  helpStepsLabel: 'Checkout steps',
   helpModalCta: 'Got it',
   close: 'Close',
 
@@ -30,12 +31,14 @@ export default {
   heroSubSmall: 'Thank you for your purchase!',
   cancelled: 'Transaction cancelled.',
   language: 'Language',
+  languageBarLabel: 'Choose language',
   produce: 'Fruits & Vegetables',
   bakery: 'Bakery',
   cancel: 'Cancel',
   pay: 'Pay',
   weightLabel: 'Weight (kg)',
   amount: 'Amount',
+  weightUnitKg: 'kg',
   helpTitle: 'Help',
   langTitle: 'Select Language',
   error: 'Item not found!',
@@ -107,6 +110,7 @@ export default {
 
   // Customer-facing: Coupon modal & payment
   couponRedeem: 'Redeem coupon',
+  couponLabel: 'Coupon',
   couponRedeemSubtitle: 'Enter code or scan coupon',
   couponInputPlaceholder: 'Enter coupon code…',
   couponScanHint: 'Scanner active — scan coupon now…',

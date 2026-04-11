@@ -128,6 +128,7 @@ import { useErrorToast } from '@/composables/useErrorToast'
 import { useKeyboardBarcodeScanner } from '@/composables/useKeyboardBarcodeScanner'
 import { useOrderSession } from '@/composables/useOrderSession'
 import { useProductCatalogPicker } from '@/composables/useProductCatalogPicker'
+import { CHECKOUT_STATUS_STEP_DELAY_MS } from '@/constants/timing'
 import '@/assets/checkout-flow.css'
 
 const router = useRouter()
@@ -240,9 +241,9 @@ async function pay() {
   closeModal()
   scannerPanelRef.value?.stopCamera()
 
-  await new Promise((r) => setTimeout(r, 400))
+  await new Promise((r) => setTimeout(r, CHECKOUT_STATUS_STEP_DELAY_MS))
   status.value = 'paid'
-  await new Promise((r) => setTimeout(r, 400))
+  await new Promise((r) => setTimeout(r, CHECKOUT_STATUS_STEP_DELAY_MS))
 
   status.value = 'idle'
   router.push(settingsStore.paybackEnabled ? '/payback' : '/payment')
@@ -269,5 +270,4 @@ onMounted(() => {
   fetchOrder()
 })
 </script>
-
 

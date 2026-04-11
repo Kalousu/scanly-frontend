@@ -105,10 +105,12 @@ export function useReceiptPrinter(showError) {
         .setBold()
         .setItalic()
         .setUnderline()
-        .println(0xC3)
         .beep()
         .unsetUnderline()
         .unsetBold()
+        .printScanlyInfo()
+        .feed(1)
+        .lineSeparator()
 
       if (receiptData.receiptItemResponseList?.length > 0) {
         printer.printCurrencyLabel(t('receiptCurrencyLabel'))
@@ -121,17 +123,21 @@ export function useReceiptPrinter(showError) {
             item.taxLabel,
           )
         })
-        printer.lineSeparator()
-        printer.setBold()
         printer.printSum(receiptData.totalAmount, t('receiptTotalLabel'))
-        printer.unsetBold()
-        printer.feed(1)
+        printer.lineSeparator()
         printer.printTaxGroupTable(receiptData.receiptTaxGroupResponseList, t('receiptTaxHeader'))
       }
 
-      printer.unsetItalic()
-      printer.feed(1)
-      printer.cut()
+      printer
+        .setBold()
+        .unsetBold()
+        .unsetItalic()
+        .feed(1)
+        .println('Vielen Dank für den Einkauf!')
+        .println('Kommen Sie gerne')
+        .println('irgendwann wieder :)')
+        .feed(3)
+        .cut()
 
       printStatus.value = 'printing'
       await device.transferOut(endpoint.endpointNumber, printer.encode())

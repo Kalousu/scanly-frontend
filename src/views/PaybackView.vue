@@ -17,7 +17,7 @@
           </h1>
           <p class="subtitle">{{ t('paybackSubtitle') }}</p>
 
-          <img class="payback-logo" src="https://amts-apotheke.de/wp-content/uploads/2019/01/PAYBACK_2016_1699_POINTEE.png" alt="Payback" />
+          <img class="payback-logo" :src="paybackLogo" alt="Payback" />
 
           <div class="payback-actions">
             <button type="button" class="payback-btn primary" @click="openScanner">
@@ -157,7 +157,9 @@ import { useRouter } from 'vue-router'
 import { useLanguage } from '@/components/Uselanguage'
 import { useCameraStream } from '@/composables/useCameraStream'
 import { useModalA11y } from '@/composables/useModalA11y'
+import { PAYBACK_DEMO_SCAN_DELAY_MS, PAYBACK_SUCCESS_REDIRECT_DELAY_MS } from '@/constants/timing'
 import { useSettingsStore } from '@/stores/settings'
+import paybackLogo from '@/assets/payback-logo.svg'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
@@ -168,6 +170,8 @@ onMounted(() => {
   if (!settingsStore.paybackEnabled) {
     router.replace('/payment')
   }
+  updateKeyboardVisibility()
+  window.addEventListener('resize', updateKeyboardVisibility)
 })
 
 const showScanner = ref(false)
@@ -191,7 +195,6 @@ const {
 const inputRef = ref(null)
 const showKeyboard = ref(false)
 const numericKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
-const PAYBACK_DEMO_SCAN_DELAY_MS = 2000
 
 let demoScanTimer = null
 
@@ -214,8 +217,12 @@ function switchToManual() {
   stopCamera()
   mode.value = 'manual'
   inputError.value = false
-  showKeyboard.value = window.innerWidth <= 768
+  updateKeyboardVisibility()
   nextTick(() => { inputRef.value?.focus() })
+}
+
+function updateKeyboardVisibility() {
+  showKeyboard.value = window.innerWidth <= 768
 }
 
 function switchToScanner() {
@@ -284,10 +291,13 @@ function stopCamera() {
 function completeDemoScan() {
   demoScanTimer = null
   scanSuccess.value = true
-  demoScanTimer = window.setTimeout(() => { router.push('/payment') }, 1500)
+  demoScanTimer = window.setTimeout(() => { router.push('/payment') }, PAYBACK_SUCCESS_REDIRECT_DELAY_MS)
 }
 
-onUnmounted(() => { stopCamera() })
+onUnmounted(() => {
+  window.removeEventListener('resize', updateKeyboardVisibility)
+  stopCamera()
+})
 </script>
 
 <style scoped>

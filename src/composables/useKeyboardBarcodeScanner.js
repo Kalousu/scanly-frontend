@@ -1,6 +1,12 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { KEYBOARD_SCANNER_BUFFER_TIMEOUT_MS } from '@/constants/timing'
 
-export function useKeyboardBarcodeScanner({ onScan, timeout = 350, isEnabled = () => true, allowInput = false }) {
+export function useKeyboardBarcodeScanner({
+  onScan,
+  timeout = KEYBOARD_SCANNER_BUFFER_TIMEOUT_MS,
+  isEnabled = () => true,
+  allowInput = false,
+}) {
   const scanBuffer = ref('')
   let scanTimer = null
 

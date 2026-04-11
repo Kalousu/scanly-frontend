@@ -14,6 +14,7 @@ export default {
     'Положите товары в пакет',
     'Распечатайте чек и оплатите',
   ],
+  helpStepsLabel: 'Шаги оформления покупки',
   helpModalCta: 'Понятно',
   close: 'Закрыть',
 
@@ -34,12 +35,14 @@ export default {
   heroSubSmall: 'Спасибо за покупку!',
   cancelled: 'Операция отменена.',
   language: 'Язык',
+  languageBarLabel: 'Выбрать язык',
   produce: 'Овощи и фрукты',
   bakery: 'Выпечка',
   cancel: 'Отмена',
   pay: 'Оплатить',
   weightLabel: 'Вес (кг)',
   amount: 'Количество',
+  weightUnitKg: 'кг',
   helpTitle: 'Помощь',
   langTitle: 'Выбор языка',
   error: 'Товар не найден!',
@@ -112,6 +115,7 @@ export default {
 
   // Customer-facing: Coupon modal & payment
   couponRedeem: 'Применить купон',
+  couponLabel: 'Купон',
   couponRedeemSubtitle: 'Введите код или отсканируйте купон',
   couponInputPlaceholder: 'Введите код купона…',
   couponScanHint: 'Сканер активен — отсканируйте купон…',

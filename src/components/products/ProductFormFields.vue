@@ -1,8 +1,9 @@
 <template>
   <div>
     <div class="admin-form-group">
-      <label class="admin-label">{{ t('adminProductName') }}</label>
+      <label class="admin-label" :for="fieldId('name')">{{ t('adminProductName') }}</label>
       <input
+        :id="fieldId('name')"
         :value="form.name"
         type="text"
         class="admin-input"
@@ -12,8 +13,9 @@
       />
     </div>
     <div class="admin-form-group">
-      <label class="admin-label">{{ t('adminCategory') }}</label>
+      <label class="admin-label" :for="fieldId('category')">{{ t('adminCategory') }}</label>
       <select
+        :id="fieldId('category')"
         :value="form.category"
         class="admin-input"
         :disabled="disabled"
@@ -24,8 +26,9 @@
     </div>
     <div class="admin-form-row">
       <div class="admin-form-group">
-        <label class="admin-label">{{ priceLabel }}</label>
+        <label class="admin-label" :for="fieldId('price')">{{ priceLabel }}</label>
         <input
+          :id="fieldId('price')"
           :value="form.priceNet"
           type="number"
           step="0.01"
@@ -36,8 +39,9 @@
         />
       </div>
       <div class="admin-form-group">
-        <label class="admin-label">{{ t('adminTaxRate') }}</label>
+        <label class="admin-label" :for="fieldId('tax-rate')">{{ t('adminTaxRate') }}</label>
         <select
+          :id="fieldId('tax-rate')"
           :value="form.taxRate"
           class="admin-input"
           :disabled="disabled"
@@ -50,8 +54,9 @@
       </div>
     </div>
     <div class="admin-form-group">
-      <label class="admin-label">{{ t('adminEanBarcode') }}</label>
+      <label class="admin-label" :for="fieldId('ean')">{{ t('adminEanBarcode') }}</label>
       <input
+        :id="fieldId('ean')"
         :value="form.ean"
         type="text"
         class="admin-input"
@@ -81,5 +86,9 @@ const emit = defineEmits(['update-field'])
 
 function updateField(field, value) {
   emit('update-field', { field, value })
+}
+
+function fieldId(name) {
+  return `product-form-${name}`
 }
 </script>

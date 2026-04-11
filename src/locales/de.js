@@ -14,6 +14,7 @@ export default {
     'Artikel in die Tasche legen',
     'Kassenbon drucken & bezahlen',
   ],
+  helpStepsLabel: 'Checkout-Schritte',
   helpModalCta: 'Verstanden',
   close: 'Schließen',
 
@@ -34,12 +35,14 @@ export default {
   heroSubSmall: 'Vielen Dank für Ihren Einkauf!',
   cancelled: 'Vorgang abgebrochen.',
   language: 'Sprache',
+  languageBarLabel: 'Sprache auswählen',
   produce: 'Gemüse / Obst',
   bakery: 'Backwaren',
   cancel: 'Abbrechen',
   pay: 'Bezahlen',
   weightLabel: 'Gewicht (kg)',
   amount: 'Anzahl',
+  weightUnitKg: 'kg',
   helpTitle: 'Hilfe',
   langTitle: 'Sprache wählen',
   error: 'Artikel nicht gefunden!',
@@ -112,6 +115,7 @@ export default {
 
   // Customer-facing: Coupon modal & payment
   couponRedeem: 'Coupon einlösen',
+  couponLabel: 'Coupon',
   couponRedeemSubtitle: 'Code eingeben oder Coupon einscannen',
   couponInputPlaceholder: 'Coupon-Code eingeben…',
   couponScanHint: 'Scanner aktiv — Coupon jetzt einscannen…',

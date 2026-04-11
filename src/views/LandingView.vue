@@ -12,7 +12,7 @@
           type="button"
           class="navbar-btn navbar-pill"
           @click="isAdminAuthOpen = true"
-          aria-label="Admin Dashboard"
+          :aria-label="t('adminDashboard')"
         >
           <span class="navbar-text">Admin</span>
         </button>
@@ -44,7 +44,7 @@
       </div>
     </main>
 
-    <footer class="language-bar" aria-label="Sprache auswählen">
+    <footer class="language-bar" :aria-label="t('languageBarLabel')">
       <div class="language-bar-inner">
         <button
           v-for="lang in languages"

@@ -33,7 +33,7 @@
             <p class="help-modal__text">{{ t('helpModalBody') }}</p>
           </div>
 
-          <ul class="help-modal__steps" aria-label="Steps">
+          <ul class="help-modal__steps" :aria-label="t('helpStepsLabel')">
             <li v-for="(step, i) in helpSteps" :key="i" class="help-modal__step">
               <span class="help-modal__step-num" aria-hidden="true">{{ i + 1 }}</span>
               <span class="help-modal__step-text">{{ step }}</span>

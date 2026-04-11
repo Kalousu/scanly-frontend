@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useLanguage } from '@/components/Uselanguage'
 import AdminLayout from '@/components/AdminLayout.vue'
+import { SETTINGS_SAVED_FEEDBACK_DELAY_MS } from '@/constants/timing'
 
 const settings = useSettingsStore()
 const { t } = useLanguage()
@@ -39,7 +40,11 @@ async function saveSettings() {
   }
   settings.saveAll()
   showSaved.value = true
-  setTimeout(() => { showSaved.value = false }, 2000)
+  setTimeout(() => { showSaved.value = false }, SETTINGS_SAVED_FEEDBACK_DELAY_MS)
+}
+
+function settingId(key) {
+  return `setting-${key}`
 }
 
 </script>
@@ -56,9 +61,13 @@ async function saveSettings() {
         <div v-for="group in toggleSettings" :key="group.section" class="settings-section">
           <h2 class="admin-section-title">{{ group.section }}</h2>
           <div v-for="item in group.items" :key="item.key" class="admin-settings-row">
-            <span class="admin-settings-label">{{ item.label }}</span>
+            <span :id="settingId(item.key)" class="admin-settings-label">{{ item.label }}</span>
             <label class="admin-toggle">
-              <input type="checkbox" v-model="settings[item.key]" />
+              <input
+                type="checkbox"
+                v-model="settings[item.key]"
+                :aria-labelledby="settingId(item.key)"
+              />
               <span class="admin-toggle-slider"></span>
             </label>
           </div>
@@ -68,8 +77,9 @@ async function saveSettings() {
         <div class="settings-section">
           <h2 class="admin-section-title">{{ t('adminScanner') }}</h2>
           <div v-for="item in numericSettings" :key="item.key" class="admin-settings-row">
-            <span class="admin-settings-label">{{ item.label }}</span>
+            <label class="admin-settings-label" :for="settingId(item.key)">{{ item.label }}</label>
             <input
+              :id="settingId(item.key)"
               type="number"
               class="admin-input admin-input--number"
               v-model.number="settings[item.key]"
@@ -84,8 +94,9 @@ async function saveSettings() {
         <div class="settings-section">
           <h2 class="admin-section-title">{{ t('adminCredentials') }}</h2>
           <div class="admin-settings-row admin-settings-row--vertical">
-            <span class="admin-settings-label">{{ t('adminUsername') }}</span>
+            <label class="admin-settings-label" for="admin-settings-username">{{ t('adminUsername') }}</label>
             <input
+              id="admin-settings-username"
               type="text"
               class="admin-input"
               v-model="settings.adminUsername"
@@ -93,8 +104,9 @@ async function saveSettings() {
             />
           </div>
           <div class="admin-settings-row admin-settings-row--vertical">
-            <span class="admin-settings-label">{{ t('adminPassword') }}</span>
+            <label class="admin-settings-label" for="admin-settings-password">{{ t('adminPassword') }}</label>
             <input
+              id="admin-settings-password"
               type="password"
               class="admin-input"
               v-model="newPassword"

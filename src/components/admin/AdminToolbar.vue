@@ -5,6 +5,7 @@
         :value="searchQuery"
         type="text"
         class="admin-search-input"
+        :aria-label="searchLabel || searchPlaceholder"
         :placeholder="searchPlaceholder"
         @input="$emit('update:searchQuery', $event.target.value)"
       />
@@ -31,6 +32,7 @@
 defineProps({
   searchQuery: { type: String, default: '' },
   searchPlaceholder: { type: String, default: '' },
+  searchLabel: { type: String, default: '' },
   filters: { type: Array, default: () => [] },
   activeFilter: { type: String, default: '' },
 })

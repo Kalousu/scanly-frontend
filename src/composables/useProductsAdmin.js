@@ -8,6 +8,7 @@ import {
 } from '@/services/api'
 import { useLanguage } from '@/components/Uselanguage'
 import { getProductBarcode } from '@/composables/useProductFormatters'
+import { ADMIN_SUCCESS_MODAL_CLOSE_DELAY_MS } from '@/constants/timing'
 
 function getEmptyForm() {
   return { name: '', priceNet: '', taxRate: '0.19', category: '', ean: '' }
@@ -180,7 +181,7 @@ export function useProductsAdmin() {
     try {
       await apiCall()
       actionState.value.success = true
-      window.setTimeout(() => closeModal(), 1200)
+      window.setTimeout(() => closeModal(), ADMIN_SUCCESS_MODAL_CLOSE_DELAY_MS)
     } catch {
       actionState.value.error = errorMessage
     } finally {

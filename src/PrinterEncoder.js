@@ -15,6 +15,14 @@ export class PrinterEncoder{
         this.#ESC = 0x1B
         this.#GS = 0x1D
     }
+
+    #formatAmount(value) {
+        return new Intl.NumberFormat('de-DE', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            useGrouping: false
+        }).format(Number(value || 0));
+    }
  
     #encode(text) {
         const bytes = [];
@@ -81,9 +89,9 @@ export class PrinterEncoder{
     printPrice(article, priceGross, priceSingle, amount, taxLabel){
         let width = 32;
     
-        const priceGrossStr = priceGross.toFixed(2);
-        const priceSingleStr = priceSingle.toFixed(2);
-        const amountStr = amount.toFixed(2);
+        const priceGrossStr = this.#formatAmount(priceGross);
+        const priceSingleStr = this.#formatAmount(priceSingle);
+        const amountStr = this.#formatAmount(amount);
     
         let articleWidth = article.toString().length;
         let priceWidth = priceGrossStr.length;
@@ -126,7 +134,7 @@ export class PrinterEncoder{
  
     printSum(sum, label = "TOTAL:"){
         let width = 32;
-        const sumStr = sum.toFixed(2);
+        const sumStr = this.#formatAmount(sum);
         let res = `${label} `;
         let space = width - res.length - sumStr.length;
         for(let i = 0; i < space; i++){
@@ -144,16 +152,16 @@ export class PrinterEncoder{
         taxGroups.forEach(group => {
             const label = group.label.padEnd(2);
             const rate = (group.rate * 100).toFixed(0).padStart(2) + "%";
-            const tax = group.tax.toFixed(2).padStart(6);
-            const net = group.net.toFixed(2).padStart(6);
-            const gross = group.gross.toFixed(2).padStart(6);
+            const tax = this.#formatAmount(group.tax).padStart(6);
+            const net = this.#formatAmount(group.net).padStart(6);
+            const gross = this.#formatAmount(group.gross).padStart(6);
             this.println(`${label} ${rate} ${tax} ${net} ${gross}`);
         });
         this.lineSeparator();
         return this;
     }
  
-    printCurrencyLabel(label = "EUR"){
+    printCurrencyLabel(label = ""){
         const currencyLabel = String(label).slice(0, 6)
         const padding = Math.max(0, 30 - currencyLabel.length)
         this.#commands.push(...this.#encode(`${" ".repeat(padding)}${currencyLabel} \n`))

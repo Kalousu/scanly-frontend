@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 104" role="img" aria-labelledby="title">
+  <title id="title">Payback</title>
+  <rect width="360" height="104" rx="16" fill="#003f8f"/>
+  <path fill="#fff" d="M34 27h51c19 0 31 10 31 27 0 18-12 28-31 28H62v-18h21c8 0 13-4 13-10s-5-10-13-10H54v38H34V27Zm98 0h22l30 55h-22l-5-10h-28l-5 10h-22l30-55Zm18 31-7-15-7 15h14Zm42-31h21l13 20 13-20h22l-25 35v20h-20V62l-24-35Zm77 0h54c14 0 23 7 23 19 0 7-4 13-10 16 8 3 13 9 13 18 0 14-10 22-27 22h-53V27Zm49 29c5 0 8-3 8-7s-3-7-8-7h-29v14h29Zm2 31c6 0 9-3 9-8s-3-8-9-8h-31v16h31Z"/>
+</svg>

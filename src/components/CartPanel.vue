@@ -20,12 +20,12 @@
           <div class="ci-left">
             <div class="ci-name">{{ item.productName }}</div>
             <div class="ci-meta">
-              <span>{{ formatPrice(item.unitPriceNet) }} · {{ tFn('vat', Math.round(item.taxRate * 100)) }}</span>
+              <span>{{ formatPrice(getUnitGrossPrice(item)) }} · {{ tFn('vat', Math.round(item.taxRate * 100)) }}</span>
             </div>
           </div>
 
           <div class="ci-right">
-            <div class="ci-price">{{ formatPrice(item.unitPriceNet * item.amount) }}</div>
+            <div class="ci-price">{{ formatPrice(getLineGrossTotal(item)) }}</div>
 
             <div class="ci-qty" :aria-label="editable ? undefined : t('amount')">
               <template v-if="editable && !isFruitsVegetables(item)">
@@ -33,7 +33,7 @@
               </template>
               <span class="qty-val">
                 <template v-if="editable">
-                  {{ isFruitsVegetables(item) ? item.amount.toFixed(2) + ' kg' : item.amount }}
+                  {{ isFruitsVegetables(item) ? item.amount.toFixed(2) + ' ' + t('weightUnitKg') : item.amount }}
                 </template>
                 <template v-else>
                   {{ item.amount }}×
@@ -59,7 +59,7 @@
 
       <div class="totals">
         <div v-if="appliedCoupon" class="totals-row totals-row--coupon">
-          <span>Coupon ({{ appliedCoupon.code }})</span>
+          <span>{{ t('couponLabel') }} ({{ appliedCoupon.code }})</span>
           <span class="totals-discount-value">-{{ formatPrice(couponDiscount) }}</span>
         </div>
 
@@ -76,10 +76,11 @@
 import { computed } from 'vue'
 import { useLanguage } from '@/components/Uselanguage'
 import { useFormatters } from '@/composables/useFormatters'
+import { calculateGrossLineTotal, calculateGrossUnitPrice, toFiniteNumber } from '@/utils/pricing'
 
 const props = defineProps({
   items: { type: Array, required: true },
-  totalPrice: { type: Number, default: 0 },
+  totalPrice: { type: Number, default: null },
   couponDiscount: { type: Number, default: 0 },
   appliedCoupon: { type: Object, default: null },
   editable: { type: Boolean, default: false },
@@ -92,8 +93,25 @@ const { t, tFn } = useLanguage()
 const { formatPrice } = useFormatters()
 
 const computedTotal = computed(() => {
-  return props.items.reduce((sum, item) => sum + (item.unitPriceNet || 0) * (item.amount || 1), 0)
+  if (props.totalPrice !== null && props.totalPrice !== undefined) {
+    return toFiniteNumber(props.totalPrice)
+  }
+
+  return props.items.reduce((sum, item) => sum + getLineGrossTotal(item), 0)
 })
+
+function getUnitGrossPrice(item) {
+  const amount = toFiniteNumber(item.amount, 1)
+  if (item.totalPriceGross !== null && item.totalPriceGross !== undefined && amount > 0) {
+    return toFiniteNumber(item.totalPriceGross) / amount
+  }
+
+  return calculateGrossUnitPrice(item.unitPriceNet, item.taxRate)
+}
+
+function getLineGrossTotal(item) {
+  return calculateGrossLineTotal(item)
+}
 
 function isFruitsVegetables(item) {
   const cat = item.productCategory || item.category

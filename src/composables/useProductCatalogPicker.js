@@ -44,6 +44,7 @@ export function useProductCatalogPicker({ modal, showError }) {
         sku: product.code,
         name: product.name,
         pricePerKg: product.price,
+        taxRate: product.taxRate,
         category: product.category,
       }))
     } catch {
@@ -66,6 +67,7 @@ export function useProductCatalogPicker({ modal, showError }) {
         sku: product.code,
         name: product.name,
         price: product.price,
+        taxRate: product.taxRate,
         category: product.category,
       }))
     } catch {

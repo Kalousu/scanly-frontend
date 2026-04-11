@@ -1,12 +1,27 @@
 <template>
   <Teleport to="body">
-    <div v-if="visible" class="confirm-overlay" @click.self="$emit('cancel')">
+    <div
+      v-if="visible"
+      ref="overlayRef"
+      class="confirm-overlay"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+      tabindex="-1"
+      @click.self="$emit('cancel')"
+      @keydown.esc="$emit('cancel')"
+    >
       <div class="confirm-card">
-        <h3 class="confirm-title">{{ title }}</h3>
-        <p class="confirm-text" v-html="message"></p>
+        <h3 :id="titleId" class="confirm-title">{{ title }}</h3>
+        <p class="confirm-text">
+          <template v-for="(segment, index) in messageSegments" :key="index">
+            <strong v-if="segment.strong">{{ segment.text }}</strong>
+            <span v-else>{{ segment.text }}</span>
+          </template>
+        </p>
         <div class="confirm-actions">
           <button type="button" class="confirm-btn confirm-btn--cancel" @click="$emit('cancel')">
-            {{ cancelLabel }}
+            {{ cancelLabelText }}
           </button>
           <button type="button" class="confirm-btn confirm-btn--confirm" @click="$emit('confirm')">
             {{ confirmLabel }}
@@ -18,15 +33,36 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed, nextTick, ref, watch } from 'vue'
+import { useLanguage } from '@/components/Uselanguage'
+import { toSafeRichTextSegments } from '@/utils/safeRichText'
+
+const { t } = useLanguage()
+
+const props = defineProps({
   visible: { type: Boolean, required: true },
   title: { type: String, required: true },
   message: { type: String, required: true },
-  cancelLabel: { type: String, default: 'Abbrechen' },
+  cancelLabel: { type: String, default: '' },
   confirmLabel: { type: String, required: true },
 })
 
 defineEmits(['cancel', 'confirm'])
+
+const overlayRef = ref(null)
+const titleId = `confirm-title-${Math.random().toString(36).slice(2)}`
+const messageSegments = computed(() => toSafeRichTextSegments(props.message))
+const cancelLabelText = computed(() => props.cancelLabel || t('cancel'))
+
+watch(
+  () => props.visible,
+  async (visible) => {
+    if (visible) {
+      await nextTick()
+      overlayRef.value?.focus()
+    }
+  },
+)
 </script>
 
 <style scoped>
@@ -51,7 +87,7 @@ defineEmits(['cancel', 'confirm'])
   width: min(420px, 90vw);
   background: rgba(10, 28, 44, 0.97);
   border: 1px solid rgba(255, 255, 255, 0.17);
-  border-radius: 24px;
+  border-radius: 8px;
   padding: 36px 32px 28px;
   box-shadow:
     0 32px 80px rgba(0, 0, 0, 0.6),

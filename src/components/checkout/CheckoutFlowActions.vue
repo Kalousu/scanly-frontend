@@ -1,9 +1,10 @@
 <template>
   <div class="action-row">
-    <button class="btn btn--cancel" @click="$emit('cancel')" :disabled="status === 'paying'">
+    <button type="button" class="btn btn--cancel" @click="$emit('cancel')" :disabled="status === 'paying'">
       {{ t('cancel') }}
     </button>
     <button
+      type="button"
       class="btn btn--pay"
       :disabled="itemCount === 0 || status === 'paying'"
       @click="$emit('pay')"

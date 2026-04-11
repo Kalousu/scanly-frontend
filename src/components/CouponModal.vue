@@ -1,5 +1,12 @@
 <template>
-  <div v-if="visible" class="modal-backdrop" @click.self="$emit('close')">
+  <div
+    v-if="visible"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    :aria-label="t('couponRedeem')"
+    @click.self="$emit('close')"
+  >
     <div class="modal-card modal-card--sm">
       <h3 class="modal-title">{{ t('couponRedeem') }}</h3>
       <p class="coupon-subtitle">{{ t('couponRedeemSubtitle') }}</p>

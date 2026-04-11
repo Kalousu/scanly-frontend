@@ -1,5 +1,12 @@
 ﻿<template>
-  <div v-if="visible" class="modal-backdrop" @click.self="$emit('close')">
+  <div
+    v-if="visible"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    :aria-label="t(modeConfig.titleKey)"
+    @click.self="$emit('close')"
+  >
     <div class="modal-card">
       <div class="modal-head">
         <div class="modal-icon">{{ modeConfig.icon }}</div>
@@ -14,6 +21,7 @@
       </div>
       <div v-else class="product-grid">
         <button
+          type="button"
           v-for="item in catalog"
           :key="item.sku"
           class="product-card"
@@ -325,4 +333,3 @@ const modeConfig = computed(() => MODE_CONFIG[props.mode] || MODE_CONFIG.bakery)
 }
 
 </style>
-

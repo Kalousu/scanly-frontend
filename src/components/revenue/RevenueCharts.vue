@@ -1,21 +1,21 @@
 <template>
   <div class="charts-grid">
     <div class="chart-card chart-card--wide">
-      <h3 class="chart-title">Tagesumsatz (letzte 30 Tage)</h3>
+      <h3 class="chart-title">{{ t('adminDailyRevenue') }}</h3>
       <div class="chart-wrap">
         <Bar v-if="dailyChartData" :data="dailyChartData" :options="barOptions" />
       </div>
     </div>
 
     <div class="chart-card">
-      <h3 class="chart-title">Top Produkte (nach Umsatz)</h3>
+      <h3 class="chart-title">{{ t('adminTopProducts') }}</h3>
       <div class="chart-wrap chart-wrap--doughnut">
         <Doughnut v-if="productChartData" :data="productChartData" :options="doughnutOptions" />
       </div>
     </div>
 
     <div class="chart-card">
-      <h3 class="chart-title">Bestellungen pro Tag</h3>
+      <h3 class="chart-title">{{ t('adminOrdersPerDay') }}</h3>
       <div class="chart-wrap chart-wrap--doughnut">
         <Line v-if="ordersTrendData" :data="ordersTrendData" :options="lineOptions" />
       </div>
@@ -38,6 +38,11 @@ import {
   Tooltip,
 } from 'chart.js'
 import { Bar, Doughnut, Line } from 'vue-chartjs'
+import { useLanguage } from '@/components/Uselanguage'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { t } = useLanguage()
+const { formatCurrency } = useFormatters()
 
 ChartJS.register(
   CategoryScale,
@@ -76,7 +81,7 @@ const barOptions = {
     tooltip: {
       ...baseTooltip,
       callbacks: {
-        label: (ctx) => `${ctx.parsed.y.toFixed(2)} EUR`,
+        label: (ctx) => formatCurrency(ctx.parsed.y),
       },
     },
   },
@@ -88,7 +93,7 @@ const barOptions = {
     y: {
       ticks: {
         color: 'rgba(255,255,255,0.4)',
-        callback: (value) => `${value} EUR`,
+        callback: (value) => formatCurrency(value),
       },
       grid: { color: 'rgba(255,255,255,0.06)' },
     },
@@ -112,7 +117,7 @@ const doughnutOptions = {
     tooltip: {
       ...baseTooltip,
       callbacks: {
-        label: (ctx) => `${ctx.label}: ${ctx.parsed.toFixed(2)} EUR`,
+        label: (ctx) => `${ctx.label}: ${formatCurrency(ctx.parsed)}`,
       },
     },
   },

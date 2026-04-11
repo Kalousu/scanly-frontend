@@ -1,9 +1,17 @@
 ﻿<template>
-  <div v-if="visible" class="modal-backdrop" @click.self="$emit('close')">
+  <div
+    v-if="visible"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    :aria-label="t('langTitle')"
+    @click.self="$emit('close')"
+  >
     <div class="modal-card modal-card--sm">
       <h3 class="modal-title">{{ t('langTitle') }}</h3>
       <div class="lang-grid">
         <button
+          type="button"
           v-for="lang in languages"
           :key="lang.code"
           class="lang-btn"
@@ -16,7 +24,7 @@
         </button>
       </div>
       <div class="modal-actions">
-        <button class="modal-btn modal-btn--back" @click="$emit('close')">
+        <button type="button" class="modal-btn modal-btn--back" @click="$emit('close')">
           {{ t('close') }}
         </button>
       </div>

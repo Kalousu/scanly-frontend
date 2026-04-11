@@ -2,40 +2,40 @@
   <AdminModal :visible="Boolean(order)" modal-class="admin-modal--lg" transition-name="detail-fade" @close="$emit('close')">
     <template #header>
       <template v-if="order">
-          <h3 class="admin-modal-title">Bestellung #{{ order.orderId }}</h3>
-          <button class="admin-modal-close" @click="$emit('close')">X</button>
+          <h3 class="admin-modal-title">{{ t('adminOrders') }} #{{ order.orderId }}</h3>
+          <button type="button" class="admin-modal-close" @click="$emit('close')">X</button>
       </template>
     </template>
     <div v-if="order" class="admin-modal-body">
           <div class="ord-detail-meta">
             <div class="ord-detail-meta-item">
-              <span class="ord-detail-meta-label">Datum</span>
+              <span class="ord-detail-meta-label">{{ t('adminColDate') }}</span>
               <span>{{ formatDate(order.creationDate) }}</span>
             </div>
             <div class="ord-detail-meta-item">
-              <span class="ord-detail-meta-label">Status</span>
+              <span class="ord-detail-meta-label">{{ t('adminColStatus') }}</span>
               <span
                 class="admin-badge-status"
                 :class="'admin-badge-status--' + (order.orderStatus || '').toLowerCase()"
               >
-                {{ order.orderStatus === 'CLOSED' ? 'Abgeschlossen' : 'Offen' }}
+                {{ order.orderStatus === 'CLOSED' ? t('adminClosed') : t('adminOpen') }}
               </span>
             </div>
             <div class="ord-detail-meta-item">
-              <span class="ord-detail-meta-label">Gesamtbetrag</span>
+              <span class="ord-detail-meta-label">{{ t('adminOrderTotalLabel') }}</span>
               <span class="ord-detail-total">{{ formatCurrency(order.totalPrice || 0) }}</span>
             </div>
           </div>
           <div v-if="order.orderItems && order.orderItems.length > 0" class="ord-detail-items">
-            <h4>Positionen</h4>
+            <h4>{{ t('adminOrderPositions') }}</h4>
             <table class="admin-table">
               <thead>
                 <tr>
-                  <th>Produkt</th>
-                  <th>Menge</th>
-                  <th>Netto/Stk</th>
-                  <th>MwSt</th>
-                  <th>Brutto</th>
+                  <th>{{ t('adminColProduct') }}</th>
+                  <th>{{ t('adminColQuantity') }}</th>
+                  <th>{{ t('adminColNetPerUnit') }}</th>
+                  <th>{{ t('adminColVat') }}</th>
+                  <th>{{ t('adminColGross') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -49,13 +49,16 @@
               </tbody>
             </table>
           </div>
-          <div v-else class="ord-detail-no-items">Keine Artikel in dieser Bestellung.</div>
+          <div v-else class="ord-detail-no-items">{{ t('adminOrderNoItems') }}</div>
     </div>
   </AdminModal>
 </template>
 
 <script setup>
 import AdminModal from '@/components/admin/AdminModal.vue'
+import { useLanguage } from '@/components/Uselanguage'
+
+const { t } = useLanguage()
 
 defineProps({
   order: { type: Object, default: null },

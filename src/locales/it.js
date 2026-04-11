@@ -24,6 +24,8 @@ export default {
   subtotal: 'Subtotale',
   vat: (rate) => `IVA (${rate}%)`,
   total: 'Totale',
+  net: 'netto',
+  removeItem: 'Rimuovi articolo',
 
   scanPrompt: 'Si prega di scansionare gli articoli',
   scanning: 'Scansione...',
@@ -116,6 +118,12 @@ export default {
   couponScanActiveTitle: 'Scansione attiva…',
   couponScanBtn: 'Scan',
   couponRedeemBtn: 'Riscuoti',
+  couponCodeRequired: 'Inserisci un codice coupon.',
+  couponInvalid: 'Coupon non trovato o non valido.',
+  couponAlreadyActive: (label) => `${label} è già attivo.`,
+  couponActivated: (code) => `Coupon ${code} attivato.`,
+  couponRemovedConditions: 'Il coupon è stato rimosso perché l ordine non soddisfa più le condizioni.',
   summaryPreDiscount: 'Prima dello sconto',
   summaryCouponDiscount: 'Sconto coupon',
+  adminLoginDemoNotice: 'Accesso demo: le credenziali vengono verificate localmente nel browser e non sostituiscono una vera autenticazione backend.',
 }

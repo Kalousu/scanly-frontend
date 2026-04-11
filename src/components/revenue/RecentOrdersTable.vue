@@ -1,10 +1,10 @@
 <template>
   <div class="rev-section">
-    <h2 class="rev-section-title">Letzte abgeschlossene Bestellungen</h2>
+    <h2 class="rev-section-title">{{ t('adminRecentOrders') }}</h2>
     <AdminDataTable
       :columns="columns"
       :rows="orders"
-      empty-message="Keine abgeschlossenen Bestellungen vorhanden."
+      :empty-message="t('adminNoClosedOrders')"
     >
       <template #rows="{ rows }">
         <tr v-for="order in rows" :key="order.orderId">
@@ -27,7 +27,11 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useLanguage } from '@/components/Uselanguage'
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
+
+const { t } = useLanguage()
 
 defineProps({
   orders: { type: Array, default: () => [] },
@@ -36,11 +40,11 @@ defineProps({
   getItemCount: { type: Function, required: true },
 })
 
-const columns = [
-  { key: 'id', label: 'Bestell-ID' },
-  { key: 'date', label: 'Datum' },
-  { key: 'items', label: 'Artikel' },
-  { key: 'amount', label: 'Betrag' },
-  { key: 'status', label: 'Status' },
-]
+const columns = computed(() => [
+  { key: 'id', label: t('adminColOrderId') },
+  { key: 'date', label: t('adminColDate') },
+  { key: 'items', label: t('adminColItems') },
+  { key: 'amount', label: t('adminColAmount') },
+  { key: 'status', label: t('adminColStatus') },
+])
 </script>

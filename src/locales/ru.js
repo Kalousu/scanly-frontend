@@ -24,6 +24,8 @@ export default {
   subtotal: 'Промежуточный итог',
   vat: (rate) => `НДС (${rate}%)`,
   total: 'Итого',
+  net: 'нетто',
+  removeItem: 'Удалить товар',
 
   scanPrompt: 'Пожалуйста, отсканируйте товары',
   scanning: 'Сканирование...',
@@ -116,6 +118,12 @@ export default {
   couponScanActiveTitle: 'Сканирование активно…',
   couponScanBtn: 'Скан',
   couponRedeemBtn: 'Применить',
+  couponCodeRequired: 'Введите код купона.',
+  couponInvalid: 'Купон не найден или недействителен.',
+  couponAlreadyActive: (label) => `${label} уже активен.`,
+  couponActivated: (code) => `Купон ${code} активирован.`,
+  couponRemovedConditions: 'Купон удалён, потому что заказ больше не соответствует условиям.',
   summaryPreDiscount: 'До скидки',
   summaryCouponDiscount: 'Скидка по купону',
+  adminLoginDemoNotice: 'Демо-доступ: данные проверяются локально в браузере и не заменяют настоящую backend-аутентификацию.',
 }

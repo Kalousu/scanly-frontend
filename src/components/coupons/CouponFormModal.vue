@@ -1,26 +1,26 @@
 <template>
-  <AdminModal :visible="visible" title="Coupon anlegen" modal-class="admin-modal--lg" @close="$emit('close')">
+  <AdminModal :visible="visible" :title="t('adminCouponCreate')" modal-class="admin-modal--lg" @close="$emit('close')">
         <div class="admin-modal-body">
           <div class="admin-form-row">
             <div class="admin-form-group">
-              <label class="admin-label">Coupon-Code</label>
+              <label class="admin-label">{{ t('adminCouponCodeLabel') }}</label>
               <input
                 :value="form.code"
                 type="text"
                 class="admin-input"
                 maxlength="32"
-                placeholder="z.B. SPRING20"
+                :placeholder="t('adminCouponCodePlaceholder')"
                 @input="updateField('code', $event.target.value)"
               />
             </div>
 
             <div class="admin-form-group">
-              <label class="admin-label">Bezeichnung</label>
+              <label class="admin-label">{{ t('adminCouponLabelLabel') }}</label>
               <input
                 :value="form.label"
                 type="text"
                 class="admin-input"
-                placeholder="z.B. 20% Frühlingsrabatt"
+                :placeholder="t('adminCouponLabelPlaceholder')"
                 @input="updateField('label', $event.target.value)"
               />
             </div>
@@ -28,20 +28,20 @@
 
           <div class="admin-form-row">
             <div class="admin-form-group">
-              <label class="admin-label">Rabatt-Typ</label>
+              <label class="admin-label">{{ t('adminCouponTypeLabel') }}</label>
               <select
                 :value="form.type"
                 class="admin-input"
                 @change="updateField('type', $event.target.value)"
               >
-                <option value="percentage">Prozent</option>
-                <option value="fixed">Fixbetrag</option>
+                <option value="percentage">{{ t('adminCouponTypePercentage') }}</option>
+                <option value="fixed">{{ t('adminCouponTypeFixed') }}</option>
               </select>
             </div>
 
             <div class="admin-form-group">
               <label class="admin-label">
-                {{ form.type === 'percentage' ? 'Rabatt in %' : 'Rabatt in EUR' }}
+                {{ form.type === 'percentage' ? t('adminCouponDiscountPercent') : t('adminCouponDiscountFixed') }}
               </label>
               <input
                 :value="form.value"
@@ -56,7 +56,7 @@
 
           <div class="admin-form-row">
             <div class="admin-form-group">
-              <label class="admin-label">Mindestbestellwert in EUR</label>
+              <label class="admin-label">{{ t('adminCouponMinOrderLabel') }}</label>
               <input
                 :value="form.minOrderValue"
                 type="number"
@@ -69,11 +69,11 @@
           </div>
 
           <div class="coupon-preview">
-            <div class="coupon-preview-label">Vorschau</div>
+            <div class="coupon-preview-label">{{ t('adminCouponPreview') }}</div>
             <div class="coupon-preview-code">{{ (form.code || 'CODE').toUpperCase() }}</div>
-            <div class="coupon-preview-text">{{ form.label || 'Bezeichnung des Coupons' }}</div>
+            <div class="coupon-preview-text">{{ form.label || t('adminCouponDefaultLabel') }}</div>
             <div class="coupon-preview-meta">
-              {{ discountPreview }} · Mindestwert {{ Number(form.minOrderValue || 0).toFixed(2) }} EUR
+              {{ discountPreview }} · {{ t('adminCouponMinValue') }} {{ formatCurrency(form.minOrderValue || 0) }}
             </div>
           </div>
 
@@ -82,8 +82,8 @@
           </div>
 
           <div class="admin-modal-footer">
-            <button class="admin-btn admin-btn--secondary" @click="$emit('close')">Abbrechen</button>
-            <button class="admin-btn admin-btn--primary" @click="$emit('save')">Coupon anlegen</button>
+            <button type="button" class="admin-btn admin-btn--secondary" @click="$emit('close')">{{ t('adminCancel') }}</button>
+            <button type="button" class="admin-btn admin-btn--primary" @click="$emit('save')">{{ t('adminCouponCreate') }}</button>
           </div>
         </div>
   </AdminModal>
@@ -91,7 +91,12 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useLanguage } from '@/components/Uselanguage'
+import { useFormatters } from '@/composables/useFormatters'
 import AdminModal from '@/components/admin/AdminModal.vue'
+
+const { t } = useLanguage()
+const { formatCurrency } = useFormatters()
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -107,7 +112,7 @@ function updateField(field, value) {
 
 const discountPreview = computed(() =>
   props.form.type === 'percentage'
-    ? `${Number(props.form.value || 0)}% Rabatt`
-    : `${Number(props.form.value || 0).toFixed(2)} EUR Rabatt`,
+    ? `${Number(props.form.value || 0)}% ${t('adminCouponDiscount')}`
+    : `${formatCurrency(props.form.value || 0)} ${t('adminCouponDiscount')}`,
 )
 </script>

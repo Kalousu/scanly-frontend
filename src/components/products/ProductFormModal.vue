@@ -89,7 +89,7 @@
 </template>
 
 <script setup>
-import { useLanguage } from '@/components/Uselanguage'
+import { useLanguage as useComponentLanguage } from '@/components/Uselanguage'
 import AdminModal from '@/components/admin/AdminModal.vue'
 import ProductFormFields from '@/components/products/ProductFormFields.vue'
 import ProductLookupPanel from '@/components/products/ProductLookupPanel.vue'
@@ -146,7 +146,7 @@ const ProductModalFooter = {
   },
   emits: ['close', 'confirm'],
   setup() {
-    const { t } = useLanguage()
+    const { t } = useComponentLanguage()
     return { t }
   },
   template: `

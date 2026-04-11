@@ -29,7 +29,7 @@
       <div v-else-if="cameraError" class="cam-overlay cam-overlay--error">
         <span class="cam-error-icon">⚠️</span>
         <span>{{ cameraError }}</span>
-        <button class="retry-btn" @click="startCamera">{{ t('retry') }}</button>
+        <button type="button" class="retry-btn" @click="startCamera">{{ t('retry') }}</button>
       </div>
 
       <div v-else-if="!cameraActive" class="cam-overlay cam-overlay--inactive">
@@ -37,6 +37,7 @@
       </div>
 
       <button
+        type="button"
         class="cam-toggle"
         :class="{ 'cam-toggle--active': cameraActive }"
         :disabled="cameraNoDevice"

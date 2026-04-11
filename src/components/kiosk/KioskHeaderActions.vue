@@ -8,7 +8,7 @@
       :class="{ 'action-pill--active': vatEnabled }"
       @click="$emit('toggle-vat')"
     >
-      MwSt
+      {{ t('adminColVat') }}
     </button>
   </div>
 </template>

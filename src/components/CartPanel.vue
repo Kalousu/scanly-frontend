@@ -20,14 +20,14 @@
           <div class="ci-left">
             <div class="ci-name">{{ item.productName }}</div>
             <div class="ci-meta">
-              <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round(item.taxRate * 100) }}%</span>
+              <span>{{ formatPrice(item.unitPriceNet) }} {{ t('net') }} · {{ tFn('vat', Math.round(item.taxRate * 100)) }}</span>
             </div>
           </div>
 
           <div class="ci-right">
             <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
 
-            <div class="ci-qty" :aria-label="editable ? undefined : 'Menge'">
+            <div class="ci-qty" :aria-label="editable ? undefined : t('amount')">
               <template v-if="editable && !isFruitsVegetables(item)">
                 <button type="button" class="qty-btn" @click="$emit('update-quantity', item, -1)">−</button>
               </template>
@@ -48,7 +48,7 @@
               v-if="editable"
               type="button"
               class="delete-btn"
-              title="Artikel entfernen"
+              :title="t('removeItem')"
               @click="$emit('delete-item', item)"
             >
             </button>
@@ -86,7 +86,7 @@ defineProps({
 
 defineEmits(['update-quantity', 'delete-item'])
 
-const { t } = useLanguage()
+const { t, tFn } = useLanguage()
 const { formatPrice } = useFormatters()
 
 function isFruitsVegetables(item) {

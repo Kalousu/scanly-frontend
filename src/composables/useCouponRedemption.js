@@ -1,15 +1,17 @@
 import { computed, ref } from 'vue'
 import { validateCoupon } from '@/services/api'
+import { useLanguage } from '@/components/Uselanguage'
 
-function getCouponErrorMessage(error) {
+function getCouponErrorMessage(error, fallback) {
   return (
     error.response?.data?.message ||
     error.response?.data?.error ||
-    'Coupon nicht gefunden oder nicht gültig.'
+    fallback
   )
 }
 
 export function useCouponRedemption(cartStore, orderTotalPrice) {
+  const { t, tFn } = useLanguage()
   const couponCode = ref('')
   const couponScanning = ref(false)
   const couponMessage = ref('')
@@ -33,7 +35,7 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
     couponCode.value = cartStore.appliedCoupon?.code || ''
     couponScanning.value = false
     couponMessage.value = cartStore.appliedCoupon
-      ? `${cartStore.appliedCoupon.label} ist bereits aktiv.`
+      ? tFn('couponAlreadyActive', cartStore.appliedCoupon.label)
       : ''
     couponMessageType.value = cartStore.appliedCoupon ? 'success' : ''
     modal.value = 'coupon'
@@ -54,7 +56,7 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
   async function redeemCoupon() {
     const code = couponCode.value.trim().toUpperCase()
     if (!code) {
-      couponMessage.value = 'Bitte einen Coupon-Code eingeben.'
+      couponMessage.value = t('couponCodeRequired')
       couponMessageType.value = 'error'
       return false
     }
@@ -64,7 +66,7 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
     try {
       const result = await validateCoupon(code, orderTotalPrice.value)
       couponCode.value = code
-      couponMessage.value = result.message || `Coupon ${code} aktiviert.`
+      couponMessage.value = result.message || tFn('couponActivated', code)
       couponMessageType.value = 'success'
       cartStore.applyCoupon({
         code,
@@ -76,7 +78,7 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
       return true
     } catch (error) {
       couponCode.value = code
-      couponMessage.value = getCouponErrorMessage(error)
+      couponMessage.value = getCouponErrorMessage(error, t('couponInvalid'))
       couponMessageType.value = 'error'
       cartStore.clearCoupon()
       syncPaymentSummary()
@@ -101,7 +103,7 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
       syncPaymentSummary()
     } catch {
       cartStore.clearCoupon()
-      couponMessage.value = 'Coupon wurde entfernt, weil die Bestellung die Bedingungen nicht mehr erfüllt.'
+      couponMessage.value = t('couponRemovedConditions')
       couponMessageType.value = 'error'
       syncPaymentSummary()
     }

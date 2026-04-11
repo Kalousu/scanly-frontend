@@ -1,18 +1,19 @@
+import { useLanguage } from '@/components/Uselanguage'
+import { useFormatters } from '@/composables/useFormatters'
+
 export function formatCouponDiscount(coupon) {
+  const { formatCurrency } = useFormatters()
   const type = (coupon.type || '').toLowerCase()
-  return type === 'percentage' ? `${coupon.value}%` : `${Number(coupon.value).toFixed(2)} EUR`
+  return type === 'percentage' ? `${coupon.value}%` : formatCurrency(coupon.value || 0)
 }
 
 export function formatCouponType(coupon) {
+  const { t } = useLanguage()
   const type = (coupon.type || '').toLowerCase()
-  return type === 'percentage' ? 'Prozent' : 'Fixbetrag'
+  return type === 'percentage' ? t('adminCouponTypePercentage') : t('adminCouponTypeFixed')
 }
 
 export function formatAdminDate(date) {
-  if (!date) return '-'
-  return new Intl.DateTimeFormat('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(date))
+  const { formatDate } = useFormatters()
+  return formatDate(date)
 }

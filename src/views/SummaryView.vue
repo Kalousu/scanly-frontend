@@ -93,9 +93,11 @@ onBeforeUnmount(() => {
 .summary-page {
   position: fixed;
   inset: 0;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: auto;
   color: #fff;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: linear-gradient(160deg, #071a2a 0%, #0b2c44 60%, #092538 100%);
@@ -116,6 +118,7 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 480px;
   padding: 2rem;
+  margin: auto 0;
 }
 
 .summary-card {

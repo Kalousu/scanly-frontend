@@ -20,6 +20,8 @@ export default {
   subtotal: 'Subtotal',
   vat: (rate) => `VAT (${rate}%)`,
   total: 'Total',
+  net: 'net',
+  removeItem: 'Remove item',
 
   scanPrompt: 'Please scan your items',
   scanning: 'Scanning...',
@@ -111,6 +113,11 @@ export default {
   couponScanActiveTitle: 'Scanning active…',
   couponScanBtn: 'Scan',
   couponRedeemBtn: 'Redeem',
+  couponCodeRequired: 'Please enter a coupon code.',
+  couponInvalid: 'Coupon not found or not valid.',
+  couponAlreadyActive: (label) => `${label} is already active.`,
+  couponActivated: (code) => `Coupon ${code} activated.`,
+  couponRemovedConditions: 'Coupon was removed because the order no longer meets the conditions.',
   summaryPreDiscount: 'Before discount',
   summaryCouponDiscount: 'Coupon discount',
 
@@ -317,4 +324,5 @@ export default {
   adminLoginPassPlaceholder: 'Enter password',
   adminLoginClose: 'Close',
   adminLoginError: 'Invalid credentials.',
+  adminLoginDemoNotice: 'Demo access: credentials are checked locally in the browser and do not replace real backend authentication.',
 }

@@ -1,5 +1,5 @@
 <template>
-  <AdminDataTable :columns="columns" :rows="orders" empty-message="Keine Bestellungen gefunden">
+  <AdminDataTable :columns="columns" :rows="orders" :empty-message="t('adminNoOrders')">
     <template #rows="{ rows }">
       <tr
         v-for="order in rows"
@@ -14,7 +14,7 @@
           <span v-if="order.orderItems && order.orderItems.length > 0">
             {{ order.orderItems.map((item) => item.productName).join(', ') }}
           </span>
-          <span v-else class="td-empty">Keine Artikel</span>
+          <span v-else class="td-empty">{{ t('adminNoItems') }}</span>
         </td>
         <td>{{ getItemCount(order) }}</td>
         <td class="admin-td-amount">{{ formatCurrency(order.totalPrice || 0) }}</td>
@@ -23,7 +23,7 @@
             class="admin-badge-status"
             :class="'admin-badge-status--' + (order.orderStatus || '').toLowerCase()"
           >
-            {{ order.orderStatus === 'CLOSED' ? 'Abgeschlossen' : 'Offen' }}
+            {{ order.orderStatus === 'CLOSED' ? t('adminClosed') : t('adminOpen') }}
           </span>
         </td>
       </tr>
@@ -32,7 +32,11 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useLanguage } from '@/components/Uselanguage'
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
+
+const { t } = useLanguage()
 
 defineProps({
   orders: { type: Array, default: () => [] },
@@ -43,12 +47,12 @@ defineProps({
 
 defineEmits(['toggle-expand'])
 
-const columns = [
-  { key: 'id', label: 'ID' },
-  { key: 'date', label: 'Datum' },
-  { key: 'products', label: 'Produkte' },
-  { key: 'items', label: 'Artikel' },
-  { key: 'amount', label: 'Betrag' },
-  { key: 'status', label: 'Status' },
-]
+const columns = computed(() => [
+  { key: 'id', label: t('adminColId') },
+  { key: 'date', label: t('adminColDate') },
+  { key: 'products', label: t('adminColProducts') },
+  { key: 'items', label: t('adminColItems') },
+  { key: 'amount', label: t('adminColAmount') },
+  { key: 'status', label: t('adminColStatus') },
+])
 </script>

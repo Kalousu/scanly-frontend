@@ -302,7 +302,8 @@ onUnmounted(() => { stopCamera() })
   inset: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow: auto;
   color: var(--text);
   background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
 }
@@ -334,8 +335,9 @@ onUnmounted(() => { stopCamera() })
 }
 
 .container {
-  position: fixed;
+  position: relative;
   inset: 0;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 48px;
@@ -840,6 +842,7 @@ onUnmounted(() => { stopCamera() })
 .fade-leave-to   { opacity: 0; transform: translateX(-12px); }
 
 @media (max-width: 900px) {
+  .container { min-height: auto; padding: 24px; }
   .wrapper { padding: 40px 24px 32px; }
   .title { font-size: 38px; }
 }

@@ -3,7 +3,7 @@
     v-if="loading"
     class-name="coupons-empty"
     description-class="coupons-empty-desc"
-    message="Coupons werden geladen..."
+    :message="t('adminCouponsLoading')"
   />
 
   <AdminDataTable v-else :columns="columns" :rows="coupons">
@@ -15,14 +15,15 @@
         </td>
         <td>{{ formatType(coupon) }}</td>
         <td class="admin-td-amount">{{ formatDiscount(coupon) }}</td>
-        <td>{{ Number(coupon.minOrderValue || 0).toFixed(2) }} EUR</td>
+        <td>{{ formatCurrency(coupon.minOrderValue || 0) }}</td>
         <td>
           <button
+            type="button"
             class="coupon-toggle-btn"
             :class="coupon.active ? 'coupon-toggle-btn--active' : 'coupon-toggle-btn--inactive'"
             @click="$emit('toggle-status', coupon)"
           >
-            {{ coupon.active ? 'Aktiv' : 'Inaktiv' }}
+            {{ coupon.active ? t('adminActive') : t('adminInactive') }}
           </button>
         </td>
         <td>{{ formatDate(coupon.createdAt || coupon.creationDate) }}</td>
@@ -34,16 +35,22 @@
         class-name="coupons-empty"
         title-class="coupons-empty-title"
         description-class="coupons-empty-desc"
-        title="Keine Coupons gefunden"
-        message="Passe die Filter an oder lege direkt einen neuen Coupon an."
+        :title="t('adminCouponsEmpty')"
+        :message="t('adminCouponsEmptyHint')"
       />
     </template>
   </AdminDataTable>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminEmptyState from '@/components/admin/AdminEmptyState.vue'
+import { useLanguage } from '@/components/Uselanguage'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { t } = useLanguage()
+const { formatCurrency } = useFormatters()
 
 defineProps({
   coupons: { type: Array, default: () => [] },
@@ -55,13 +62,13 @@ defineProps({
 
 defineEmits(['toggle-status'])
 
-const columns = [
-  { key: 'code', label: 'Code' },
-  { key: 'label', label: 'Bezeichnung' },
-  { key: 'type', label: 'Typ' },
-  { key: 'discount', label: 'Rabatt' },
-  { key: 'minOrderValue', label: 'Mindestwert' },
-  { key: 'status', label: 'Status' },
-  { key: 'createdAt', label: 'Erstellt' },
-]
+const columns = computed(() => [
+  { key: 'code', label: t('adminCouponCode') },
+  { key: 'label', label: t('adminCouponLabel') },
+  { key: 'type', label: t('adminCouponType') },
+  { key: 'discount', label: t('adminCouponDiscount') },
+  { key: 'minOrderValue', label: t('adminCouponMinValue') },
+  { key: 'status', label: t('adminCouponStatus') },
+  { key: 'createdAt', label: t('adminCouponCreatedAt') },
+])
 </script>

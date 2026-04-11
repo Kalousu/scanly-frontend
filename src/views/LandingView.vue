@@ -109,16 +109,17 @@ async function onStart() {
 .checkout {
   position: fixed;
   inset: 0;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
   color: #fff;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
 }
 
 .bg-grid {
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
@@ -237,6 +238,7 @@ async function onStart() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 0;
   padding-bottom: 10vh;
   text-align: center;
 }

@@ -24,6 +24,8 @@ export default {
   subtotal: 'Zwischensumme',
   vat: (rate) => `MwSt (${rate}%)`,
   total: 'Gesamt',
+  net: 'netto',
+  removeItem: 'Artikel entfernen',
 
   scanPrompt: 'Bitte scannen Sie Ihre Artikel ein',
   scanning: 'Scanne...',
@@ -116,6 +118,11 @@ export default {
   couponScanActiveTitle: 'Scannen aktiv…',
   couponScanBtn: 'Scan',
   couponRedeemBtn: 'Einlösen',
+  couponCodeRequired: 'Bitte einen Coupon-Code eingeben.',
+  couponInvalid: 'Coupon nicht gefunden oder nicht gültig.',
+  couponAlreadyActive: (label) => `${label} ist bereits aktiv.`,
+  couponActivated: (code) => `Coupon ${code} aktiviert.`,
+  couponRemovedConditions: 'Coupon wurde entfernt, weil die Bestellung die Bedingungen nicht mehr erfüllt.',
   summaryPreDiscount: 'Vor Rabatt',
   summaryCouponDiscount: 'Coupon-Rabatt',
 
@@ -322,4 +329,5 @@ export default {
   adminLoginPassPlaceholder: 'Passwort eingeben',
   adminLoginClose: 'Schließen',
   adminLoginError: 'Ungültige Anmeldedaten.',
+  adminLoginDemoNotice: 'Demo-Zugang: Die Prüfung erfolgt lokal im Browser und ersetzt keine echte Backend-Authentifizierung.',
 }

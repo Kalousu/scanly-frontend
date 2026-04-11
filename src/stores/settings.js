@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 
 // settings get saved to localstorage whenever something changes
 const STORAGE_KEY = 'scanly-settings'
+const ADMIN_AUTH_KEY = 'scanly-admin-authenticated'
 
 function loadFromStorage() {
   try {
@@ -17,6 +18,26 @@ function loadFromStorage() {
 function saveToStorage(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch {
+    /* ignore */
+  }
+}
+
+function loadAdminAuthState() {
+  try {
+    return sessionStorage.getItem(ADMIN_AUTH_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function saveAdminAuthState(value) {
+  try {
+    if (value) {
+      sessionStorage.setItem(ADMIN_AUTH_KEY, 'true')
+    } else {
+      sessionStorage.removeItem(ADMIN_AUTH_KEY)
+    }
   } catch {
     /* ignore */
   }
@@ -54,6 +75,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // Admin credentials
   const adminUsername = ref(stored?.adminUsername ?? defaults.adminUsername)
   const adminPassword = ref(stored?.adminPassword ?? defaults.adminPassword)
+  const adminAuthenticated = ref(loadAdminAuthState())
 
   function getState() {
     return {
@@ -76,6 +98,18 @@ export const useSettingsStore = defineStore('settings', () => {
     return username === adminUsername.value && password === adminPassword.value
   }
 
+  function loginAdmin(username, password) {
+    const authenticated = checkCredentials(username, password)
+    adminAuthenticated.value = authenticated
+    saveAdminAuthState(authenticated)
+    return authenticated
+  }
+
+  function logoutAdmin() {
+    adminAuthenticated.value = false
+    saveAdminAuthState(false)
+  }
+
   // watch everything and save on change
   const allRefs = [
     paybackEnabled, paybackQrEnabled, paybackManualEnabled,
@@ -95,7 +129,10 @@ export const useSettingsStore = defineStore('settings', () => {
     cameraAutoStart,
     adminUsername,
     adminPassword,
+    adminAuthenticated,
     saveAll,
     checkCredentials,
+    loginAdmin,
+    logoutAdmin,
   }
 })

@@ -101,7 +101,7 @@ function close() {
 
 function handleLogin() {
   errorMsg.value = ''
-  if (settingsStore.checkCredentials(username.value, password.value)) {
+  if (settingsStore.loginAdmin(username.value, password.value)) {
     router.push('/admin')
     close()
   } else {

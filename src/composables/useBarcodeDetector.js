@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 
 const defaultFormats = ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e']
 
@@ -14,7 +14,23 @@ export function useBarcodeDetector({
 
   let barcodeDetector = null
   let scanInterval = null
+  let cooldownTimer = null
   let scanCooldown = false
+  let activeVideoRef = null
+  let activePredicate = null
+  let visibilityListenerAttached = false
+
+  function isDocumentHidden() {
+    return typeof document !== 'undefined' && document.visibilityState === 'hidden'
+  }
+
+  function clearCooldown() {
+    if (cooldownTimer) {
+      window.clearTimeout(cooldownTimer)
+      cooldownTimer = null
+    }
+    scanCooldown = false
+  }
 
   function initBarcodeDetector() {
     if (!('BarcodeDetector' in window)) {
@@ -37,15 +53,53 @@ export function useBarcodeDetector({
     }
   }
 
+  function pauseDetection() {
+    if (scanInterval) {
+      window.clearInterval(scanInterval)
+      scanInterval = null
+    }
+    clearCooldown()
+  }
+
+  function resumeDetection() {
+    if (!activeVideoRef || !activePredicate || isDocumentHidden()) return
+    startDetection(activeVideoRef, activePredicate)
+  }
+
+  function handleVisibilityChange() {
+    if (isDocumentHidden()) {
+      pauseDetection()
+      return
+    }
+    resumeDetection()
+  }
+
+  function attachVisibilityListener() {
+    if (visibilityListenerAttached || typeof document === 'undefined') return
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    visibilityListenerAttached = true
+  }
+
+  function detachVisibilityListener() {
+    if (!visibilityListenerAttached || typeof document === 'undefined') return
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+    visibilityListenerAttached = false
+  }
+
   function startDetection(videoRef, isActive) {
+    activeVideoRef = videoRef
+    activePredicate = isActive
     if (scanInterval) return
     if (barcodeSupported.value === null) {
       initBarcodeDetector()
     }
     if (!barcodeDetector) return
+    if (isDocumentHidden()) return
+
+    attachVisibilityListener()
 
     scanInterval = window.setInterval(async () => {
-      if (!isActive() || !videoRef.value || scanCooldown) return
+      if (isDocumentHidden() || !isActive() || !videoRef.value || scanCooldown) return
       try {
         const video = videoRef.value
         if (video.readyState !== video.HAVE_ENOUGH_DATA) return
@@ -53,8 +107,9 @@ export function useBarcodeDetector({
         if (barcodes.length > 0) {
           scanCooldown = true
           onDetect?.(barcodes[0].rawValue)
-          window.setTimeout(() => {
+          cooldownTimer = window.setTimeout(() => {
             scanCooldown = false
+            cooldownTimer = null
           }, cooldown)
         }
       } catch {
@@ -64,11 +119,13 @@ export function useBarcodeDetector({
   }
 
   function stopDetection() {
-    if (scanInterval) {
-      window.clearInterval(scanInterval)
-      scanInterval = null
-    }
+    pauseDetection()
+    detachVisibilityListener()
+    activeVideoRef = null
+    activePredicate = null
   }
+
+  onBeforeUnmount(stopDetection)
 
   return {
     barcodeSupported,

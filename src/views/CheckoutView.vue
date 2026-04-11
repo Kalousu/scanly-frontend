@@ -226,7 +226,7 @@ async function confirmCancel() {
   showCancelConfirm.value = false
   const cancelled = await cancelOrder()
   if (!cancelled) return
-  cartStore.clearCart()
+  cartStore.clearCart({ clearOrder: true })
   clearBuffer()
   scannerPanelRef.value?.stopCamera()
   closeModal()

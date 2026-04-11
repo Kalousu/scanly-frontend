@@ -94,8 +94,9 @@ const startError = ref('')
 async function onStart() {
   startError.value = ''
   try {
+    cartStore.resetOrderSession()
     const order = await createOrder()
-    cartStore.orderId = order.id ?? order.orderId ?? order
+    cartStore.setOrderId(order.id ?? order.orderId ?? order)
     cartStore.clearCoupon()
     cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
     router.push('/checkout')

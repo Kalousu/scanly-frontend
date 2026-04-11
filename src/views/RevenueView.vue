@@ -36,12 +36,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, defineAsyncComponent, onMounted } from 'vue'
 import { useLanguage } from '@/components/Uselanguage'
 import AdminLayout from '@/components/AdminLayout.vue'
 import AdminKpiGrid from '@/components/admin/AdminKpiGrid.vue'
 import RecentOrdersTable from '@/components/revenue/RecentOrdersTable.vue'
-import RevenueCharts from '@/components/revenue/RevenueCharts.vue'
 import { useFormatters } from '@/composables/useFormatters'
 import { useOrderUtils } from '@/composables/useOrderUtils'
 import { useRevenueAnalytics } from '@/composables/useRevenueAnalytics'
@@ -49,6 +48,7 @@ import { useRevenueAnalytics } from '@/composables/useRevenueAnalytics'
 const { t } = useLanguage()
 const { formatCurrency, formatDate } = useFormatters()
 const { getItemCount } = useOrderUtils()
+const RevenueCharts = defineAsyncComponent(() => import('@/components/revenue/RevenueCharts.vue'))
 
 const {
   loading,

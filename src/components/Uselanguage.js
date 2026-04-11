@@ -8,7 +8,29 @@ import ru from '@/locales/ru'
 
 const LANG_KEY = 'checkout_lang'
 
-const currentLang = ref(localStorage.getItem(LANG_KEY) ?? 'de')
+function readStoredLanguage() {
+  try {
+    return localStorage.getItem(LANG_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeStoredLanguage(code) {
+  try {
+    localStorage.setItem(LANG_KEY, code)
+  } catch {
+    /* ignore storage issues */
+  }
+}
+
+function resolveTranslation(key) {
+  const active = translations[currentLang.value]
+  const adminFallback = key.startsWith('admin') ? translations.en?.[key] : undefined
+  return active?.[key] ?? adminFallback ?? translations.de?.[key] ?? key
+}
+
+const currentLang = ref(readStoredLanguage() ?? 'de')
 
 export const languages = [
   {
@@ -38,16 +60,16 @@ export const translations = { de, en, it, ru }
 export function useLanguage() {
   function setLanguage(code) {
     currentLang.value = code
-    localStorage.setItem(LANG_KEY, code)
+    writeStoredLanguage(code)
   }
 
   function t(key) {
-    return translations[currentLang.value]?.[key] ?? translations['de']?.[key] ?? key
+    return resolveTranslation(key)
   }
 
   // like t() but for translation keys that are functions (e.g. with parameters)
   function tFn(key, ...args) {
-    const val = translations[currentLang.value]?.[key] ?? translations['de']?.[key]
+    const val = resolveTranslation(key)
     if (typeof val === 'function') return val(...args)
     return val ?? key
   }

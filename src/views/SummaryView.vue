@@ -32,7 +32,7 @@ function startCountdown() {
 }
 
 function finishAndRedirect() {
-  cart.clearCart()
+  cart.clearCart({ clearOrder: true })
   router.push('/')
 }
 

@@ -1,15 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LandingView from '@/views/LandingView.vue'
-import CheckoutView from '@/views/CheckoutView.vue'
-import PaybackView from '@/views/PaybackView.vue'
-import PaymentView from '@/views/PaymentView.vue'
-import SummaryView from '@/views/SummaryView.vue'
-import AdminView from '@/views/AdminView.vue'
-import RevenueView from '@/views/RevenueView.vue'
-import OrdersView from '@/views/OrdersView.vue'
-import ProductsView from '@/views/ProductsView.vue'
-import SettingsView from '@/views/SettingsView.vue'
-import CouponsView from '@/views/CouponsView.vue'
+import { useCartStore } from '@/stores/cart'
+import { useSettingsStore } from '@/stores/settings'
 
 // customer goes landing, checkout, payback, payment, summary
 // admin stuff lives under /admin
@@ -19,59 +10,88 @@ const router = createRouter({
     {
       path: '/',
       name: 'landing',
-      component: LandingView,
+      component: () => import('@/views/LandingView.vue'),
     },
     {
       path: '/checkout',
       name: 'checkout',
-      component: CheckoutView,
+      component: () => import('@/views/CheckoutView.vue'),
+      meta: { requiresOrder: true },
     },
     {
       path: '/payback',
       name: 'payback',
-      component: PaybackView,
+      component: () => import('@/views/PaybackView.vue'),
+      meta: { requiresOrder: true },
     },
     {
       path: '/payment',
       name: 'payment',
-      component: PaymentView,
+      component: () => import('@/views/PaymentView.vue'),
+      meta: { requiresOrder: true },
     },
     {
       path: '/summary',
-      name: 'SummaryView', 
-      component: SummaryView,
+      name: 'summary',
+      component: () => import('@/views/SummaryView.vue'),
+      meta: { requiresOrder: true },
     },
     {
       path: '/admin',
       name: 'admin',
-      component: AdminView,
+      component: () => import('@/views/AdminView.vue'),
+      meta: { requiresAdmin: true },
     },
     {
       path: '/admin/revenue',
       name: 'admin-revenue',
-      component: RevenueView,
+      component: () => import('@/views/RevenueView.vue'),
+      meta: { requiresAdmin: true },
     },
     {
       path: '/admin/orders',
       name: 'admin-orders',
-      component: OrdersView,
+      component: () => import('@/views/OrdersView.vue'),
+      meta: { requiresAdmin: true },
     },
     {
       path: '/admin/products',
       name: 'admin-products',
-      component: ProductsView,
+      component: () => import('@/views/ProductsView.vue'),
+      meta: { requiresAdmin: true },
     },
     {
       path: '/admin/settings',
       name: 'admin-settings',
-      component: SettingsView,
+      component: () => import('@/views/SettingsView.vue'),
+      meta: { requiresAdmin: true },
     },
     {
       path: '/admin/coupons',
       name: 'admin-coupons',
-      component: CouponsView,
+      component: () => import('@/views/CouponsView.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      redirect: '/',
     },
   ],
+})
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAdmin) {
+    const settingsStore = useSettingsStore()
+    if (!settingsStore.adminAuthenticated) return '/'
+  }
+
+  if (to.meta.requiresOrder) {
+    const cartStore = useCartStore()
+    if (!cartStore.orderId) return '/'
+  }
+
+  return true
 })
 
 export default router

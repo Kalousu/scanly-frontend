@@ -172,6 +172,7 @@ const { pay } = usePaymentFlow({
   closeModal,
   syncPaymentSummary,
   printReceipt,
+  onMissingOrder: () => router.push('/'),
 })
 
 useKeyboardBarcodeScanner({
@@ -190,5 +191,4 @@ onMounted(async () => {
   await refreshCouponAgainstCurrentOrderTotal()
 })
 </script>
-
 

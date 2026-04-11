@@ -1,8 +1,19 @@
 {
   "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
     "paths": {
       "@/*": ["./src/*"]
     }
   },
+  "include": ["src/**/*.js", "src/**/*.vue", "scripts/**/*.mjs", "vite.config.js", "eslint.config.js"],
   "exclude": ["node_modules", "dist"]
 }

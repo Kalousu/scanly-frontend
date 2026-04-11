@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="checkout-page">
+  <div class="checkout-page payment-page">
     <div class="bg-grid" aria-hidden="true"></div>
 
     <div class="layout">
@@ -13,12 +13,10 @@
       />
 
       <main class="panel scan-panel">
-        <PaymentHeaderActions
-          :vat-enabled="vatEnabled"
+        <KioskHeaderActions
           :t="t"
           @language="modal = 'lang'"
           @help="modal = 'help'"
-          @toggle-vat="vatEnabled = !vatEnabled"
         />
 
         <PaymentHeroStatus :status="status" :print-status="printStatus" :t="t" />
@@ -36,7 +34,7 @@
 
         <div v-if="errorMessage" class="error-toast" role="alert">{{ errorMessage }}</div>
 
-        <PaymentHelpModal
+        <KioskHelpModal
           :visible="modal === 'help'"
           :items="helpPayment"
           :t="t"
@@ -87,9 +85,9 @@ import CartPanel from '@/components/CartPanel.vue'
 import LanguageModal from '@/components/LanguageModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import CouponModal from '@/components/CouponModal.vue'
+import KioskHeaderActions from '@/components/kiosk/KioskHeaderActions.vue'
+import KioskHelpModal from '@/components/kiosk/KioskHelpModal.vue'
 import PaymentActions from '@/components/payment/PaymentActions.vue'
-import PaymentHeaderActions from '@/components/payment/PaymentHeaderActions.vue'
-import PaymentHelpModal from '@/components/payment/PaymentHelpModal.vue'
 import PaymentHeroStatus from '@/components/payment/PaymentHeroStatus.vue'
 import { useCouponRedemption } from '@/composables/useCouponRedemption'
 import { useErrorToast } from '@/composables/useErrorToast'
@@ -113,7 +111,6 @@ const helpPayment = computed(() => {
 
 const status = ref('idle')
 const modal = ref(null)
-const vatEnabled = ref(false)
 const showCancelConfirm = ref(false)
 
 const { orderItems, orderTotalPrice, fetchOrder } = useOrderSession(cartStore, showError)

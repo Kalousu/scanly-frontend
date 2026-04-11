@@ -101,7 +101,8 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
         ...result,
       })
       syncPaymentSummary()
-    } catch {
+    } catch (error) {
+      console.warn('[Coupon] Refresh failed, removing coupon:', error)
       cartStore.clearCoupon()
       couponMessage.value = t('couponRemovedConditions')
       couponMessageType.value = 'error'

@@ -1,6 +1,6 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
-export function useKeyboardBarcodeScanner({ onScan, timeout = 350, isEnabled = () => true }) {
+export function useKeyboardBarcodeScanner({ onScan, timeout = 350, isEnabled = () => true, allowInput = false }) {
   const scanBuffer = ref('')
   let scanTimer = null
 
@@ -16,7 +16,7 @@ export function useKeyboardBarcodeScanner({ onScan, timeout = 350, isEnabled = (
     const tag = (event.target?.tagName || '').toLowerCase()
 
     if (!isEnabled(event)) return
-    if (tag === 'input' || tag === 'textarea') return
+    if (!allowInput && (tag === 'input' || tag === 'textarea')) return
 
     if (scanTimer) window.clearTimeout(scanTimer)
 

@@ -12,6 +12,27 @@ const api = axios.create({
   },
 })
 
+const MAX_RETRIES = 2
+const RETRY_DELAY_MS = 500
+
+api.interceptors.response.use(undefined, async (error) => {
+  const config = error.config
+  if (!config) return Promise.reject(error)
+
+  config.__retryCount = config.__retryCount || 0
+  const status = error.response?.status
+  const isRetryable = !status || status === 502 || status === 503 || status === 504 || error.code === 'ECONNABORTED'
+
+  if (config.__retryCount >= MAX_RETRIES || !isRetryable) {
+    return Promise.reject(error)
+  }
+
+  config.__retryCount++
+  const delay = RETRY_DELAY_MS * Math.pow(2, config.__retryCount - 1)
+  await new Promise((resolve) => setTimeout(resolve, delay))
+  return api(config)
+})
+
 export const fetchAllProducts = async () => {
   const response = await api.get('/products')
   return response.data

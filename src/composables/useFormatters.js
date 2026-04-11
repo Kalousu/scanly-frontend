@@ -1,28 +1,23 @@
-import { useLanguage } from '@/components/Uselanguage'
+import { useLanguage } from '../components/Uselanguage'
 
-// helpers for formatting prices, dates, tax rates etc
 export function useFormatters() {
   const { currentLang } = useLanguage()
 
-  // always german locale, used in admin views
   function formatCurrency(val) {
-    const value = Number(val || 0)
     return new Intl.NumberFormat('de-DE', {
       style: 'currency',
       currency: 'EUR',
-    }).format(value)
+    }).format(val)
   }
 
-  // uses the customers selected language
   function formatPrice(n) {
-    const value = Number(n || 0)
     const localeMap = { de: 'de-DE', it: 'it-IT', ru: 'ru-RU' }
     const locale = localeMap[currentLang.value] || 'en-US'
-    return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(value)
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
   }
 
   function formatDate(dateStr) {
-    if (!dateStr) return '-'
+    if (!dateStr) return '—'
     const d = new Date(dateStr)
     return d.toLocaleDateString('de-DE', {
       day: '2-digit',
@@ -34,15 +29,12 @@ export function useFormatters() {
   }
 
   function formatTaxRate(rate) {
-    const numericRate = Number(rate)
-
-    if ([1.19, 19, 0.19].includes(numericRate)) return '19 %'
-    if ([1.07, 7, 0.07].includes(numericRate)) return '7 %'
-    if ([1, 0].includes(numericRate)) return '0 %'
-    if (!Number.isFinite(numericRate)) return '-'
-
-    const percent = numericRate > 1 ? numericRate - 1 : numericRate
-    return `${Math.round(percent * 100)} %`
+    const map = {
+      1.19: '19 %',
+      1.07: '7 %',
+      1.00: '0 %',
+    }
+    return map[rate] ?? `${Math.round((rate - 1) * 100)} %`
   }
 
   return { formatCurrency, formatPrice, formatDate, formatTaxRate }

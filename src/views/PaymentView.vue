@@ -29,7 +29,7 @@
             :status="status"
             :t="t"
             @pay="pay"
-            @coupon="openCouponModal(modal)"
+            @coupon="onOpenCoupon"
             @cancel="showCancelConfirm = true"
           />
         </div>
@@ -136,6 +136,10 @@ const {
 
 const { printReceipt, printStatus } = useReceiptPrinter(showError)
 
+function onOpenCoupon() {
+  openCouponModal(modal)
+}
+
 function selectLanguage(code) {
   setLanguage(code)
   closeModal()
@@ -145,6 +149,7 @@ function onBarcodeScanned(code) {
   if (modal.value === 'coupon' && couponScanning.value) {
     couponCode.value = code
     couponScanning.value = false
+    redeemCoupon()
   }
   status.value = 'idle'
 }
@@ -178,6 +183,7 @@ const { pay } = usePaymentFlow({
 
 useKeyboardBarcodeScanner({
   onScan: onBarcodeScanned,
+  allowInput: true,
   isEnabled: (event) => {
     if (event.key === 'Escape' && modal.value) {
       closeModal()

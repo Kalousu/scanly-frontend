@@ -5,6 +5,10 @@ import de from '@/locales/de'
 import en from '@/locales/en'
 import it from '@/locales/it'
 import ru from '@/locales/ru'
+import flagDe from '@/assets/flags/de.svg'
+import flagGb from '@/assets/flags/gb.svg'
+import flagIt from '@/assets/flags/it.svg'
+import flagRu from '@/assets/flags/ru.svg'
 
 const LANG_KEY = 'checkout_lang'
 
@@ -36,22 +40,22 @@ export const languages = [
   {
     code: 'de',
     label: 'Deutsch',
-    flag: 'DE',
+    flag: flagDe,
   },
   {
     code: 'en',
     label: 'English',
-    flag: 'EN',
+    flag: flagGb,
   },
   {
     code: 'it',
     label: 'Italiano',
-    flag: 'IT',
+    flag: flagIt,
   },
   {
     code: 'ru',
     label: 'Русский',
-    flag: 'RU',
+    flag: flagRu,
   },
 ]
 

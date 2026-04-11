@@ -27,6 +27,7 @@ export default {
   scanning: 'Scanning...',
   paying: 'Payment processing...',
   paid: 'Paid',
+  heroSubSmall: 'Thank you for your purchase!',
   cancelled: 'Transaction cancelled.',
   language: 'Language',
   produce: 'Fruits & Vegetables',

@@ -133,6 +133,9 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function uid() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID()
+    }
     return Math.random().toString(16).slice(2) + '-' + Date.now().toString(16)
   }
 

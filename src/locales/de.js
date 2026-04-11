@@ -31,6 +31,7 @@ export default {
   scanning: 'Scanne...',
   paying: 'Zahlung wird verarbeitet...',
   paid: 'Bezahlt',
+  heroSubSmall: 'Vielen Dank für Ihren Einkauf!',
   cancelled: 'Vorgang abgebrochen.',
   language: 'Sprache',
   produce: 'Gemüse / Obst',

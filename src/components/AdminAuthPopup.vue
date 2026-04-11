@@ -89,6 +89,11 @@ const closeBtnEl = ref(null)
 const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
+const failedAttempts = ref(0)
+const lockedUntil = ref(0)
+
+const MAX_ATTEMPTS = 5
+const LOCKOUT_MS = 30000
 
 useBodyScrollLock(toRef(props, 'visible'))
 
@@ -99,12 +104,25 @@ function close() {
   emit('close')
 }
 
-function handleLogin() {
+async function handleLogin() {
   errorMsg.value = ''
-  if (settingsStore.loginAdmin(username.value, password.value)) {
+
+  if (failedAttempts.value >= MAX_ATTEMPTS && Date.now() < lockedUntil.value) {
+    const secs = Math.ceil((lockedUntil.value - Date.now()) / 1000)
+    errorMsg.value = `Zu viele Versuche. Bitte warten Sie ${secs} Sekunden.`
+    return
+  }
+
+  const success = await settingsStore.loginAdmin(username.value, password.value)
+  if (success) {
+    failedAttempts.value = 0
     router.push('/admin')
     close()
   } else {
+    failedAttempts.value++
+    if (failedAttempts.value >= MAX_ATTEMPTS) {
+      lockedUntil.value = Date.now() + LOCKOUT_MS
+    }
     errorMsg.value = t('adminLoginError')
   }
 }

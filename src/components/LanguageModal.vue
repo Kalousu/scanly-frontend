@@ -21,7 +21,7 @@
           :class="{ 'lang-btn--active': currentLang === lang.code }"
           @click="$emit('select', lang.code)"
         >
-          <span class="lang-flag" aria-hidden="true">{{ lang.flag }}</span>
+          <img class="lang-flag" :src="lang.flag" :alt="lang.label" aria-hidden="true" />
           <span class="lang-label">{{ lang.label }}</span>
           <span class="lang-code">{{ lang.code.toUpperCase() }}</span>
         </button>
@@ -95,13 +95,8 @@ const { overlayRef, initialFocusRef, titleId } = useModalA11y(toRef(props, 'visi
   height: 22px;
   border-radius: 6px;
   flex-shrink: 0;
-  display: inline-grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
+  object-fit: cover;
+  display: block;
 }
 
 .lang-label {

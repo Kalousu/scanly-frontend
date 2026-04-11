@@ -17,7 +17,7 @@
           </h1>
           <p class="subtitle">{{ t('paybackSubtitle') }}</p>
 
-          <div class="payback-logo" aria-label="Payback">PAYBACK</div>
+          <img class="payback-logo" src="https://amts-apotheke.de/wp-content/uploads/2019/01/PAYBACK_2016_1699_POINTEE.png" alt="Payback" />
 
           <div class="payback-actions">
             <button type="button" class="payback-btn primary" @click="openScanner">
@@ -435,19 +435,11 @@ onUnmounted(() => { stopCamera() })
 }
 
 .payback-logo {
-  width: fit-content;
-  margin: 20px auto 4px;
   display: block;
-  padding: 10px 22px;
-  border-radius: 8px;
-  background: #064a98;
-  color: #fff;
-  border-bottom: 6px solid #f7d319;
-  font-size: 28px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  opacity: 0.92;
+  margin: 20px auto 4px;
+  width: 160px;
+  height: auto;
+  object-fit: contain;
 }
 
 .payback-actions {

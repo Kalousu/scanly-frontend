@@ -8,6 +8,7 @@ const settings = useSettingsStore()
 const { t } = useLanguage()
 
 const showSaved = ref(false)
+const newPassword = ref('')
 
 const toggleSettings = computed(() => [
   {
@@ -31,12 +32,11 @@ const numericSettings = computed(() => [
   { label: t('adminScannerBuffer'), key: 'scannerBuffer', min: 50, max: 2000, step: 50 },
 ])
 
-const credentialFields = computed(() => [
-  { label: t('adminUsername'), key: 'adminUsername', type: 'text', placeholder: t('adminUsernamePlaceholder') },
-  { label: t('adminPassword'), key: 'adminPassword', type: 'password', placeholder: t('adminPasswordPlaceholder') },
-])
-
-function saveSettings() {
+async function saveSettings() {
+  if (newPassword.value.trim()) {
+    await settings.updateAdminPassword(newPassword.value.trim())
+    newPassword.value = ''
+  }
   settings.saveAll()
   showSaved.value = true
   setTimeout(() => { showSaved.value = false }, 2000)
@@ -83,13 +83,22 @@ function saveSettings() {
         <!-- Admin credentials -->
         <div class="settings-section">
           <h2 class="admin-section-title">{{ t('adminCredentials') }}</h2>
-          <div v-for="field in credentialFields" :key="field.key" class="admin-settings-row admin-settings-row--vertical">
-            <span class="admin-settings-label">{{ field.label }}</span>
+          <div class="admin-settings-row admin-settings-row--vertical">
+            <span class="admin-settings-label">{{ t('adminUsername') }}</span>
             <input
-              :type="field.type"
+              type="text"
               class="admin-input"
-              v-model="settings[field.key]"
-              :placeholder="field.placeholder"
+              v-model="settings.adminUsername"
+              :placeholder="t('adminUsernamePlaceholder')"
+            />
+          </div>
+          <div class="admin-settings-row admin-settings-row--vertical">
+            <span class="admin-settings-label">{{ t('adminPassword') }}</span>
+            <input
+              type="password"
+              class="admin-input"
+              v-model="newPassword"
+              :placeholder="t('adminPasswordPlaceholder')"
             />
           </div>
         </div>

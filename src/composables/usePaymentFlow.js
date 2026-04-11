@@ -32,7 +32,11 @@ export function usePaymentFlow({
 
     try {
       await checkoutOrder(cartStore.orderId, 'Card')
-      await printReceipt(cartStore.orderId)
+      const printed = await printReceipt(cartStore.orderId)
+      if (!printed) {
+        status.value = 'idle'
+        return false
+      }
       status.value = 'paid'
       await new Promise((resolve) => setTimeout(resolve, 900))
       onSuccess?.()

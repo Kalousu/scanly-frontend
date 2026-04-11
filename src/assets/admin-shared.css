@@ -1,7 +1,7 @@
 /* ============================================================
    ADMIN SHARED STYLES
    Extracted common patterns used across Admin views/components.
-   Import in components via: @import '@/assets/admin-shared.css';
+   Loaded once through src/assets/main.css.
    ============================================================ */
 
 /*Page Header*/
@@ -36,7 +36,7 @@
 .admin-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 2rem;
 }
 
@@ -65,7 +65,7 @@
 .admin-table-wrap {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 16px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -222,7 +222,7 @@
   overflow-y: auto;
   background: #0b2c44;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
+  border-radius: 8px;
 }
 
 .admin-modal--lg {

@@ -5,18 +5,18 @@
         class="admin-backdrop"
         role="dialog"
         aria-modal="true"
-        aria-label="Admin Login"
+        :aria-label="t('adminLogin')"
         @click.self="close"
         @keydown.esc="close"
       >
         <div class="admin-popup">
           <div class="admin-popup__header">
-            <h2 class="admin-popup__title">Admin Login</h2>
+            <h2 class="admin-popup__title">{{ t('adminLogin') }}</h2>
             <button
               ref="closeBtnEl"
               type="button"
               class="admin-popup__close"
-              aria-label="Schließen"
+              :aria-label="t('adminLoginClose')"
               @click="close"
             >
               X
@@ -26,25 +26,27 @@
           <div class="admin-popup__divider" aria-hidden="true"></div>
 
           <form @submit.prevent="handleLogin" class="admin-popup__body">
+            <p class="admin-popup__notice">{{ t('adminLoginDemoNotice') }}</p>
+
             <div class="admin-popup__field">
-              <label for="admin-username" class="admin-popup__label">Benutzername</label>
+              <label for="admin-username" class="admin-popup__label">{{ t('adminLoginUserLabel') }}</label>
               <input
                 id="admin-username"
                 v-model="username"
                 type="text"
                 class="admin-popup__input"
-                placeholder="Benutzername eingeben"
+                :placeholder="t('adminLoginUserPlaceholder')"
                 autocomplete="username"
               />
             </div>
             <div class="admin-popup__field">
-              <label for="admin-password" class="admin-popup__label">Passwort</label>
+              <label for="admin-password" class="admin-popup__label">{{ t('adminLoginPassLabel') }}</label>
               <input
                 id="admin-password"
                 v-model="password"
                 type="password"
                 class="admin-popup__input"
-                placeholder="Passwort eingeben"
+                :placeholder="t('adminLoginPassPlaceholder')"
                 autocomplete="current-password"
               />
             </div>
@@ -55,7 +57,7 @@
 
             <div class="admin-popup__footer">
               <button type="submit" class="admin-popup__cta">
-                Anmelden
+                {{ t('adminLoginSubmit') }}
               </button>
             </div>
           </form>
@@ -65,9 +67,11 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, toRef } from 'vue'
 import { useRouter } from 'vue-router'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore } from '@/stores/settings'
+import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
+import { useLanguage } from '@/components/Uselanguage'
 
 const props = defineProps({
   visible: {
@@ -80,10 +84,18 @@ const emit = defineEmits(['close'])
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
+const { t } = useLanguage()
 const closeBtnEl = ref(null)
 const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
+const failedAttempts = ref(0)
+const lockedUntil = ref(0)
+
+const MAX_ATTEMPTS = 5
+const LOCKOUT_MS = 30000
+
+useBodyScrollLock(toRef(props, 'visible'))
 
 function close() {
   username.value = ''
@@ -92,13 +104,26 @@ function close() {
   emit('close')
 }
 
-function handleLogin() {
+async function handleLogin() {
   errorMsg.value = ''
-  if (settingsStore.checkCredentials(username.value, password.value)) {
+
+  if (failedAttempts.value >= MAX_ATTEMPTS && Date.now() < lockedUntil.value) {
+    const secs = Math.ceil((lockedUntil.value - Date.now()) / 1000)
+    errorMsg.value = `Zu viele Versuche. Bitte warten Sie ${secs} Sekunden.`
+    return
+  }
+
+  const success = await settingsStore.loginAdmin(username.value, password.value)
+  if (success) {
+    failedAttempts.value = 0
     router.push('/admin')
     close()
   } else {
-    errorMsg.value = 'Ungültige Anmeldedaten.'
+    failedAttempts.value++
+    if (failedAttempts.value >= MAX_ATTEMPTS) {
+      lockedUntil.value = Date.now() + LOCKOUT_MS
+    }
+    errorMsg.value = t('adminLoginError')
   }
 }
 
@@ -108,9 +133,6 @@ watch(
     if (opened) {
       await nextTick()
       closeBtnEl.value?.focus()
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
     }
   }
 )
@@ -134,7 +156,7 @@ watch(
   position: relative;
   width: 100%;
   max-width: 440px;
-  border-radius: 20px;
+  border-radius: 8px;
   background: linear-gradient(145deg, #0d2b42 0%, #0b2336 100%);
   border: 1px solid rgba(0, 212, 232, 0.18);
   box-shadow:
@@ -144,6 +166,17 @@ watch(
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.admin-popup__notice {
+  margin: 0 0 0.35rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 200, 60, 0.24);
+  background: rgba(255, 200, 60, 0.07);
+  color: rgba(255, 230, 170, 0.86);
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .admin-popup::before {

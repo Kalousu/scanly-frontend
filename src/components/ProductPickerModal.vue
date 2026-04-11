@@ -1,10 +1,20 @@
-<template>
-  <div v-if="visible" class="modal-backdrop" @click.self="$emit('close')">
+﻿<template>
+  <div
+    v-if="visible"
+    ref="overlayRef"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    :aria-labelledby="titleId"
+    tabindex="-1"
+    @click.self="$emit('close')"
+    @keydown.esc="$emit('close')"
+  >
     <div class="modal-card">
       <div class="modal-head">
         <div class="modal-icon">{{ modeConfig.icon }}</div>
         <div>
-          <h3 class="modal-title">{{ t(modeConfig.titleKey) }}</h3>
+          <h3 :id="titleId" class="modal-title">{{ t(modeConfig.titleKey) }}</h3>
           <p class="modal-subtitle">{{ t(modeConfig.subtitleKey) }}</p>
         </div>
       </div>
@@ -14,6 +24,7 @@
       </div>
       <div v-else class="product-grid">
         <button
+          type="button"
           v-for="item in catalog"
           :key="item.sku"
           class="product-card"
@@ -36,17 +47,18 @@
       <div v-if="selected && mode === 'bakery'" class="weight-row">
         <label class="weight-label">{{ t('amount') }}</label>
         <div class="qty-picker">
-          <button class="qty-btn" @click="amount > 1 && $emit('update:amount', amount - 1)">−</button>
+          <button type="button" class="qty-btn" @click="amount > 1 && $emit('update:amount', amount - 1)">−</button>
           <span class="qty-val">{{ amount }}</span>
-          <button class="qty-btn" @click="$emit('update:amount', amount + 1)">+</button>
+          <button type="button" class="qty-btn" @click="$emit('update:amount', amount + 1)">+</button>
         </div>
         <span class="weight-preview">= {{ formatPrice(selected.price * amount) }}</span>
       </div>
 
       <!-- Vegetables: weight input -->
       <div v-if="selected && mode === 'vegetables'" class="weight-row">
-        <label class="weight-label">{{ t('weightLabel') }}</label>
+        <label class="weight-label" :for="weightInputId">{{ t('weightLabel') }}</label>
         <input
+          :id="weightInputId"
           :value="weightKg"
           @input="$emit('update:weightKg', Number($event.target.value))"
           type="number"
@@ -58,10 +70,10 @@
       </div>
 
       <div class="modal-actions">
-        <button class="modal-btn modal-btn--back" @click="selected ? $emit('deselect') : $emit('close')">
+        <button ref="initialFocusRef" type="button" class="modal-btn modal-btn--back" @click="selected ? $emit('deselect') : $emit('close')">
           {{ t('back') }}
         </button>
-        <button class="modal-btn modal-btn--done" :disabled="!selected" @click="$emit('confirm')">
+        <button type="button" class="modal-btn modal-btn--done" :disabled="!selected" @click="$emit('confirm')">
           {{ t('add') }}
         </button>
       </div>
@@ -70,8 +82,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useFormatters } from '../composables/useFormatters'
+import { computed, toRef } from 'vue'
+import { useFormatters } from '@/composables/useFormatters'
+import { useModalA11y } from '@/composables/useModalA11y'
+import '@/assets/kiosk-modal.css'
 
 const { formatPrice } = useFormatters()
 
@@ -94,39 +108,12 @@ const props = defineProps({
 
 defineEmits(['close', 'select', 'deselect', 'confirm', 'update:amount', 'update:weightKg'])
 
+const { overlayRef, initialFocusRef, titleId } = useModalA11y(toRef(props, 'visible'))
 const modeConfig = computed(() => MODE_CONFIG[props.mode] || MODE_CONFIG.bakery)
+const weightInputId = computed(() => `product-picker-weight-${props.mode}`)
 </script>
 
 <style scoped>
-.modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.58);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 28px;
-  padding: 20px;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-}
-
-.modal-card {
-  width: min(900px, 95%);
-  max-height: 82vh;
-  background: rgba(10, 28, 44, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.17);
-  border-radius: 26px;
-  padding: 28px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 60px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(18px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .modal-head {
   display: flex;
   align-items: center;
@@ -145,14 +132,6 @@ const modeConfig = computed(() => MODE_CONFIG[props.mode] || MODE_CONFIG.bakery)
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.modal-title {
-  margin: 0;
-  font-size: 19px;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.96);
-  letter-spacing: -0.02em;
 }
 
 .modal-subtitle {
@@ -345,38 +324,6 @@ const modeConfig = computed(() => MODE_CONFIG[props.mode] || MODE_CONFIG.bakery)
   color: rgba(255, 255, 255, 0.96);
 }
 
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.modal-btn {
-  flex: 1;
-  padding: 14px;
-  border: none;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  transition:
-    transform 0.15s,
-    box-shadow 0.15s,
-    background 0.15s;
-}
-
-.modal-btn--back {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.17);
-}
-
-.modal-btn--back:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
-}
-
 .modal-btn--done {
   background: linear-gradient(90deg, #18e7f2 0%, #1bc7ff 100%);
   color: rgba(0, 0, 0, 0.8);
@@ -393,7 +340,4 @@ const modeConfig = computed(() => MODE_CONFIG[props.mode] || MODE_CONFIG.bakery)
   cursor: not-allowed;
 }
 
-.modal-btn:active:not(:disabled) {
-  transform: scale(0.98);
-}
 </style>

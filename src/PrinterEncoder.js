@@ -124,11 +124,11 @@ export class PrinterEncoder{
         return this;
     }
  
-    printSum(sum){
-        let width = 21;
+    printSum(sum, label = "TOTAL:"){
+        let width = 32;
         const sumStr = sum.toFixed(2);
-        let space = width - sumStr.length;
-        let res = "ZU ZAHLEN: ";
+        let res = `${label} `;
+        let space = width - res.length - sumStr.length;
         for(let i = 0; i < space; i++){
             res += " ";
         }
@@ -138,8 +138,8 @@ export class PrinterEncoder{
         return this;
     }
  
-    printTaxGroupTable(taxGroups) {
-        this.println("MwSt% MwSt+  Netto = Brutto");
+    printTaxGroupTable(taxGroups, header = "VAT% VAT   Net = Gross") {
+        this.println(header);
         this.lineSeparator();
         taxGroups.forEach(group => {
             const label = group.label.padEnd(2);
@@ -153,8 +153,10 @@ export class PrinterEncoder{
         return this;
     }
  
-    printEURLabel(){
-        this.#commands.push(...this.#encode("                          EUR \n"))
+    printCurrencyLabel(label = "EUR"){
+        const currencyLabel = String(label).slice(0, 6)
+        const padding = Math.max(0, 30 - currencyLabel.length)
+        this.#commands.push(...this.#encode(`${" ".repeat(padding)}${currencyLabel} \n`))
         return this;
     }
  

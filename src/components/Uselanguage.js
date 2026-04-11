@@ -1,35 +1,61 @@
 // simple i18n, selected language is stored in localstorage
 // currentLang is defined outside the composable so all components share the same ref
 import { ref, computed } from 'vue'
-import de from '../locales/de'
-import en from '../locales/en'
-import it from '../locales/it'
-import ru from '../locales/ru'
+import de from '@/locales/de'
+import en from '@/locales/en'
+import it from '@/locales/it'
+import ru from '@/locales/ru'
+import flagDe from '@/assets/flags/de.svg'
+import flagGb from '@/assets/flags/gb.svg'
+import flagIt from '@/assets/flags/it.svg'
+import flagRu from '@/assets/flags/ru.svg'
 
 const LANG_KEY = 'checkout_lang'
 
-const currentLang = ref(localStorage.getItem(LANG_KEY) ?? 'de')
+function readStoredLanguage() {
+  try {
+    return localStorage.getItem(LANG_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeStoredLanguage(code) {
+  try {
+    localStorage.setItem(LANG_KEY, code)
+  } catch {
+    /* ignore storage issues */
+  }
+}
+
+function resolveTranslation(key) {
+  const active = translations[currentLang.value]
+  const adminFallback = key.startsWith('admin') ? translations.en?.[key] : undefined
+  return active?.[key] ?? adminFallback ?? translations.de?.[key] ?? key
+}
+
+const currentLang = ref(readStoredLanguage() ?? 'de')
 
 export const languages = [
   {
     code: 'de',
     label: 'Deutsch',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/1280px-Flag_of_Germany.svg.png',
+    flag: flagDe,
   },
   {
     code: 'en',
     label: 'English',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png',
+    flag: flagGb,
   },
   {
     code: 'it',
     label: 'Italiano',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/0/03/Flag_of_Italy.svg',
+    flag: flagIt,
   },
   {
     code: 'ru',
     label: 'Русский',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Flag_of_Russia.svg/3840px-Flag_of_Russia.svg.png',
+    flag: flagRu,
   },
 ]
 
@@ -38,16 +64,16 @@ export const translations = { de, en, it, ru }
 export function useLanguage() {
   function setLanguage(code) {
     currentLang.value = code
-    localStorage.setItem(LANG_KEY, code)
+    writeStoredLanguage(code)
   }
 
   function t(key) {
-    return translations[currentLang.value]?.[key] ?? translations['de']?.[key] ?? key
+    return resolveTranslation(key)
   }
 
   // like t() but for translation keys that are functions (e.g. with parameters)
   function tFn(key, ...args) {
-    const val = translations[currentLang.value]?.[key] ?? translations['de']?.[key]
+    const val = resolveTranslation(key)
     if (typeof val === 'function') return val(...args)
     return val ?? key
   }

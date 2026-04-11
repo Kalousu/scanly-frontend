@@ -8,7 +8,7 @@
         <div class="payback">
 
           <div class="brand-badge">
-            <img src="../assets/logo-removebg-preview.png" />
+            <img src="../assets/logo-removebg-preview.png" alt="Scanly" />
           </div>
 
           <h1 class="title">
@@ -17,16 +17,13 @@
           </h1>
           <p class="subtitle">{{ t('paybackSubtitle') }}</p>
 
-          <img
-            src="https://www.payback.de/resource/blob/327670/bb5914260838b67b1e398db1622a0d92/image-center-data.png"
-            class="payback-logo"
-          />
+          <img class="payback-logo" src="https://amts-apotheke.de/wp-content/uploads/2019/01/PAYBACK_2016_1699_POINTEE.png" alt="Payback" />
 
           <div class="payback-actions">
-            <button class="payback-btn primary" @click="openScanner">
+            <button type="button" class="payback-btn primary" @click="openScanner">
               {{ t('paybackScan') }}
             </button>
-            <button class="payback-btn ghost" @click="skipPayback">
+            <button type="button" class="payback-btn ghost" @click="skipPayback">
               {{ t('paybackSkip') }}
             </button>
           </div>
@@ -37,22 +34,33 @@
       </div>
     </div>
 
-    <div v-else class="modal-overlay" @click.self="close">
-      <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div
+      v-else
+      ref="overlayRef"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+      tabindex="-1"
+      @click.self="close"
+      @keydown.esc="close"
+    >
+      <div class="modal-container">
 
         <div class="modal-header">
           <div class="modal-logo">
-            <img src="../assets/logo-removebg-preview.png">
+            <img src="../assets/logo-removebg-preview.png" alt="Scanly">
           </div>
-          <button class="close-btn" @click="close" :aria-label="t('close')">
+          <button ref="initialFocusRef" type="button" class="close-btn" @click="close" :aria-label="t('close')">
           </button>
         </div>
 
         <transition name="fade" mode="out-in">
 
           <div v-if="mode === 'scanner'" key="scanner" class="scanner-view">
-            <h2 id="modal-title" class="modal-title">{{ t('paybackScanTitle') }}</h2>
+            <h2 :id="titleId" class="modal-title">{{ t('paybackScanTitle') }}</h2>
             <p class="modal-subtitle">{{ t('paybackScanSubtitle') }}</p>
+            <p class="demo-note">{{ t('paybackDemoHint') }}</p>
 
             <div class="camera-container">
               <div v-if="!cameraActive" class="camera-placeholder">
@@ -76,6 +84,9 @@
             </div>
 
             <div class="manual-entry">
+              <p v-if="scanError" class="error-message" role="alert">
+                {{ errorMessage }}
+              </p>
               <button class="link-btn" @click="switchToManual" type="button">
                 {{ t('paybackManualSwitch') }}
               </button>
@@ -83,7 +94,7 @@
           </div>
 
           <div v-else key="manual" class="manual-view">
-            <h2 id="modal-title" class="modal-title">{{ t('paybackManualTitle') }}</h2>
+            <h2 :id="titleId" class="modal-title">{{ t('paybackManualTitle') }}</h2>
             <p class="modal-subtitle">{{ t('paybackManualSubtitle') }}</p>
 
             <div class="input-container">
@@ -119,7 +130,7 @@
                 type="button"
               >{{ key }}</button>
               <button class="key-btn key-backspace" @click="backspace" type="button" :aria-label="t('back')">
-                ⌫
+                ←
               </button>
             </div>
 
@@ -143,8 +154,10 @@
 <script setup>
 import { ref, onUnmounted, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { useLanguage } from '../components/Uselanguage'
-import { useSettingsStore } from '../stores/settings'
+import { useLanguage } from '@/components/Uselanguage'
+import { useCameraStream } from '@/composables/useCameraStream'
+import { useModalA11y } from '@/composables/useModalA11y'
+import { useSettingsStore } from '@/stores/settings'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
@@ -158,8 +171,8 @@ onMounted(() => {
 })
 
 const showScanner = ref(false)
+const { overlayRef, initialFocusRef, titleId } = useModalA11y(showScanner)
 const mode = ref('scanner')
-const cameraActive = ref(false)
 const scanSuccess = ref(false)
 const scanError = ref(false)
 const cardNumber = ref('')
@@ -168,13 +181,19 @@ const inputFocused = ref(false)
 const errorMessage = ref('')
 const isValid = ref(false)
 
-const videoRef = ref(null)
+const {
+  cameraActive,
+  cameraError,
+  videoRef,
+  startStream,
+  stopStream,
+} = useCameraStream({ t })
 const inputRef = ref(null)
 const showKeyboard = ref(false)
 const numericKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+const PAYBACK_DEMO_SCAN_DELAY_MS = 2000
 
-let stream = null
-
+let demoScanTimer = null
 
 function openScanner() {
   showScanner.value = true
@@ -183,6 +202,7 @@ function openScanner() {
 
 function close() {
   stopCamera()
+  scanSuccess.value = false
   showScanner.value = false
 }
 
@@ -202,6 +222,8 @@ function switchToScanner() {
   cardNumber.value = ''
   inputError.value = false
   errorMessage.value = ''
+  scanSuccess.value = false
+  scanError.value = false
   mode.value = 'scanner'
   showKeyboard.value = false
   nextTick(() => { startCamera() })
@@ -239,30 +261,37 @@ function confirm() {
 }
 
 async function startCamera() {
+  stopCamera()
+  errorMessage.value = ''
+  scanError.value = false
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    if (videoRef.value) { videoRef.value.srcObject = stream; cameraActive.value = true }
-    setTimeout(() => { simulateScan() }, 2000)
+    await startStream({ video: { facingMode: 'environment' }, audio: false })
+    demoScanTimer = window.setTimeout(() => { completeDemoScan() }, PAYBACK_DEMO_SCAN_DELAY_MS)
   } catch {
-    cameraActive.value = false
+    scanError.value = true
+    errorMessage.value = cameraError.value || t('cameraNotAvailable')
   }
 }
 
 function stopCamera() {
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null }
-  cameraActive.value = false
+  if (demoScanTimer) {
+    window.clearTimeout(demoScanTimer)
+    demoScanTimer = null
+  }
+  stopStream()
 }
 
-function simulateScan() {
+function completeDemoScan() {
+  demoScanTimer = null
   scanSuccess.value = true
-  setTimeout(() => { router.push('/payment') }, 1500)
+  demoScanTimer = window.setTimeout(() => { router.push('/payment') }, 1500)
 }
 
 onUnmounted(() => { stopCamera() })
 </script>
 
-<style>
-:root {
+<style scoped>
+.page {
   --bg-0: #071A2A;
   --bg-1: #0B2C44;
   --bg-2: #092538;
@@ -277,23 +306,12 @@ onUnmounted(() => { stopCamera() })
   --r-xl: 28px;
   --r-lg: 22px;
   --r-pill: 999px;
-}
-
-html, body, #app {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-}
-</style>
-
-<style scoped>
-.page {
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow: auto;
   color: var(--text);
   background: linear-gradient(160deg, #071A2A 0%, #0B2C44 60%, #092538 100%);
 }
@@ -325,8 +343,9 @@ html, body, #app {
 }
 
 .container {
-  position: fixed;
+  position: relative;
   inset: 0;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 48px;
@@ -416,11 +435,11 @@ html, body, #app {
 }
 
 .payback-logo {
-  width: 200px;
-  margin: 20px auto 4px;
   display: block;
-  opacity: 0.92;
-  filter: saturate(0.95) brightness(1.05);
+  margin: 20px auto 4px;
+  width: 160px;
+  height: auto;
+  object-fit: contain;
 }
 
 .payback-actions {
@@ -583,6 +602,14 @@ html, body, #app {
   letter-spacing: 0.03em;
   position: relative;
   z-index: 1;
+}
+
+.demo-note {
+  margin: -10px 0 18px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.42);
+  text-align: center;
+  line-height: 1.45;
 }
 
 .scanner-view,
@@ -823,6 +850,7 @@ html, body, #app {
 .fade-leave-to   { opacity: 0; transform: translateX(-12px); }
 
 @media (max-width: 900px) {
+  .container { min-height: auto; padding: 24px; }
   .wrapper { padding: 40px 24px 32px; }
   .title { font-size: 38px; }
 }

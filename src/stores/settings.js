@@ -1,8 +1,25 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-// settings get saved to localstorage whenever something changes
 const STORAGE_KEY = 'scanly-settings'
+const ADMIN_AUTH_KEY = 'scanly-admin-authenticated'
+
+async function hashPassword(password) {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+function debounce(fn, ms) {
+  let timer
+  return (...args) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), ms)
+  }
+}
 
 function loadFromStorage() {
   try {
@@ -22,6 +39,26 @@ function saveToStorage(data) {
   }
 }
 
+function loadAdminAuthState() {
+  try {
+    return sessionStorage.getItem(ADMIN_AUTH_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function saveAdminAuthState(value) {
+  try {
+    if (value) {
+      sessionStorage.setItem(ADMIN_AUTH_KEY, 'true')
+    } else {
+      sessionStorage.removeItem(ADMIN_AUTH_KEY)
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 const defaults = {
   // Payback
   paybackEnabled: true,
@@ -33,9 +70,10 @@ const defaults = {
   scannerBuffer: 350,
   cameraAutoStart: true,
 
-  // Admin credentials (frontend-only, no real auth)
+  // Demo admin credentials — password is stored as SHA-256 hash.
+  // Default: admin / admin (hash of 'admin')
   adminUsername: 'admin',
-  adminPassword: 'admin',
+  adminPasswordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -53,7 +91,8 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // Admin credentials
   const adminUsername = ref(stored?.adminUsername ?? defaults.adminUsername)
-  const adminPassword = ref(stored?.adminPassword ?? defaults.adminPassword)
+  const adminPasswordHash = ref(stored?.adminPasswordHash ?? defaults.adminPasswordHash)
+  const adminAuthenticated = ref(loadAdminAuthState())
 
   function getState() {
     return {
@@ -64,23 +103,38 @@ export const useSettingsStore = defineStore('settings', () => {
       scannerBuffer: scannerBuffer.value,
       cameraAutoStart: cameraAutoStart.value,
       adminUsername: adminUsername.value,
-      adminPassword: adminPassword.value,
+      adminPasswordHash: adminPasswordHash.value,
     }
   }
 
-  function saveAll() {
-    saveToStorage(getState())
+  const saveAll = debounce(() => saveToStorage(getState()), 300)
+
+  async function checkCredentials(username, password) {
+    const passwordHash = await hashPassword(password)
+    return username === adminUsername.value && passwordHash === adminPasswordHash.value
   }
 
-  function checkCredentials(username, password) {
-    return username === adminUsername.value && password === adminPassword.value
+  async function loginAdmin(username, password) {
+    const authenticated = await checkCredentials(username, password)
+    adminAuthenticated.value = authenticated
+    saveAdminAuthState(authenticated)
+    return authenticated
+  }
+
+  function logoutAdmin() {
+    adminAuthenticated.value = false
+    saveAdminAuthState(false)
+  }
+
+  async function updateAdminPassword(newPassword) {
+    adminPasswordHash.value = await hashPassword(newPassword)
   }
 
   // watch everything and save on change
   const allRefs = [
     paybackEnabled, paybackQrEnabled, paybackManualEnabled,
     cameraCooldown, scannerBuffer, cameraAutoStart,
-    adminUsername, adminPassword,
+    adminUsername, adminPasswordHash,
   ]
   allRefs.forEach((r) => {
     watch(r, () => saveAll())
@@ -94,8 +148,12 @@ export const useSettingsStore = defineStore('settings', () => {
     scannerBuffer,
     cameraAutoStart,
     adminUsername,
-    adminPassword,
+    adminPasswordHash,
+    adminAuthenticated,
     saveAll,
     checkCredentials,
+    loginAdmin,
+    logoutAdmin,
+    updateAdminPassword,
   }
 })

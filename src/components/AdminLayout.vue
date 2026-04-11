@@ -25,6 +25,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import '@/assets/admin-shared.css'
 
 const props = defineProps({
   breadcrumb: {
@@ -60,9 +61,11 @@ const mainStyle = computed(() => ({
 .admin-page {
   position: fixed;
   inset: 0;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overscroll-behavior: contain;
   color: #fff;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: #091e30;

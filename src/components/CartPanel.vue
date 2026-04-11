@@ -20,16 +20,16 @@
           <div class="ci-left">
             <div class="ci-name">{{ item.productName }}</div>
             <div class="ci-meta">
-              <span>{{ formatPrice(item.unitPriceNet) }} netto · MwSt {{ Math.round(item.taxRate * 100) }}%</span>
+              <span>{{ formatPrice(item.unitPriceNet) }} · {{ tFn('vat', Math.round(item.taxRate * 100)) }}</span>
             </div>
           </div>
 
           <div class="ci-right">
-            <div class="ci-price">{{ formatPrice(item.totalPriceGross) }}</div>
+            <div class="ci-price">{{ formatPrice(item.unitPriceNet * item.amount) }}</div>
 
-            <div class="ci-qty" :aria-label="editable ? undefined : 'Menge'">
+            <div class="ci-qty" :aria-label="editable ? undefined : t('amount')">
               <template v-if="editable && !isFruitsVegetables(item)">
-                <button class="qty-btn" @click="$emit('update-quantity', item, -1)">−</button>
+                <button type="button" class="qty-btn" @click="$emit('update-quantity', item, -1)">−</button>
               </template>
               <span class="qty-val">
                 <template v-if="editable">
@@ -40,16 +40,18 @@
                 </template>
               </span>
               <template v-if="editable && !isFruitsVegetables(item)">
-                <button class="qty-btn" @click="$emit('update-quantity', item, 1)">+</button>
+                <button type="button" class="qty-btn" @click="$emit('update-quantity', item, 1)">+</button>
               </template>
             </div>
 
             <button
               v-if="editable"
+              type="button"
               class="delete-btn"
-              title="Artikel entfernen"
+              :title="t('removeItem')"
               @click="$emit('delete-item', item)"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
         </div>
@@ -63,7 +65,7 @@
 
         <div class="totals-row totals-total">
           <span>{{ t('total') }}</span>
-          <span class="totals-total-value">{{ formatPrice(totalPrice) }}</span>
+          <span class="totals-total-value">{{ formatPrice(computedTotal) }}</span>
         </div>
       </div>
     </div>
@@ -71,10 +73,11 @@
 </template>
 
 <script setup>
-import { useLanguage } from '../components/Uselanguage'
-import { useFormatters } from '../composables/useFormatters'
+import { computed } from 'vue'
+import { useLanguage } from '@/components/Uselanguage'
+import { useFormatters } from '@/composables/useFormatters'
 
-defineProps({
+const props = defineProps({
   items: { type: Array, required: true },
   totalPrice: { type: Number, default: 0 },
   couponDiscount: { type: Number, default: 0 },
@@ -85,8 +88,12 @@ defineProps({
 
 defineEmits(['update-quantity', 'delete-item'])
 
-const { t } = useLanguage()
+const { t, tFn } = useLanguage()
 const { formatPrice } = useFormatters()
+
+const computedTotal = computed(() => {
+  return props.items.reduce((sum, item) => sum + (item.unitPriceNet || 0) * (item.amount || 1), 0)
+})
 
 function isFruitsVegetables(item) {
   const cat = item.productCategory || item.category

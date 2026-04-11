@@ -1,11 +1,36 @@
 import axios from 'axios'
 
+const env = import.meta.env || {}
+export const API_BASE_URL = env.VITE_API_BASE_URL || '/api'
+export const API_TIMEOUT_MS = Number(env.VITE_API_TIMEOUT_MS || 10000)
+
 const api = axios.create({
-  baseURL: '/api',
-  timeout: 10000,
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
   },
+})
+
+const MAX_RETRIES = 2
+const RETRY_DELAY_MS = 500
+
+api.interceptors.response.use(undefined, async (error) => {
+  const config = error.config
+  if (!config) return Promise.reject(error)
+
+  config.__retryCount = config.__retryCount || 0
+  const status = error.response?.status
+  const isRetryable = !status || status === 502 || status === 503 || status === 504 || error.code === 'ECONNABORTED'
+
+  if (config.__retryCount >= MAX_RETRIES || !isRetryable) {
+    return Promise.reject(error)
+  }
+
+  config.__retryCount++
+  const delay = RETRY_DELAY_MS * Math.pow(2, config.__retryCount - 1)
+  await new Promise((resolve) => setTimeout(resolve, delay))
+  return api(config)
 })
 
 export const fetchAllProducts = async () => {
@@ -45,6 +70,48 @@ export const fetchFruitsAndVegetables = async () => {
 
 export const fetchReceiptForOrder = async (orderId) => {
   const response = await api.get(`/orders/${orderId}/receipt`)
+  return response.data
+}
+
+export const createOrder = async () => {
+  const response = await api.post('/orders')
+  return response.data
+}
+
+export const fetchOrders = async () => {
+  const response = await api.get('/orders')
+  return response.data
+}
+
+export const fetchOrder = async (orderId) => {
+  const response = await api.get(`/orders/${orderId}`)
+  return response.data
+}
+
+export const fetchOrderById = fetchOrder
+
+export const addOrderItem = async (orderId, code, amount = 1) => {
+  const response = await api.post(`/orders/${orderId}/items`, { code, amount })
+  return response.data
+}
+
+export const updateOrderItemQuantity = async (orderId, itemId, delta) => {
+  const response = await api.patch(`/orders/${orderId}/items/${itemId}`, { delta })
+  return response.data
+}
+
+export const deleteOrderItem = async (orderId, itemId) => {
+  const response = await api.delete(`/orders/${orderId}/items/${itemId}`)
+  return response.data
+}
+
+export const deleteOrder = async (orderId) => {
+  const response = await api.delete(`/orders/${orderId}`)
+  return response.data
+}
+
+export const checkoutOrder = async (orderId, paymentMethod = 'Card') => {
+  const response = await api.post(`/orders/${orderId}/checkout`, { paymentMethod })
   return response.data
 }
 

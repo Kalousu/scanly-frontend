@@ -13,7 +13,7 @@
         <div class="help-modal" ref="modalEl">
           <div class="help-modal__header">
             <div class="help-modal__icon" aria-hidden="true">
-              <span></span>
+              <img src="../assets/logo-removebg-preview.png" alt="Scanly" class="help-modal__logo" />
             </div>
             <h2 class="help-modal__title">{{ t('helpModalTitle') }}</h2>
             <button
@@ -23,7 +23,7 @@
               :aria-label="t('close')"
               @click="$emit('update:modelValue', false)"
             >
-              <span></span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
 
@@ -56,7 +56,8 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, computed } from 'vue'
+import { ref, watch, nextTick, computed, toRef } from 'vue'
+import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
 
 const props = defineProps({
   modelValue: {
@@ -82,15 +83,14 @@ const t = (key) => props.translations[props.currentLang]?.[key] ?? key
 
 const helpSteps = computed(() => props.translations[props.currentLang]?.helpSteps ?? [])
 
+useBodyScrollLock(toRef(props, 'modelValue'))
+
 watch(
   () => props.modelValue,
   async (opened) => {
     if (opened) {
       await nextTick()
       closeBtnEl.value?.focus()
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
     }
   }
 )
@@ -142,8 +142,8 @@ watch(
 }
 
 .help-modal__icon {
-  width: 36px;
-  height: 36px;
+  width: 54px;
+  height: 54px;
   flex-shrink: 0;
   border-radius: 50%;
   background: rgba(0, 212, 232, 0.12);
@@ -157,6 +157,13 @@ watch(
 .help-modal__icon svg {
   width: 20px;
   height: 20px;
+}
+
+.help-modal__logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  filter: brightness(1.1);
 }
 
 .help-modal__title {

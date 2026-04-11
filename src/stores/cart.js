@@ -1,9 +1,31 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
+const ORDER_ID_KEY = 'scanly-order-id'
+
+function loadOrderId() {
+  try {
+    return sessionStorage.getItem(ORDER_ID_KEY)
+  } catch {
+    return null
+  }
+}
+
+function saveOrderId(value) {
+  try {
+    if (value) {
+      sessionStorage.setItem(ORDER_ID_KEY, String(value))
+    } else {
+      sessionStorage.removeItem(ORDER_ID_KEY)
+    }
+  } catch {
+    /* ignore storage issues */
+  }
+}
+
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
-  const orderId = ref(null)
+  const orderId = ref(loadOrderId())
   const vatEnabled = ref(false)
   const vatRate = ref(19)
   const language = ref('de')
@@ -71,7 +93,7 @@ export const useCartStore = defineStore('cart', () => {
     if (line.qty <= 0) removeLine(line.lineId)
   }
 
-  function clearCart() {
+  function clearCart(options = {}) {
     items.value.splice(0, items.value.length)
     appliedCoupon.value = null
     paymentSummary.value = {
@@ -79,6 +101,19 @@ export const useCartStore = defineStore('cart', () => {
       discount: 0,
       total: 0,
     }
+
+    if (options.clearOrder) {
+      setOrderId(null)
+    }
+  }
+
+  function setOrderId(id) {
+    orderId.value = id ? String(id) : null
+    saveOrderId(orderId.value)
+  }
+
+  function resetOrderSession() {
+    clearCart({ clearOrder: true })
   }
 
   function applyCoupon(coupon) {
@@ -98,6 +133,9 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function uid() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID()
+    }
     return Math.random().toString(16).slice(2) + '-' + Date.now().toString(16)
   }
 
@@ -119,6 +157,8 @@ export const useCartStore = defineStore('cart', () => {
     inc,
     dec,
     clearCart,
+    setOrderId,
+    resetOrderSession,
     applyCoupon,
     clearCoupon,
     setPaymentSummary,

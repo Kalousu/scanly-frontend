@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { validateCoupon } from '@/services/api'
 import { useLanguage } from '@/components/Uselanguage'
+import { calculateCouponAdjustedTotal } from '@/utils/pricing'
 
 function getCouponErrorMessage(error, fallback) {
   return (
@@ -20,7 +21,7 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
   const appliedCoupon = computed(() => cartStore.appliedCoupon)
   const couponDiscount = computed(() => Number(appliedCoupon.value?.discount || 0))
   const payableTotal = computed(() =>
-    Math.max(Number(orderTotalPrice.value || 0) - couponDiscount.value, 0),
+    calculateCouponAdjustedTotal(orderTotalPrice.value, appliedCoupon.value),
   )
 
   function syncPaymentSummary() {
@@ -101,8 +102,7 @@ export function useCouponRedemption(cartStore, orderTotalPrice) {
         ...result,
       })
       syncPaymentSummary()
-    } catch (error) {
-      console.warn('[Coupon] Refresh failed, removing coupon:', error)
+    } catch {
       cartStore.clearCoupon()
       couponMessage.value = t('couponRemovedConditions')
       couponMessageType.value = 'error'

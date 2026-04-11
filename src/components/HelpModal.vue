@@ -13,7 +13,7 @@
         <div class="help-modal" ref="modalEl">
           <div class="help-modal__header">
             <div class="help-modal__icon" aria-hidden="true">
-              <img src="../assets/logo-removebg-preview.png" alt="Scanly" class="help-modal__logo" />
+              <img src="/scanly_icon.png" alt="Scanly" class="help-modal__logo" />
             </div>
             <h2 class="help-modal__title">{{ t('helpModalTitle') }}</h2>
             <button
@@ -33,7 +33,7 @@
             <p class="help-modal__text">{{ t('helpModalBody') }}</p>
           </div>
 
-          <ul class="help-modal__steps" aria-label="Steps">
+          <ul class="help-modal__steps" :aria-label="t('helpStepsLabel')">
             <li v-for="(step, i) in helpSteps" :key="i" class="help-modal__step">
               <span class="help-modal__step-num" aria-hidden="true">{{ i + 1 }}</span>
               <span class="help-modal__step-text">{{ step }}</span>
@@ -142,8 +142,8 @@ watch(
 }
 
 .help-modal__icon {
-  width: 54px;
-  height: 54px;
+  width: 45px;
+  height: 45px;
   flex-shrink: 0;
   border-radius: 50%;
   background: rgba(0, 212, 232, 0.12);
@@ -155,13 +155,13 @@ watch(
 }
 
 .help-modal__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 10px;
+  height: 10px;
 }
 
 .help-modal__logo {
-  width: 50px;
-  height: 50px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   filter: brightness(1.1);
 }

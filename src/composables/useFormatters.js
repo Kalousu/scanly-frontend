@@ -1,25 +1,43 @@
 import { useLanguage } from '../components/Uselanguage'
 
+const DEFAULT_CURRENCY = 'EUR'
+const LOCALE_MAP = {
+  de: 'de-DE',
+  en: 'en-US',
+  it: 'it-IT',
+  ru: 'ru-RU',
+}
+
 export function useFormatters() {
   const { currentLang } = useLanguage()
 
-  function formatCurrency(val) {
-    return new Intl.NumberFormat('de-DE', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(val)
+  function currentLocale() {
+    return LOCALE_MAP[currentLang.value] || LOCALE_MAP.en
   }
 
-  function formatPrice(n) {
-    const localeMap = { de: 'de-DE', it: 'it-IT', ru: 'ru-RU' }
-    const locale = localeMap[currentLang.value] || 'en-US'
-    return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n)
+  function formatCurrency(val, currency = DEFAULT_CURRENCY) {
+    return new Intl.NumberFormat(currentLocale(), {
+      style: 'currency',
+      currency,
+    }).format(Number(val || 0))
+  }
+
+  function formatPrice(n, currency = DEFAULT_CURRENCY) {
+    return formatCurrency(n, currency)
+  }
+
+  function formatReceiptAmount(n) {
+    return new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    }).format(Number(n || 0))
   }
 
   function formatDate(dateStr) {
-    if (!dateStr) return '—'
+    if (!dateStr) return '-'
     const d = new Date(dateStr)
-    return d.toLocaleDateString('de-DE', {
+    return d.toLocaleDateString(currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -29,13 +47,18 @@ export function useFormatters() {
   }
 
   function formatTaxRate(rate) {
+    const numericRate = Number(rate)
+    const percentage = numericRate <= 1 ? numericRate * 100 : (numericRate - 1) * 100
     const map = {
       1.19: '19 %',
       1.07: '7 %',
-      1.00: '0 %',
+      1.0: '0 %',
+      0.19: '19 %',
+      0.07: '7 %',
+      0.0: '0 %',
     }
-    return map[rate] ?? `${Math.round((rate - 1) * 100)} %`
+    return map[numericRate] ?? `${Math.round(percentage)} %`
   }
 
-  return { formatCurrency, formatPrice, formatDate, formatTaxRate }
+  return { formatCurrency, formatPrice, formatReceiptAmount, formatDate, formatTaxRate }
 }

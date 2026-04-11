@@ -27,7 +27,7 @@ export function sortOrdersNewestFirst(orders) {
 }
 
 function getOrderErrorMessage(error, fallback) {
-  return error.message || fallback
+  return error.response?.data?.message || error.response?.data?.error || error.message || fallback
 }
 
 export function useOrdersAdmin({ pageSize = 15 } = {}) {

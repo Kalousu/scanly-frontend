@@ -1,11 +1,12 @@
 <template>
-  <AdminModal :visible="Boolean(order)" modal-class="admin-modal--lg" transition-name="detail-fade" @close="$emit('close')">
-    <template #header>
-      <template v-if="order">
-          <h3 class="admin-modal-title">{{ t('adminOrders') }} #{{ order.orderId }}</h3>
-          <button type="button" class="admin-modal-close" @click="$emit('close')">X</button>
-      </template>
-    </template>
+  <AdminModal
+    :visible="Boolean(order)"
+    :title="order ? `${t('adminOrders')} #${order.orderId}` : t('adminOrders')"
+    :close-label="t('adminClose')"
+    modal-class="admin-modal--lg"
+    transition-name="detail-fade"
+    @close="$emit('close')"
+  >
     <div v-if="order" class="admin-modal-body">
           <div class="ord-detail-meta">
             <div class="ord-detail-meta-item">

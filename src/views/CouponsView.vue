@@ -55,6 +55,7 @@ onMounted(() => {
         v-model:search-query="searchQuery"
         v-model:active-filter="statusFilter"
         :search-placeholder="t('adminCouponSearchPlaceholder')"
+        :search-label="t('adminCouponSearchPlaceholder')"
         :filters="statusOptions"
       >
         <template #actions>

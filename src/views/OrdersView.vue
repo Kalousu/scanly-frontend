@@ -28,6 +28,7 @@
         v-model:search-query="searchQuery"
         v-model:active-filter="activeFilter"
         :search-placeholder="t('adminSearchOrdersPlaceholder')"
+        :search-label="t('adminSearchOrdersPlaceholder')"
         :filters="filters"
       />
 

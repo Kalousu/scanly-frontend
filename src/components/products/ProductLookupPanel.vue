@@ -1,9 +1,10 @@
 <template>
   <div>
     <div class="admin-form-group">
-      <label class="admin-label">{{ t('adminSearchByEan') }}</label>
+      <label class="admin-label" for="product-lookup-ean">{{ t('adminSearchByEan') }}</label>
       <div class="prod-search-row">
         <input
+          id="product-lookup-ean"
           :value="searchQuery"
           type="text"
           class="admin-input"

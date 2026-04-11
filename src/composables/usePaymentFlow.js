@@ -1,5 +1,6 @@
 import { checkoutOrder } from '@/services/api'
 import { useLanguage } from '@/components/Uselanguage'
+import { PAYMENT_SUCCESS_REDIRECT_DELAY_MS } from '@/constants/timing'
 
 function getApiErrorMessage(error, fallback) {
   return error.response?.data?.message || error.response?.data?.error || error.message || fallback
@@ -38,7 +39,7 @@ export function usePaymentFlow({
         return false
       }
       status.value = 'paid'
-      await new Promise((resolve) => setTimeout(resolve, 900))
+      await new Promise((resolve) => setTimeout(resolve, PAYMENT_SUCCESS_REDIRECT_DELAY_MS))
       onSuccess?.()
       return true
     } catch (error) {

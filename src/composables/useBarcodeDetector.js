@@ -1,11 +1,12 @@
 import { onBeforeUnmount, ref } from 'vue'
+import { BARCODE_DETECTOR_INTERVAL_MS, BARCODE_SCAN_COOLDOWN_MS } from '@/constants/timing'
 
 const defaultFormats = ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e']
 
 export function useBarcodeDetector({
   formats = defaultFormats,
-  intervalMs = 250,
-  cooldown = 1500,
+  intervalMs = BARCODE_DETECTOR_INTERVAL_MS,
+  cooldown = BARCODE_SCAN_COOLDOWN_MS,
   onDetect,
   unsupportedMessage = 'Barcode-Scanning wird in diesem Browser nicht unterstützt.',
 } = {}) {

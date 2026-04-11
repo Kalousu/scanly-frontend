@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { activateCoupon, createCoupon, deactivateCoupon, fetchAllCoupons } from '@/services/api'
 import { useLanguage } from '@/components/Uselanguage'
+import { COUPON_SAVE_MESSAGE_DELAY_MS } from '@/constants/timing'
 
 function getEmptyForm() {
   return {
@@ -86,7 +87,7 @@ export function useCouponsAdmin() {
       if (saveMessage.value === text) {
         saveMessage.value = ''
       }
-    }, 2200)
+    }, COUPON_SAVE_MESSAGE_DELAY_MS)
   }
 
   function validateForm() {

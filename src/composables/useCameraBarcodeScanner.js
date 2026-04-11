@@ -1,8 +1,9 @@
 import { onBeforeUnmount } from 'vue'
 import { useBarcodeDetector } from '@/composables/useBarcodeDetector'
 import { useCameraStream } from '@/composables/useCameraStream'
+import { BARCODE_SCAN_COOLDOWN_MS } from '@/constants/timing'
 
-export function useCameraBarcodeScanner({ t, onScan, cooldown = 1500 }) {
+export function useCameraBarcodeScanner({ t, onScan, cooldown = BARCODE_SCAN_COOLDOWN_MS }) {
   const {
     cameraActive,
     cameraLoading,
@@ -39,6 +40,7 @@ export function useCameraBarcodeScanner({ t, onScan, cooldown = 1500 }) {
       }
     } catch {
       stopDetection()
+      stopStream()
     }
   }
 

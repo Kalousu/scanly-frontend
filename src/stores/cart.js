@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { calculateGrossLineTotal, calculateNetLineTotal, toFiniteNumber } from '@/utils/pricing'
 
 const ORDER_ID_KEY = 'scanly-order-id'
 
@@ -36,14 +37,23 @@ export const useCartStore = defineStore('cart', () => {
     total: 0,
   })
 
-  const subtotal = computed(() => items.value.reduce((sum, line) => sum + line.price * line.qty, 0))
+  const subtotal = computed(() =>
+    items.value.reduce((sum, line) => sum + calculateNetLineTotal(line), 0),
+  )
 
   const vatAmount = computed(() => {
-    if (!vatEnabled.value) return 0
-    return subtotal.value * (vatRate.value / 100)
+    return items.value.reduce((sum, line) => {
+      const taxRate = line.taxRate ?? (vatEnabled.value ? vatRate.value / 100 : 0)
+      return sum + calculateNetLineTotal(line) * toFiniteNumber(taxRate)
+    }, 0)
   })
 
-  const total = computed(() => subtotal.value + vatAmount.value)
+  const total = computed(() =>
+    items.value.reduce((sum, line) => {
+      const taxRate = line.taxRate ?? (vatEnabled.value ? vatRate.value / 100 : 0)
+      return sum + calculateGrossLineTotal({ ...line, taxRate })
+    }, 0),
+  )
 
   const itemCount = computed(() => items.value.reduce((sum, line) => sum + line.qty, 0))
 
@@ -62,6 +72,7 @@ export const useCartStore = defineStore('cart', () => {
       category: item.category,
       qty: 1,
       price: item.price,
+      taxRate: item.taxRate,
       unit: item.unit || 'each',
     })
   }
@@ -74,6 +85,7 @@ export const useCartStore = defineStore('cart', () => {
       category: item.category,
       qty: 1,
       price: item.price,
+      taxRate: item.taxRate,
       unit: 'kg',
       meta: { kg },
     })

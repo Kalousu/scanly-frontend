@@ -34,10 +34,10 @@
           <div class="product-name">{{ getItemName(item) }}</div>
           <div class="product-price">
             <template v-if="mode === 'vegetables'">
-              {{ formatPrice(item.pricePerKg) }}<span class="price-unit">/kg</span>
+              {{ formatPrice(getGrossCatalogPrice(item.pricePerKg, item.taxRate)) }}<span class="price-unit">/kg</span>
             </template>
             <template v-else>
-              {{ formatPrice(item.price) }}
+              {{ formatPrice(getGrossCatalogPrice(item.price, item.taxRate)) }}
             </template>
           </div>
         </button>
@@ -51,7 +51,7 @@
           <span class="qty-val">{{ amount }}</span>
           <button type="button" class="qty-btn" @click="$emit('update:amount', amount + 1)">+</button>
         </div>
-        <span class="weight-preview">= {{ formatPrice(selected.price * amount) }}</span>
+        <span class="weight-preview">= {{ formatPrice(getGrossCatalogPrice(selected.price, selected.taxRate) * amount) }}</span>
       </div>
 
       <!-- Vegetables: weight input -->
@@ -66,7 +66,7 @@
           step="0.01"
           class="weight-input"
         />
-        <span class="weight-preview">= {{ formatPrice(selected.pricePerKg * weightKg) }}</span>
+        <span class="weight-preview">= {{ formatPrice(getGrossCatalogPrice(selected.pricePerKg, selected.taxRate) * weightKg) }}</span>
       </div>
 
       <div class="modal-actions">
@@ -85,6 +85,7 @@
 import { computed, toRef } from 'vue'
 import { useFormatters } from '@/composables/useFormatters'
 import { useModalA11y } from '@/composables/useModalA11y'
+import { calculateGrossUnitPrice } from '@/utils/pricing'
 import '@/assets/kiosk-modal.css'
 
 const { formatPrice } = useFormatters()
@@ -111,6 +112,10 @@ defineEmits(['close', 'select', 'deselect', 'confirm', 'update:amount', 'update:
 const { overlayRef, initialFocusRef, titleId } = useModalA11y(toRef(props, 'visible'))
 const modeConfig = computed(() => MODE_CONFIG[props.mode] || MODE_CONFIG.bakery)
 const weightInputId = computed(() => `product-picker-weight-${props.mode}`)
+
+function getGrossCatalogPrice(priceNet, taxRate) {
+  return calculateGrossUnitPrice(priceNet, taxRate)
+}
 </script>
 
 <style scoped>

@@ -64,7 +64,7 @@ npm run coverage
 npm run verify
 ```
 
-`verify` führt Lint, Locale-Check, Unit-Smoke-Tests und Production-Build nacheinander aus.
+`verify` führt Lint, Locale-Check, Coverage mit Mindestwerten und Production-Build nacheinander aus.
 
 Für die Abgabe sollte `npm run verify` grün sein.
 
@@ -94,6 +94,8 @@ npm run preview
 - Adminflow einmal vollständig testen: Login, Produkte, Coupons, Bestellungen, Umsatz.
 - Browser mit Kamera- und Druck-Hardware nur in sicheren Kontexten testen:
   `https://` oder `localhost`.
+- Manuelle Responsive- und Hardware-QA nach `docs/qa-matrix.md` durchführen.
+- Ergebnis der manuellen Prüfung in `docs/abgabe-protokoll.md` eintragen.
 
 ## Browser- und Hardware-Matrix
 

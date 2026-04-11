@@ -14,6 +14,7 @@ export default {
     'Inserire gli articoli nella borsa',
     'Stampare lo scontrino e pagare',
   ],
+  helpStepsLabel: 'Passaggi checkout',
   helpModalCta: 'Ho capito',
   close: 'Chiudi',
 
@@ -34,12 +35,14 @@ export default {
   heroSubSmall: 'Grazie per il Suo acquisto!',
   cancelled: 'Transazione annullata.',
   language: 'Lingua',
+  languageBarLabel: 'Scegli lingua',
   produce: 'Frutta e Verdura',
   bakery: 'Panetteria',
   cancel: 'Annulla',
   pay: 'Pagare',
   weightLabel: 'Peso (kg)',
   amount: 'Quantità',
+  weightUnitKg: 'kg',
   helpTitle: 'Assistenza',
   langTitle: 'Seleziona lingua',
   error: 'Articolo non trovato!',
@@ -112,6 +115,7 @@ export default {
 
   // Customer-facing: Coupon modal & payment
   couponRedeem: 'Riscuoti coupon',
+  couponLabel: 'Coupon',
   couponRedeemSubtitle: 'Inserisci il codice o scansiona il coupon',
   couponInputPlaceholder: 'Inserisci codice coupon…',
   couponScanHint: 'Scanner attivo — scansiona il coupon ora…',

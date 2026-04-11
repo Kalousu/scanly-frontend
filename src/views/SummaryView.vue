@@ -4,21 +4,21 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useLanguage } from '@/components/Uselanguage'
 import { useFormatters } from '@/composables/useFormatters'
+import { SUMMARY_COUNTDOWN_TICK_MS, SUMMARY_REDIRECT_SECONDS } from '@/constants/timing'
 
 const router = useRouter()
 const cart = useCartStore()
 const { t, tFn } = useLanguage()
 const { formatCurrency } = useFormatters()
 
-const REDIRECT_SECONDS = 10
-const countdown = ref(REDIRECT_SECONDS)
+const countdown = ref(SUMMARY_REDIRECT_SECONDS)
 let countdownInterval = null
 
 const subtotal = computed(() => Number(cart.paymentSummary?.subtotal || 0))
 const discount = computed(() => Number(cart.paymentSummary?.discount || 0))
 const finalTotal = computed(() => {
   const summaryTotal = Number(cart.paymentSummary?.total || 0)
-  return summaryTotal > 0 ? summaryTotal : cart.total
+  return summaryTotal > 0 ? summaryTotal : 0
 })
 
 function startCountdown() {
@@ -28,7 +28,7 @@ function startCountdown() {
       clearInterval(countdownInterval)
       finishAndRedirect()
     }
-  }, 1000)
+  }, SUMMARY_COUNTDOWN_TICK_MS)
 }
 
 function finishAndRedirect() {
@@ -46,7 +46,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="summary-page" role="dialog" :aria-label="t('dialogLabel')">
+  <div class="summary-page">
     <div class="bg-grid" aria-hidden="true"></div>
 
     <main class="summary-main">
@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
           <div class="summary-progress-bar">
             <div
               class="summary-progress-fill"
-              :style="{ width: (countdown / REDIRECT_SECONDS) * 100 + '%' }"
+              :style="{ width: (countdown / SUMMARY_REDIRECT_SECONDS) * 100 + '%' }"
             ></div>
           </div>
           <p class="summary-countdown-text">{{ tFn('countdownLabel', countdown) }}</p>

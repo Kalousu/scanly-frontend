@@ -13,12 +13,10 @@
       />
 
       <main class="panel scan-panel">
-        <CheckoutHeaderActions
-          :vat-enabled="vatEnabled"
+        <KioskHeaderActions
           :t="t"
           @language="modal = 'lang'"
           @help="modal = 'help'"
-          @toggle-vat="vatEnabled = !vatEnabled"
         />
 
         <CheckoutHeroStatus :status="status" :t="t" />
@@ -77,7 +75,7 @@
           @close="closeModal"
         />
 
-        <CheckoutHelpModal
+        <KioskHelpModal
           :visible="modal === 'help'"
           :items="helpItems"
           :t="t"
@@ -120,14 +118,15 @@ import ProductPickerModal from '@/components/ProductPickerModal.vue'
 import CheckoutCategoryActions from '@/components/checkout/CheckoutCategoryActions.vue'
 import CheckoutConfirmDialogs from '@/components/checkout/CheckoutConfirmDialogs.vue'
 import CheckoutFlowActions from '@/components/checkout/CheckoutFlowActions.vue'
-import CheckoutHeaderActions from '@/components/checkout/CheckoutHeaderActions.vue'
-import CheckoutHelpModal from '@/components/checkout/CheckoutHelpModal.vue'
 import CheckoutHeroStatus from '@/components/checkout/CheckoutHeroStatus.vue'
 import CheckoutScannerPanel from '@/components/checkout/CheckoutScannerPanel.vue'
+import KioskHeaderActions from '@/components/kiosk/KioskHeaderActions.vue'
+import KioskHelpModal from '@/components/kiosk/KioskHelpModal.vue'
 import { useErrorToast } from '@/composables/useErrorToast'
 import { useKeyboardBarcodeScanner } from '@/composables/useKeyboardBarcodeScanner'
 import { useOrderSession } from '@/composables/useOrderSession'
 import { useProductCatalogPicker } from '@/composables/useProductCatalogPicker'
+import { CHECKOUT_STATUS_STEP_DELAY_MS } from '@/constants/timing'
 import '@/assets/checkout-flow.css'
 
 const router = useRouter()
@@ -146,7 +145,6 @@ const helpItems = computed(() => {
 
 const status = ref('idle')
 const modal = ref(null)
-const vatEnabled = ref(false)
 const confirmDeleteItem = ref(null)
 const showCancelConfirm = ref(false)
 const scannerPanelRef = ref(null)
@@ -240,9 +238,9 @@ async function pay() {
   closeModal()
   scannerPanelRef.value?.stopCamera()
 
-  await new Promise((r) => setTimeout(r, 400))
+  await new Promise((r) => setTimeout(r, CHECKOUT_STATUS_STEP_DELAY_MS))
   status.value = 'paid'
-  await new Promise((r) => setTimeout(r, 400))
+  await new Promise((r) => setTimeout(r, CHECKOUT_STATUS_STEP_DELAY_MS))
 
   status.value = 'idle'
   router.push(settingsStore.paybackEnabled ? '/payback' : '/payment')
@@ -269,5 +267,3 @@ onMounted(() => {
   fetchOrder()
 })
 </script>
-
-

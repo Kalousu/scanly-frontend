@@ -21,7 +21,7 @@
           @toggle-vat="vatEnabled = !vatEnabled"
         />
 
-        <PaymentHeroStatus :status="status" :t="t" />
+        <PaymentHeroStatus :status="status" :print-status="printStatus" :t="t" />
 
         <div class="flow-block">
           <PaymentActions
@@ -97,6 +97,7 @@ import { useKeyboardBarcodeScanner } from '@/composables/useKeyboardBarcodeScann
 import { useOrderSession } from '@/composables/useOrderSession'
 import { usePaymentFlow } from '@/composables/usePaymentFlow'
 import { useReceiptPrinter } from '@/composables/useReceiptPrinter'
+import '@/assets/payment-flow.css'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -133,7 +134,7 @@ const {
   syncPaymentSummary,
 } = useCouponRedemption(cartStore, orderTotalPrice)
 
-const { printReceipt } = useReceiptPrinter(showError)
+const { printReceipt, printStatus } = useReceiptPrinter(showError)
 
 function selectLanguage(code) {
   setLanguage(code)
@@ -191,4 +192,3 @@ onMounted(async () => {
   await refreshCouponAgainstCurrentOrderTotal()
 })
 </script>
-

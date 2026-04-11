@@ -128,6 +128,7 @@ import { useErrorToast } from '@/composables/useErrorToast'
 import { useKeyboardBarcodeScanner } from '@/composables/useKeyboardBarcodeScanner'
 import { useOrderSession } from '@/composables/useOrderSession'
 import { useProductCatalogPicker } from '@/composables/useProductCatalogPicker'
+import '@/assets/checkout-flow.css'
 
 const router = useRouter()
 const cartStore = useCartStore()

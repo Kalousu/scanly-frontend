@@ -14,6 +14,7 @@ import {
 import {
   useCouponsAdmin,
 } from '@/composables/useCouponsAdmin'
+import '@/assets/coupons-admin.css'
 
 const { t, tFn } = useLanguage()
 

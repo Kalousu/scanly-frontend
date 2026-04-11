@@ -44,6 +44,7 @@ import RecentOrdersTable from '@/components/revenue/RecentOrdersTable.vue'
 import { useFormatters } from '@/composables/useFormatters'
 import { useOrderUtils } from '@/composables/useOrderUtils'
 import { useRevenueAnalytics } from '@/composables/useRevenueAnalytics'
+import '@/assets/revenue-admin.css'
 
 const { t } = useLanguage()
 const { formatCurrency, formatDate } = useFormatters()

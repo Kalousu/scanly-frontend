@@ -55,7 +55,7 @@
           :aria-label="lang.label"
           @click="setLanguage(lang.code)"
         >
-          <img :src="lang.flag" :alt="lang.label" class="language-bar-flag" />
+          <span class="language-bar-flag" aria-hidden="true">{{ lang.flag }}</span>
           <span class="language-bar-code">{{ lang.code.toUpperCase() }}</span>
         </button>
       </div>
@@ -101,7 +101,7 @@ async function onStart() {
     cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
     router.push('/checkout')
   } catch {
-    startError.value = 'Bestellung konnte nicht gestartet werden. Bitte erneut versuchen.'
+    startError.value = t('startOrderError')
   }
 }
 </script>
@@ -389,11 +389,16 @@ async function onStart() {
 }
 
 .language-bar-flag {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 36px;
   height: 24px;
-  object-fit: cover;
-  border-radius: 3px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
 }
 
 .language-bar-code {

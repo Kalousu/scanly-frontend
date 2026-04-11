@@ -1,14 +1,17 @@
 ﻿<template>
   <div
     v-if="visible"
+    ref="overlayRef"
     class="modal-backdrop"
     role="dialog"
     aria-modal="true"
-    :aria-label="t('langTitle')"
+    :aria-labelledby="titleId"
+    tabindex="-1"
     @click.self="$emit('close')"
+    @keydown.esc="$emit('close')"
   >
     <div class="modal-card modal-card--sm">
-      <h3 class="modal-title">{{ t('langTitle') }}</h3>
+      <h3 :id="titleId" class="modal-title">{{ t('langTitle') }}</h3>
       <div class="lang-grid">
         <button
           type="button"
@@ -18,13 +21,13 @@
           :class="{ 'lang-btn--active': currentLang === lang.code }"
           @click="$emit('select', lang.code)"
         >
-          <img :src="lang.flag" :alt="lang.label" class="lang-flag" />
+          <span class="lang-flag" aria-hidden="true">{{ lang.flag }}</span>
           <span class="lang-label">{{ lang.label }}</span>
           <span class="lang-code">{{ lang.code.toUpperCase() }}</span>
         </button>
       </div>
       <div class="modal-actions">
-        <button type="button" class="modal-btn modal-btn--back" @click="$emit('close')">
+        <button ref="initialFocusRef" type="button" class="modal-btn modal-btn--back" @click="$emit('close')">
           {{ t('close') }}
         </button>
       </div>
@@ -33,7 +36,11 @@
 </template>
 
 <script setup>
-defineProps({
+import { toRef } from 'vue'
+import { useModalA11y } from '@/composables/useModalA11y'
+import '@/assets/kiosk-modal.css'
+
+const props = defineProps({
   visible: { type: Boolean, required: true },
   currentLang: { type: String, required: true },
   languages: { type: Array, required: true },
@@ -41,6 +48,8 @@ defineProps({
 })
 
 defineEmits(['close', 'select'])
+
+const { overlayRef, initialFocusRef, titleId } = useModalA11y(toRef(props, 'visible'))
 </script>
 
 <style scoped>
@@ -84,9 +93,15 @@ defineEmits(['close', 'select'])
 .lang-flag {
   width: 32px;
   height: 22px;
-  object-fit: cover;
-  border-radius: 3px;
+  border-radius: 6px;
   flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
 }
 
 .lang-label {

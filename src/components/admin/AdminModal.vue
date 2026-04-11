@@ -15,7 +15,15 @@
         <div class="admin-modal-header">
           <slot name="header">
             <h2 :id="titleId" class="admin-modal-title">{{ title }}</h2>
-            <button ref="closeButtonRef" type="button" class="admin-modal-close" @click="$emit('close')">X</button>
+            <button
+              ref="initialFocusRef"
+              type="button"
+              class="admin-modal-close"
+              :aria-label="closeLabel"
+              @click="$emit('close')"
+            >
+              X
+            </button>
           </slot>
         </div>
         <slot></slot>
@@ -25,32 +33,18 @@
 </template>
 
 <script setup>
-import { nextTick, ref, toRef, watch } from 'vue'
-import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
+import { toRef } from 'vue'
+import { useModalA11y } from '@/composables/useModalA11y'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
   title: { type: String, default: '' },
+  closeLabel: { type: String, default: 'Schließen' },
   modalClass: { type: String, default: '' },
   transitionName: { type: String, default: 'modal-fade' },
 })
 
 defineEmits(['close'])
 
-const overlayRef = ref(null)
-const closeButtonRef = ref(null)
-const titleId = `admin-modal-title-${Math.random().toString(36).slice(2)}`
-
-useBodyScrollLock(toRef(props, 'visible'))
-
-watch(
-  () => props.visible,
-  async (visible) => {
-    if (visible) {
-      await nextTick()
-      closeButtonRef.value?.focus()
-      if (!closeButtonRef.value) overlayRef.value?.focus()
-    }
-  },
-)
+const { overlayRef, initialFocusRef, titleId } = useModalA11y(toRef(props, 'visible'))
 </script>

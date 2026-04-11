@@ -1,17 +1,20 @@
 ﻿<template>
   <div
     v-if="visible"
+    ref="overlayRef"
     class="modal-backdrop"
     role="dialog"
     aria-modal="true"
-    :aria-label="t(modeConfig.titleKey)"
+    :aria-labelledby="titleId"
+    tabindex="-1"
     @click.self="$emit('close')"
+    @keydown.esc="$emit('close')"
   >
     <div class="modal-card">
       <div class="modal-head">
         <div class="modal-icon">{{ modeConfig.icon }}</div>
         <div>
-          <h3 class="modal-title">{{ t(modeConfig.titleKey) }}</h3>
+          <h3 :id="titleId" class="modal-title">{{ t(modeConfig.titleKey) }}</h3>
           <p class="modal-subtitle">{{ t(modeConfig.subtitleKey) }}</p>
         </div>
       </div>
@@ -53,8 +56,9 @@
 
       <!-- Vegetables: weight input -->
       <div v-if="selected && mode === 'vegetables'" class="weight-row">
-        <label class="weight-label">{{ t('weightLabel') }}</label>
+        <label class="weight-label" :for="weightInputId">{{ t('weightLabel') }}</label>
         <input
+          :id="weightInputId"
           :value="weightKg"
           @input="$emit('update:weightKg', Number($event.target.value))"
           type="number"
@@ -66,7 +70,7 @@
       </div>
 
       <div class="modal-actions">
-        <button type="button" class="modal-btn modal-btn--back" @click="selected ? $emit('deselect') : $emit('close')">
+        <button ref="initialFocusRef" type="button" class="modal-btn modal-btn--back" @click="selected ? $emit('deselect') : $emit('close')">
           {{ t('back') }}
         </button>
         <button type="button" class="modal-btn modal-btn--done" :disabled="!selected" @click="$emit('confirm')">
@@ -78,8 +82,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, toRef } from 'vue'
 import { useFormatters } from '@/composables/useFormatters'
+import { useModalA11y } from '@/composables/useModalA11y'
+import '@/assets/kiosk-modal.css'
 
 const { formatPrice } = useFormatters()
 
@@ -102,7 +108,9 @@ const props = defineProps({
 
 defineEmits(['close', 'select', 'deselect', 'confirm', 'update:amount', 'update:weightKg'])
 
+const { overlayRef, initialFocusRef, titleId } = useModalA11y(toRef(props, 'visible'))
 const modeConfig = computed(() => MODE_CONFIG[props.mode] || MODE_CONFIG.bakery)
+const weightInputId = computed(() => `product-picker-weight-${props.mode}`)
 </script>
 
 <style scoped>

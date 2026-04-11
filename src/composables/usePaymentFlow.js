@@ -1,7 +1,8 @@
 import { checkoutOrder } from '@/services/api'
+import { useLanguage } from '@/components/Uselanguage'
 
-function getApiErrorMessage(error) {
-  return error.response?.data?.message || error.response?.data?.error || error.message
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || error.response?.data?.error || error.message || fallback
 }
 
 export function usePaymentFlow({
@@ -14,11 +15,13 @@ export function usePaymentFlow({
   printReceipt,
   onMissingOrder,
 }) {
+  const { t, tFn } = useLanguage()
+
   async function pay(onSuccess) {
     if (orderItems.value.length === 0) return false
     if (status.value === 'paying') return false
     if (!cartStore.orderId) {
-      showError('Keine Order vorhanden')
+      showError(t('orderMissing'))
       onMissingOrder?.()
       return false
     }
@@ -35,7 +38,7 @@ export function usePaymentFlow({
       onSuccess?.()
       return true
     } catch (error) {
-      showError(`Checkout fehlgeschlagen: ${getApiErrorMessage(error)}`)
+      showError(tFn('checkoutFailed', getApiErrorMessage(error, t('unknownError'))))
       status.value = 'idle'
       return false
     }

@@ -17,11 +17,7 @@
           </h1>
           <p class="subtitle">{{ t('paybackSubtitle') }}</p>
 
-          <img
-            src="https://www.payback.de/resource/blob/327670/bb5914260838b67b1e398db1622a0d92/image-center-data.png"
-            class="payback-logo"
-            alt="Payback"
-          />
+          <div class="payback-logo" aria-label="Payback">PAYBACK</div>
 
           <div class="payback-actions">
             <button type="button" class="payback-btn primary" @click="openScanner">
@@ -38,21 +34,31 @@
       </div>
     </div>
 
-    <div v-else class="modal-overlay" @click.self="close">
-      <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div
+      v-else
+      ref="overlayRef"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+      tabindex="-1"
+      @click.self="close"
+      @keydown.esc="close"
+    >
+      <div class="modal-container">
 
         <div class="modal-header">
           <div class="modal-logo">
             <img src="../assets/logo-removebg-preview.png" alt="Scanly">
           </div>
-          <button type="button" class="close-btn" @click="close" :aria-label="t('close')">
+          <button ref="initialFocusRef" type="button" class="close-btn" @click="close" :aria-label="t('close')">
           </button>
         </div>
 
         <transition name="fade" mode="out-in">
 
           <div v-if="mode === 'scanner'" key="scanner" class="scanner-view">
-            <h2 id="modal-title" class="modal-title">{{ t('paybackScanTitle') }}</h2>
+            <h2 :id="titleId" class="modal-title">{{ t('paybackScanTitle') }}</h2>
             <p class="modal-subtitle">{{ t('paybackScanSubtitle') }}</p>
             <p class="demo-note">{{ t('paybackDemoHint') }}</p>
 
@@ -88,7 +94,7 @@
           </div>
 
           <div v-else key="manual" class="manual-view">
-            <h2 id="modal-title" class="modal-title">{{ t('paybackManualTitle') }}</h2>
+            <h2 :id="titleId" class="modal-title">{{ t('paybackManualTitle') }}</h2>
             <p class="modal-subtitle">{{ t('paybackManualSubtitle') }}</p>
 
             <div class="input-container">
@@ -150,6 +156,7 @@ import { ref, onUnmounted, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLanguage } from '@/components/Uselanguage'
 import { useCameraStream } from '@/composables/useCameraStream'
+import { useModalA11y } from '@/composables/useModalA11y'
 import { useSettingsStore } from '@/stores/settings'
 
 const router = useRouter()
@@ -164,6 +171,7 @@ onMounted(() => {
 })
 
 const showScanner = ref(false)
+const { overlayRef, initialFocusRef, titleId } = useModalA11y(showScanner)
 const mode = ref('scanner')
 const scanSuccess = ref(false)
 const scanError = ref(false)
@@ -427,11 +435,19 @@ onUnmounted(() => { stopCamera() })
 }
 
 .payback-logo {
-  width: 200px;
+  width: fit-content;
   margin: 20px auto 4px;
   display: block;
+  padding: 10px 22px;
+  border-radius: 8px;
+  background: #064a98;
+  color: #fff;
+  border-bottom: 6px solid #f7d319;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
   opacity: 0.92;
-  filter: saturate(0.95) brightness(1.05);
 }
 
 .payback-actions {

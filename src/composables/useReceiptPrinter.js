@@ -1,23 +1,25 @@
 import { ref } from 'vue'
-import { fetchReceiptForOrder } from '@/services/api'
+import { useLanguage } from '@/components/Uselanguage'
 import { PrinterEncoder } from '@/PrinterEncoder'
+import { fetchReceiptForOrder } from '@/services/api'
 
 const receiptPrinterFilters = [{ vendorId: 0x0483, productId: 0x5840 }]
 
-function getReceiptPrinterErrorMessage(error) {
+function getReceiptPrinterErrorMessage(error, t) {
   if (error?.name === 'NotFoundError') {
-    return 'Kein Drucker ausgewählt oder gefunden.'
+    return t('receiptPrinterNotFound')
   }
   if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
-    return 'Zugriff auf den Drucker wurde verweigert.'
+    return t('receiptPrinterAccessDenied')
   }
   if (error?.name === 'NetworkError') {
-    return 'USB-Übertragung zum Drucker fehlgeschlagen.'
+    return t('receiptPrinterTransferFailed')
   }
-  return error?.message || 'Bon konnte nicht gedruckt werden.'
+  return error?.message || t('receiptPrinterGenericError')
 }
 
 export function useReceiptPrinter(showError) {
+  const { t, tFn } = useLanguage()
   const printStatus = ref('idle')
   const printerDevice = ref(null)
 
@@ -46,7 +48,7 @@ export function useReceiptPrinter(showError) {
   async function reconnectPrinter() {
     if (!navigator.usb) {
       printStatus.value = 'unsupported'
-      showError('Bon-Druck wird in diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.')
+      showError(t('receiptPrinterUnsupported'))
       return false
     }
 
@@ -55,7 +57,7 @@ export function useReceiptPrinter(showError) {
       return Boolean(printerDevice.value)
     } catch (error) {
       printStatus.value = 'error'
-      showError(`Bon-Drucker konnte nicht verbunden werden: ${getReceiptPrinterErrorMessage(error)}`)
+      showError(tFn('receiptPrinterReconnectFailed', getReceiptPrinterErrorMessage(error, t)))
       return false
     }
   }
@@ -63,7 +65,7 @@ export function useReceiptPrinter(showError) {
   async function printReceipt(orderId) {
     if (!orderId) {
       printStatus.value = 'error'
-      showError('Keine Order vorhanden')
+      showError(t('orderMissing'))
       return false
     }
 
@@ -71,7 +73,7 @@ export function useReceiptPrinter(showError) {
     try {
       if (!navigator.usb) {
         printStatus.value = 'unsupported'
-        showError('Bon-Druck wird in diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.')
+        showError(t('receiptPrinterUnsupported'))
         return false
       }
 
@@ -91,7 +93,7 @@ export function useReceiptPrinter(showError) {
         (e) => e.direction === 'out',
       )
       if (!endpoint) {
-        throw new Error('Kein Drucker-Endpunkt gefunden.')
+        throw new Error(t('receiptEndpointMissing'))
       }
 
       const printer = new PrinterEncoder()
@@ -109,7 +111,7 @@ export function useReceiptPrinter(showError) {
         .unsetBold()
 
       if (receiptData.receiptItemResponseList?.length > 0) {
-        printer.printEURLabel()
+        printer.printCurrencyLabel(t('receiptCurrencyLabel'))
         receiptData.receiptItemResponseList.forEach((item) => {
           printer.printPrice(
             item.productName,
@@ -121,10 +123,10 @@ export function useReceiptPrinter(showError) {
         })
         printer.lineSeparator()
         printer.setBold()
-        printer.printSum(receiptData.totalAmount)
+        printer.printSum(receiptData.totalAmount, t('receiptTotalLabel'))
         printer.unsetBold()
         printer.feed(1)
-        printer.printTaxGroupTable(receiptData.receiptTaxGroupResponseList)
+        printer.printTaxGroupTable(receiptData.receiptTaxGroupResponseList, t('receiptTaxHeader'))
       }
 
       printer.unsetItalic()
@@ -137,7 +139,7 @@ export function useReceiptPrinter(showError) {
       return true
     } catch (error) {
       printStatus.value = 'error'
-      showError(`Bon-Druck fehlgeschlagen: ${getReceiptPrinterErrorMessage(error)}`)
+      showError(tFn('receiptPrintFailed', getReceiptPrinterErrorMessage(error, t)))
       return false
     } finally {
       if (device?.opened) {

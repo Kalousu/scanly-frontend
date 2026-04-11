@@ -10,6 +10,7 @@ import {
   getProductBarcode,
 } from '@/composables/useProductFormatters'
 import { useProductsAdmin } from '@/composables/useProductsAdmin'
+import '@/assets/products-admin.css'
 
 const { t } = useLanguage()
 

@@ -36,22 +36,22 @@ export const languages = [
   {
     code: 'de',
     label: 'Deutsch',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/1280px-Flag_of_Germany.svg.png',
+    flag: 'DE',
   },
   {
     code: 'en',
     label: 'English',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png',
+    flag: 'EN',
   },
   {
     code: 'it',
     label: 'Italiano',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/0/03/Flag_of_Italy.svg',
+    flag: 'IT',
   },
   {
     code: 'ru',
     label: 'Русский',
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Flag_of_Russia.svg/3840px-Flag_of_Russia.svg.png',
+    flag: 'RU',
   },
 ]
 

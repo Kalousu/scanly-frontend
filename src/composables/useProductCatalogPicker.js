@@ -1,7 +1,9 @@
 import { ref } from 'vue'
 import { fetchBakeryProducts, fetchFruitsAndVegetables } from '@/services/api'
+import { useLanguage } from '@/components/Uselanguage'
 
 export function useProductCatalogPicker({ modal, showError }) {
+  const { t } = useLanguage()
   const produceCatalog = ref([])
   const produceLoading = ref(false)
   const selectedProduce = ref(null)
@@ -45,7 +47,7 @@ export function useProductCatalogPicker({ modal, showError }) {
         category: product.category,
       }))
     } catch {
-      showError('Produkte konnten nicht geladen werden.')
+      showError(t('produceLoadError'))
     } finally {
       produceLoading.value = false
     }
@@ -67,7 +69,7 @@ export function useProductCatalogPicker({ modal, showError }) {
         category: product.category,
       }))
     } catch {
-      showError('Backwaren konnten nicht geladen werden.')
+      showError(t('bakeryLoadError'))
     } finally {
       bakeryLoading.value = false
     }

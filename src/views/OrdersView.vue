@@ -70,6 +70,7 @@ import OrderDetailModal from '@/components/orders/OrderDetailModal.vue'
 import { useFormatters } from '@/composables/useFormatters'
 import { useOrdersAdmin } from '@/composables/useOrdersAdmin'
 import { useOrderUtils } from '@/composables/useOrderUtils'
+import '@/assets/orders-admin.css'
 
 const { t, tFn } = useLanguage()
 const { formatCurrency, formatDate } = useFormatters()

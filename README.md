@@ -115,6 +115,9 @@ npm run preview
   produktiven Einsatz muss die Authentifizierung an das Backend angebunden werden.
   Admin-Routen sind im Frontend durch eine Demo-Session geschützt, ersetzen aber
   keine echte serverseitige Autorisierung.
+- Der Bondruck ist für die Demo auf EUR und ESC/POS-kompatible WebUSB-Drucker
+  ausgelegt. Die sichtbaren Druckstatus- und Fehlertexte sind lokalisiert; die
+  Steuerdaten des Bons bleiben technisch auf dieses Druckerprofil begrenzt.
 - Der Admin-Bereich ist vollständig für Deutsch und Englisch gepflegt. Italienisch
   und Russisch decken den Kundenflow ab; fehlende Admin-Texte fallen bewusst auf
   Englisch zurück.

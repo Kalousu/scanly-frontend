@@ -1,19 +1,24 @@
 <template>
   <div
     v-if="visible"
+    ref="overlayRef"
     class="modal-backdrop"
     role="dialog"
     aria-modal="true"
-    :aria-label="t('couponRedeem')"
+    :aria-labelledby="titleId"
+    tabindex="-1"
     @click.self="$emit('close')"
+    @keydown.esc="$emit('close')"
   >
     <div class="modal-card modal-card--sm">
-      <h3 class="modal-title">{{ t('couponRedeem') }}</h3>
+      <h3 :id="titleId" class="modal-title">{{ t('couponRedeem') }}</h3>
       <p class="coupon-subtitle">{{ t('couponRedeemSubtitle') }}</p>
 
       <div class="coupon-input-wrapper">
+        <label class="sr-only" for="coupon-code-input">{{ t('couponInputPlaceholder') }}</label>
         <input
           ref="inputRef"
+          id="coupon-code-input"
           :value="code"
           type="text"
           class="coupon-input"
@@ -66,8 +71,10 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, toRef, watch, nextTick } from 'vue'
 import { useLanguage } from '@/components/Uselanguage'
+import { useModalA11y } from '@/composables/useModalA11y'
+import '@/assets/kiosk-modal.css'
 
 const { t } = useLanguage()
 
@@ -82,6 +89,9 @@ const props = defineProps({
 defineEmits(['close', 'update:code', 'redeem', 'toggle-scan'])
 
 const inputRef = ref(null)
+const { overlayRef, titleId } = useModalA11y(toRef(props, 'visible'), {
+  initialFocusRef: inputRef,
+})
 
 watch(() => props.visible, async (val) => {
   if (val) {

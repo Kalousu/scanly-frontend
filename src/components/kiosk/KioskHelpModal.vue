@@ -1,16 +1,17 @@
 <template>
   <div
     v-if="visible"
+    ref="overlayRef"
     class="modal-backdrop"
     role="dialog"
     aria-modal="true"
-    :aria-label="t('helpTitle')"
+    :aria-labelledby="titleId"
     tabindex="-1"
     @click.self="$emit('close')"
     @keydown.esc="$emit('close')"
   >
     <div class="modal-card modal-card--sm">
-      <h3 class="modal-title">{{ t('helpTitle') }}</h3>
+      <h3 :id="titleId" class="modal-title">{{ t('helpTitle') }}</h3>
       <ul class="help-list">
         <li v-for="(item, i) in safeItems" :key="i">
           <template v-for="(segment, index) in item" :key="index">
@@ -20,7 +21,7 @@
         </li>
       </ul>
       <div class="modal-actions">
-        <button type="button" class="modal-btn modal-btn--done" @click="$emit('close')">
+        <button ref="initialFocusRef" type="button" class="modal-btn modal-btn--done" @click="$emit('close')">
           {{ t('close') }}
         </button>
       </div>
@@ -29,8 +30,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, toRef } from 'vue'
+import { useModalA11y } from '@/composables/useModalA11y'
 import { toSafeRichTextSegments } from '@/utils/safeRichText'
+import '@/assets/kiosk-modal.css'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -40,6 +43,7 @@ const props = defineProps({
 
 defineEmits(['close'])
 
+const { overlayRef, initialFocusRef, titleId } = useModalA11y(toRef(props, 'visible'))
 const safeItems = computed(() => props.items.map((item) => toSafeRichTextSegments(item)))
 </script>
 

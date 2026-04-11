@@ -25,6 +25,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import '@/assets/admin-shared.css'
 
 const props = defineProps({
   breadcrumb: {

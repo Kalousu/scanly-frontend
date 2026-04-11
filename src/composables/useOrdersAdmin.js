@@ -26,8 +26,8 @@ export function sortOrdersNewestFirst(orders) {
   return [...orders].sort((a, b) => new Date(b.creationDate || 0) - new Date(a.creationDate || 0))
 }
 
-function getOrderErrorMessage(error) {
-  return error.message || 'Unbekannter Fehler'
+function getOrderErrorMessage(error, fallback) {
+  return error.message || fallback
 }
 
 export function useOrdersAdmin({ pageSize = 15 } = {}) {
@@ -105,7 +105,7 @@ export function useOrdersAdmin({ pageSize = 15 } = {}) {
     try {
       allOrders.value = normalizeOrdersResponse(await fetchOrders())
     } catch (loadError) {
-      error.value = getOrderErrorMessage(loadError)
+      error.value = getOrderErrorMessage(loadError, t('unknownError'))
     } finally {
       loading.value = false
     }

@@ -25,8 +25,8 @@ function roundCurrency(value) {
   return Math.round(value * 100) / 100
 }
 
-function getRevenueErrorMessage(error) {
-  return error.message || 'Unbekannter Fehler'
+function getRevenueErrorMessage(error, fallback) {
+  return error.message || fallback
 }
 
 export function useRevenueAnalytics() {
@@ -147,7 +147,7 @@ export function useRevenueAnalytics() {
     try {
       allOrders.value = normalizeOrdersResponse(await fetchOrders())
     } catch (loadError) {
-      error.value = getRevenueErrorMessage(loadError)
+      error.value = getRevenueErrorMessage(loadError, t('unknownError'))
     } finally {
       loading.value = false
     }

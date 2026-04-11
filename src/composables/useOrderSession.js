@@ -6,12 +6,14 @@ import {
   fetchOrder as fetchOrderRequest,
   updateOrderItemQuantity,
 } from '@/services/api'
+import { useLanguage } from '@/components/Uselanguage'
 
-function getApiErrorMessage(error) {
-  return error.response?.data?.message || error.response?.data?.error || error.message
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || error.response?.data?.error || error.message || fallback
 }
 
 export function useOrderSession(cartStore, showError) {
+  const { t, tFn } = useLanguage()
   const orderItems = ref([])
   const orderTotalPrice = ref(0)
 
@@ -22,13 +24,13 @@ export function useOrderSession(cartStore, showError) {
       orderItems.value = order.orderItems || []
       orderTotalPrice.value = order.totalPrice || 0
     } catch (error) {
-      showError(`Bestellung konnte nicht geladen werden: ${getApiErrorMessage(error)}`)
+      showError(tFn('orderLoadError', getApiErrorMessage(error, t('unknownError'))))
     }
   }
 
   async function addItemByCode(code, amount = 1) {
     if (!cartStore.orderId) {
-      showError('Keine Order vorhanden')
+      showError(t('orderMissing'))
       return false
     }
     try {
@@ -36,7 +38,7 @@ export function useOrderSession(cartStore, showError) {
       await fetchOrder()
       return true
     } catch (error) {
-      showError(`Fehler: ${getApiErrorMessage(error)}`)
+      showError(tFn('orderActionError', getApiErrorMessage(error, t('unknownError'))))
       return false
     }
   }
@@ -47,7 +49,7 @@ export function useOrderSession(cartStore, showError) {
       await updateOrderItemQuantity(cartStore.orderId, item.id, delta)
       await fetchOrder()
     } catch (error) {
-      showError(`Fehler: ${getApiErrorMessage(error)}`)
+      showError(tFn('orderActionError', getApiErrorMessage(error, t('unknownError'))))
     }
   }
 
@@ -57,7 +59,7 @@ export function useOrderSession(cartStore, showError) {
       await deleteOrderItem(cartStore.orderId, item.id)
       await fetchOrder()
     } catch (error) {
-      showError(`Fehler: ${getApiErrorMessage(error)}`)
+      showError(tFn('orderActionError', getApiErrorMessage(error, t('unknownError'))))
     }
   }
 
@@ -68,7 +70,7 @@ export function useOrderSession(cartStore, showError) {
       }
       return true
     } catch {
-      showError('Bestellung konnte nicht im Backend abgebrochen werden.')
+      showError(t('orderCancelBackendError'))
       return false
     }
   }

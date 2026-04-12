@@ -80,6 +80,33 @@ Für andere Umgebungen kann die Backend-URL über `.env.local` angepasst werden:
 VITE_API_BASE_URL=https://example.local/api
 ```
 
+## Docker
+
+Die Anwendung kann in einem Docker-Container betrieben werden. Dies stellt eine konsistente Umgebung sicher und vereinfacht die Bereitstellung.
+
+### Einzelner Frontend-Container
+
+Um nur das Frontend zu bauen und zu starten:
+
+```bash
+# Image bauen
+docker build -t scanly-frontend .
+
+# Container starten (Port 80)
+docker run -p 80:80 scanly-frontend
+```
+
+### Gesamtes System (Backend + Frontend + DB)
+
+Da das Frontend in die `docker-compose.yml` im Backend-Repository integriert wurde, kann das gesamte System mit einem Befehl aus dem Backend-Verzeichnis gestartet werden:
+
+```bash
+# Im Verzeichnis ../scanly-backend
+docker compose up --build
+```
+
+Das Frontend ist dann unter `http://localhost` erreichbar und leitet API-Anfragen automatisch an den Backend-Container weiter.
+
 ## Abgabe-Checkliste
 
 ```bash

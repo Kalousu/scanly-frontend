@@ -1,6 +1,4 @@
-﻿/* Products admin styles moved out of ProductsView.vue. */
 
-/* Products-specific styles only */
 
 .prod-actions {
   display: grid;
@@ -32,7 +30,6 @@
   max-width: 20ch;
 }
 
-/* Database section */
 .prod-db-section {
   margin-top: 1rem;
 }
@@ -71,14 +68,12 @@
   margin-bottom: 1.25rem;
 }
 
-/* Table cell tweaks */
 .td-num { color: rgba(255,255,255,0.25); font-size: 0.78rem; width: 40px; }
 .td-name { font-weight: 600; color: rgba(255,255,255,0.9); }
 .td-ean { font-family: 'SF Mono', 'Consolas', 'Monaco', monospace; font-size: 0.8rem; color: rgba(255,255,255,0.5); letter-spacing: 0.03em; }
 .td-price { font-weight: 600; color: #6EF0B4; white-space: nowrap; }
 .td-tax { color: rgba(255,255,255,0.45); font-size: 0.8rem; }
 
-/* Search row in modals */
 .prod-search-row {
   display: flex;
   gap: 0.6rem;
@@ -106,7 +101,6 @@
 .prod-btn-search:hover:not(:disabled) { background: rgba(0, 212, 232, 0.25); border-color: rgba(0, 212, 232, 0.5); }
 .prod-btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Found product card */
 .prod-found-card {
   margin-top: 0.75rem;
   background: rgba(0, 212, 232, 0.06);
@@ -174,7 +168,6 @@
 
 .prod-found-card--remove .prod-found-ean { color: #FF6B8A; }
 
-/* Hint text */
 .prod-hint {
   font-size: 0.82rem;
   color: rgba(255,255,255,0.35);
@@ -182,11 +175,9 @@
   line-height: 1.5;
 }
 
-/* Warning */
 .prod-warning-title { margin: 0 0 0.25rem; font-size: 0.85rem; font-weight: 700; color: #FF6B8A; }
 .prod-warning-text { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.45); line-height: 1.45; }
 
-/* Success message */
 .prod-success-msg {
   margin-top: 0.75rem;
   padding: 0.7rem 1rem;
@@ -198,7 +189,6 @@
   color: rgba(255,255,255,0.85);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .prod-actions { grid-template-columns: 1fr; }
 }

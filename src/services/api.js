@@ -115,7 +115,6 @@ export const checkoutOrder = async (orderId, paymentMethod = 'Card') => {
   return response.data
 }
 
-// Coupon endpoints
 export const fetchAllCoupons = async () => {
   const response = await api.get('/coupons')
   return response.data

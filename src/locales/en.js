@@ -108,7 +108,6 @@ export default {
   deleteProductMessage: (name) => `Do you really want to delete <strong>${name}</strong>?`,
   deleteProductConfirm: 'Delete',
 
-  // Customer-facing: Coupon modal & payment
   couponRedeem: 'Redeem coupon',
   couponLabel: 'Coupon',
   couponRedeemSubtitle: 'Enter code or scan coupon',
@@ -127,6 +126,8 @@ export default {
   summaryCouponDiscount: 'Coupon discount',
 
   startOrderError: 'The order could not be started. Please try again.',
+  landingScanStarting: 'Scanner detected. Starting order...',
+  landingScanError: 'The item could not start the order. Please scan again.',
   orderLoadError: (message) => `The order could not be loaded: ${message}`,
   orderMissing: 'No order available.',
   orderActionError: (message) => `Error: ${message}`,
@@ -153,7 +154,6 @@ export default {
   receiptTotalLabel: 'TOTAL:',
   receiptTaxHeader: 'VAT% VAT   Net = Gross',
 
-  // Admin: Common
   adminSave: 'Save',
   adminSaved: 'Saved!',
   adminCancel: 'Cancel',
@@ -173,7 +173,6 @@ export default {
   adminWarning: 'Warning',
   adminFillAllFields: 'Please fill in all fields.',
 
-  // Admin: Dashboard
   adminDashboard: 'Dashboard',
   adminDashboardSubtitle: 'Management & Overview',
   adminBackToStart: 'Back to start',
@@ -188,7 +187,6 @@ export default {
   adminSettings: 'Settings',
   adminSettingsDesc: 'System configuration and preferences',
 
-  // Admin: Settings
   adminPayback: 'Payback',
   adminPaybackEnabled: 'Payback enabled',
   adminPaybackQr: 'Payback QR code',
@@ -204,7 +202,6 @@ export default {
   adminPassword: 'Admin password',
   adminPasswordPlaceholder: 'Password',
 
-  // Admin: Orders
   adminOrdersLoading: 'Loading orders...',
   adminOrdersLoadError: 'Error loading orders',
   adminSearchOrdersPlaceholder: 'Search by ID, product...',
@@ -229,7 +226,6 @@ export default {
   adminColGross: 'Gross',
   adminOrderNoItems: 'No items in this order.',
 
-  // Admin: Revenue
   adminRevenueLoading: 'Loading data...',
   adminRevenueOverview: 'Revenue overview',
   adminRevenueOnlyClosed: 'Closed orders only (status: CLOSED)',
@@ -246,7 +242,6 @@ export default {
   adminNoClosedOrders: 'No closed orders available.',
   adminColOrderId: 'Order ID',
 
-  // Admin: Products
   adminProductsManage: 'Manage products',
   adminProductsManageSub: 'Add, edit or remove products',
   adminProductAdd: 'Add product',
@@ -307,7 +302,6 @@ export default {
   adminProductDeleteError: 'Error removing the product. Please try again.',
   adminNoProductSelected: 'No product selected.',
 
-  // Admin: Coupons
   adminCouponsManage: 'Coupons & Vouchers',
   adminCouponsManageSub: 'Manage coupon and discount codes',
   adminCouponSearchPlaceholder: 'Search by code or coupon name...',
@@ -347,7 +341,6 @@ export default {
   adminCouponActivated: (code) => `Coupon ${code} activated.`,
   adminCouponStatusError: 'Error changing coupon status.',
 
-  // Admin: Auth
   adminLogin: 'Admin Login',
   adminLoginSubmit: 'Sign in',
   adminLoginUserLabel: 'Username',

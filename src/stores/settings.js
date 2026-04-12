@@ -26,7 +26,7 @@ function loadFromStorage() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
   } catch {
-    /* ignore */
+    void 0
   }
   return null
 }
@@ -35,7 +35,7 @@ function saveToStorage(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch {
-    /* ignore */
+    void 0
   }
 }
 
@@ -55,23 +55,19 @@ function saveAdminAuthState(value) {
       sessionStorage.removeItem(ADMIN_AUTH_KEY)
     }
   } catch {
-    /* ignore */
+    void 0
   }
 }
 
 const defaults = {
-  // Payback
   paybackEnabled: true,
   paybackQrEnabled: true,
   paybackManualEnabled: true,
 
-  // Scanner
   cameraCooldown: 1500,
   scannerBuffer: 350,
   cameraAutoStart: true,
 
-  // Demo admin credentials — password is stored as SHA-256 hash.
-  // Default: admin / admin (hash of 'admin')
   adminUsername: 'admin',
   adminPasswordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
 }
@@ -79,17 +75,14 @@ const defaults = {
 export const useSettingsStore = defineStore('settings', () => {
   const stored = loadFromStorage()
 
-  // Payback
   const paybackEnabled = ref(stored?.paybackEnabled ?? defaults.paybackEnabled)
   const paybackQrEnabled = ref(stored?.paybackQrEnabled ?? defaults.paybackQrEnabled)
   const paybackManualEnabled = ref(stored?.paybackManualEnabled ?? defaults.paybackManualEnabled)
 
-  // Scanner
   const cameraCooldown = ref(stored?.cameraCooldown ?? defaults.cameraCooldown)
   const scannerBuffer = ref(stored?.scannerBuffer ?? defaults.scannerBuffer)
   const cameraAutoStart = ref(stored?.cameraAutoStart ?? defaults.cameraAutoStart)
 
-  // Admin credentials
   const adminUsername = ref(stored?.adminUsername ?? defaults.adminUsername)
   const adminPasswordHash = ref(stored?.adminPasswordHash ?? defaults.adminPasswordHash)
   const adminAuthenticated = ref(loadAdminAuthState())
@@ -130,7 +123,6 @@ export const useSettingsStore = defineStore('settings', () => {
     adminPasswordHash.value = await hashPassword(newPassword)
   }
 
-  // watch everything and save on change
   const allRefs = [
     paybackEnabled, paybackQrEnabled, paybackManualEnabled,
     cameraCooldown, scannerBuffer, cameraAutoStart,

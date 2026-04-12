@@ -74,8 +74,6 @@ const props = defineProps({
   },
 })
 
-// const emit = defineEmits(['update:modelValue'])
-
 const modalEl = ref(null)
 const closeBtnEl = ref(null)
 

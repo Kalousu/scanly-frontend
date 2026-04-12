@@ -37,9 +37,10 @@
 
         <p class="main-sub">{{ t('instruction') }}</p>
 
-        <button type="button" class="start" @click="onStart">
-          <span class="start-text">{{ t('start') }}</span>
+        <button type="button" class="start" :disabled="startPending" @click="onStart">
+          <span class="start-text">{{ startPending ? t('scanning') : t('start') }}</span>
         </button>
+        <p v-if="startPending" class="scan-hint" role="status">{{ t('landingScanStarting') }}</p>
         <p v-if="startError" class="start-error" role="alert">{{ startError }}</p>
       </div>
     </main>
@@ -81,29 +82,78 @@ import HelpModal from '@/components/HelpModal.vue'
 import AdminAuthPopup from '@/components/AdminAuthPopup.vue'
 import { useLanguage, translations } from '@/components/Uselanguage'
 import { useCartStore } from '@/stores/cart'
-import { createOrder } from '@/services/api'
+import { useSettingsStore } from '@/stores/settings'
+import { useKeyboardBarcodeScanner } from '@/composables/useKeyboardBarcodeScanner'
+import { addOrderItem, createOrder, deleteOrder } from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const settingsStore = useSettingsStore()
 const { currentLang, languages, t, setLanguage } = useLanguage()
 
 const isHelpOpen = ref(false)
 const isAdminAuthOpen = ref(false)
 const startError = ref('')
+const startPending = ref(false)
+
+function readOrderId(order) {
+  return order?.id ?? order?.orderId ?? order
+}
+
+function resetNewOrder(orderId) {
+  cartStore.setOrderId(orderId)
+  cartStore.clearCoupon()
+  cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
+}
 
 async function onStart() {
   startError.value = ''
+  startPending.value = true
   try {
     cartStore.resetOrderSession()
     const order = await createOrder()
-    cartStore.setOrderId(order.id ?? order.orderId ?? order)
-    cartStore.clearCoupon()
-    cartStore.setPaymentSummary({ subtotal: 0, discount: 0, total: 0 })
+    resetNewOrder(readOrderId(order))
     router.push('/checkout')
   } catch {
     startError.value = t('startOrderError')
+  } finally {
+    startPending.value = false
   }
 }
+
+async function onTitleScan(code) {
+  if (startPending.value) return
+  startError.value = ''
+  startPending.value = true
+
+  let orderId = null
+  try {
+    cartStore.resetOrderSession()
+    const order = await createOrder()
+    orderId = readOrderId(order)
+    resetNewOrder(orderId)
+    await addOrderItem(orderId, code, 1)
+    router.push('/checkout')
+  } catch {
+    if (orderId) {
+      try {
+        await deleteOrder(orderId)
+      } catch {
+        void 0
+      }
+    }
+    cartStore.resetOrderSession()
+    startError.value = t('landingScanError')
+  } finally {
+    startPending.value = false
+  }
+}
+
+useKeyboardBarcodeScanner({
+  timeout: settingsStore.scannerBuffer,
+  onScan: onTitleScan,
+  isEnabled: () => !isHelpOpen.value && !isAdminAuthOpen.value && !startPending.value,
+})
 </script>
 
 <style scoped>
@@ -320,6 +370,12 @@ async function onStart() {
   transition: transform 0.18s ease, box-shadow 0.22s ease, background 0.2s ease;
 }
 
+.start:disabled {
+  cursor: wait;
+  opacity: 0.76;
+  transform: none;
+}
+
 .start-text {
   line-height: 1;
 }
@@ -340,6 +396,13 @@ async function onStart() {
 .start-error {
   margin: 18px 0 0;
   color: #fca5a5;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.scan-hint {
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.62);
   font-size: 0.95rem;
   font-weight: 650;
 }

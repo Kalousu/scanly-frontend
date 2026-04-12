@@ -57,7 +57,6 @@ function settingId(key) {
       </div>
 
       <div class="admin-card">
-        <!-- Toggle sections -->
         <div v-for="group in toggleSettings" :key="group.section" class="settings-section">
           <h2 class="admin-section-title">{{ group.section }}</h2>
           <div v-for="item in group.items" :key="item.key" class="admin-settings-row">
@@ -73,7 +72,6 @@ function settingId(key) {
           </div>
         </div>
 
-        <!-- Numeric settings -->
         <div class="settings-section">
           <h2 class="admin-section-title">{{ t('adminScanner') }}</h2>
           <div v-for="item in numericSettings" :key="item.key" class="admin-settings-row">
@@ -90,7 +88,6 @@ function settingId(key) {
           </div>
         </div>
 
-        <!-- Admin credentials -->
         <div class="settings-section">
           <h2 class="admin-section-title">{{ t('adminCredentials') }}</h2>
           <div class="admin-settings-row admin-settings-row--vertical">
@@ -115,7 +112,6 @@ function settingId(key) {
           </div>
         </div>
 
-        <!-- Save button -->
         <div class="settings-footer">
             <span v-if="showSaved" class="admin-saved-msg">
               {{ t('adminSaved') }}

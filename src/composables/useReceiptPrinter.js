@@ -152,7 +152,7 @@ export function useReceiptPrinter(showError) {
         try {
           await device.close()
         } catch {
-          // Closing a WebUSB device can fail after disconnects; the print result was already handled.
+          void 0
         }
       }
     }

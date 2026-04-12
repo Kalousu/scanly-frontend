@@ -43,7 +43,6 @@
         </button>
       </div>
 
-      <!-- Bakery: quantity picker -->
       <div v-if="selected && mode === 'bakery'" class="weight-row">
         <label class="weight-label">{{ t('amount') }}</label>
         <div class="qty-picker">
@@ -54,7 +53,6 @@
         <span class="weight-preview">= {{ formatPrice(getGrossCatalogPrice(selected.price, selected.taxRate) * amount) }}</span>
       </div>
 
-      <!-- Vegetables: weight input -->
       <div v-if="selected && mode === 'vegetables'" class="weight-row">
         <label class="weight-label" :for="weightInputId">{{ t('weightLabel') }}</label>
         <input

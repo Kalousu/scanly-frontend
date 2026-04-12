@@ -114,7 +114,7 @@ export function useBarcodeDetector({
           }, cooldown)
         }
       } catch {
-        // Individual frames can fail; keep scanning subsequent frames.
+        void 0
       }
     }, intervalMs)
   }

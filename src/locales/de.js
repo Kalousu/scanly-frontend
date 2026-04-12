@@ -113,7 +113,6 @@ export default {
   deleteProductMessage: (name) => `Wollen Sie <strong>${name}</strong> wirklich löschen?`,
   deleteProductConfirm: 'Löschen',
 
-  // Customer-facing: Coupon modal & payment
   couponRedeem: 'Coupon einlösen',
   couponLabel: 'Coupon',
   couponRedeemSubtitle: 'Code eingeben oder Coupon einscannen',
@@ -132,6 +131,8 @@ export default {
   summaryCouponDiscount: 'Coupon-Rabatt',
 
   startOrderError: 'Bestellung konnte nicht gestartet werden. Bitte erneut versuchen.',
+  landingScanStarting: 'Scanner erkannt. Bestellung wird gestartet...',
+  landingScanError: 'Artikel konnte nicht direkt gestartet werden. Bitte erneut scannen.',
   orderLoadError: (message) => `Bestellung konnte nicht geladen werden: ${message}`,
   orderMissing: 'Keine Order vorhanden.',
   orderActionError: (message) => `Fehler: ${message}`,
@@ -158,7 +159,6 @@ export default {
   receiptTotalLabel: 'ZU ZAHLEN:',
   receiptTaxHeader: 'MwSt% MwSt+  Netto = Brutto',
 
-  // Admin: Common
   adminSave: 'Speichern',
   adminSaved: 'Gespeichert!',
   adminCancel: 'Abbrechen',
@@ -178,7 +178,6 @@ export default {
   adminWarning: 'Achtung',
   adminFillAllFields: 'Bitte alle Felder ausfüllen.',
 
-  // Admin: Dashboard
   adminDashboard: 'Dashboard',
   adminDashboardSubtitle: 'Verwaltung & Übersicht',
   adminBackToStart: 'Zurück zum Start',
@@ -193,7 +192,6 @@ export default {
   adminSettings: 'Einstellungen',
   adminSettingsDesc: 'Systemkonfiguration und Präferenzen',
 
-  // Admin: Settings
   adminPayback: 'Payback',
   adminPaybackEnabled: 'Payback aktiviert',
   adminPaybackQr: 'Payback QR-Code',
@@ -209,7 +207,6 @@ export default {
   adminPassword: 'Admin Passwort',
   adminPasswordPlaceholder: 'Passwort',
 
-  // Admin: Orders
   adminOrdersLoading: 'Bestellungen werden geladen...',
   adminOrdersLoadError: 'Fehler beim Laden der Bestellungen',
   adminSearchOrdersPlaceholder: 'Suche nach ID, Produkt...',
@@ -234,7 +231,6 @@ export default {
   adminColGross: 'Brutto',
   adminOrderNoItems: 'Keine Artikel in dieser Bestellung.',
 
-  // Admin: Revenue
   adminRevenueLoading: 'Daten werden geladen...',
   adminRevenueOverview: 'Umsatzübersicht',
   adminRevenueOnlyClosed: 'Nur abgeschlossene Bestellungen (Status: CLOSED)',
@@ -251,7 +247,6 @@ export default {
   adminNoClosedOrders: 'Keine abgeschlossenen Bestellungen vorhanden.',
   adminColOrderId: 'Bestell-ID',
 
-  // Admin: Products
   adminProductsManage: 'Produkte verwalten',
   adminProductsManageSub: 'Produkte hinzufügen, bearbeiten oder entfernen',
   adminProductAdd: 'Produkt hinzufügen',
@@ -312,7 +307,6 @@ export default {
   adminProductDeleteError: 'Fehler beim Entfernen des Produkts. Bitte versuche es erneut.',
   adminNoProductSelected: 'Kein Produkt ausgewählt.',
 
-  // Admin: Coupons
   adminCouponsManage: 'Gutscheine & Coupons',
   adminCouponsManageSub: 'Verwaltung für Gutschein- und Rabatt-Codes',
   adminCouponSearchPlaceholder: 'Nach Code oder Couponname suchen...',
@@ -352,7 +346,6 @@ export default {
   adminCouponActivated: (code) => `Coupon ${code} aktiviert.`,
   adminCouponStatusError: 'Fehler beim Ändern des Coupon-Status.',
 
-  // Admin: Auth
   adminLogin: 'Admin Login',
   adminLoginSubmit: 'Anmelden',
   adminLoginUserLabel: 'Benutzername',

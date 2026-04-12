@@ -1,4 +1,3 @@
-// shared order helpers
 export function useOrderUtils() {
   function getItemCount(order) {
     if (Array.isArray(order.orderItems)) {

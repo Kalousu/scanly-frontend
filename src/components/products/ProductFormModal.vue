@@ -9,14 +9,12 @@
             :price-placeholder="pricePlaceholder"
             @update-field="$emit('update-form-field', $event)"
           />
-          <!-- ActionFeedback -->
           <div v-if="actionState.error" class="admin-alert admin-alert--error">
             <p>{{ actionState.error }}</p>
           </div>
           <div v-if="actionState.success" class="prod-success-msg">
             {{ t('adminProductAddSuccess') }}
           </div>
-          <!-- Footer -->
           <div class="admin-modal-footer">
             <button type="button" class="admin-btn admin-btn--secondary" @click="$emit('close')">{{ t('adminCancel') }}</button>
             <button type="button" class="admin-btn admin-btn--success" :disabled="actionState.loading" @click="$emit('add')">
@@ -49,14 +47,12 @@
             :name-placeholder="t('adminProductName')"
             @update-field="$emit('update-form-field', $event)"
           />
-          <!-- ActionFeedback -->
           <div v-if="actionState.error" class="admin-alert admin-alert--error">
             <p>{{ actionState.error }}</p>
           </div>
           <div v-if="actionState.success" class="prod-success-msg">
             {{ t('adminProductEditSuccess') }}
           </div>
-          <!-- Footer -->
           <div class="admin-modal-footer">
             <button type="button" class="admin-btn admin-btn--secondary" @click="$emit('close')">{{ t('adminCancel') }}</button>
             <button type="button" class="admin-btn admin-btn--primary" :disabled="!foundProduct || actionState.loading" @click="$emit('edit')">
@@ -85,14 +81,12 @@
               <p class="prod-warning-text">{{ t('adminProductWarning') }}</p>
             </div>
           </div>
-          <!-- ActionFeedback -->
           <div v-if="actionState.error" class="admin-alert admin-alert--error">
             <p>{{ actionState.error }}</p>
           </div>
           <div v-if="actionState.success" class="prod-success-msg">
             {{ t('adminProductRemoveSuccess') }}
           </div>
-          <!-- Footer -->
           <div class="admin-modal-footer">
             <button type="button" class="admin-btn admin-btn--secondary" @click="$emit('close')">{{ t('adminCancel') }}</button>
             <button type="button" class="admin-btn admin-btn--danger" :disabled="!foundProduct || actionState.loading" @click="$emit('remove')">

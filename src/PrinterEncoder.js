@@ -30,7 +30,6 @@ export class PrinterEncoder{
             if (PrinterEncoder.#cp850[char] !== undefined) {
                 bytes.push(PrinterEncoder.#cp850[char]);
             } else {
-                // normales ASCII direkt als Byte
                 bytes.push(char.charCodeAt(0));
             }
         }
@@ -42,7 +41,7 @@ export class PrinterEncoder{
         return this;
     }
  
-    setCodepage(){ // z.B. CP850
+    setCodepage(){
         this.#commands.push([this.#ESC, 0x74, 0x02]);
         return this;
     }
@@ -56,8 +55,6 @@ export class PrinterEncoder{
         this.#commands.push([this.#ESC, 0x61, 0x01])
         return this;
     }
- 
-    //TEXT
  
     print(text){
         this.#commands.push(...this.#encode(text))
@@ -141,7 +138,7 @@ export class PrinterEncoder{
             res += " ";
         }
         res += sumStr;
-        res = res.substring(0, 32); // max 32 Zeichen
+        res = res.substring(0, 32);
         this.println(res);
         return this;
     }
@@ -172,8 +169,6 @@ export class PrinterEncoder{
         this.#commands.push(...this.#encode("--------------------------------\n"))
         return this;
     }
- 
-    // FORMATTIERUNG (BOLD, UNDERLINE)
  
     setBold(){
         this.#commands.push([this.#ESC, 0x45, 0x01])
@@ -210,8 +205,6 @@ export class PrinterEncoder{
         return this
     }
  
-    //NEWLINE (FEED)
- 
     feed(num = 1){
         for(let i = 0; i < num; i++){
             this.#commands.push([0x0A]);
@@ -223,8 +216,6 @@ export class PrinterEncoder{
         this.#commands.push([this.#GS, 0x56, 0x01])
         return this;
     }
- 
-    //ENCODING
  
     encode(){
         return new Uint8Array(this.#commands.flat());

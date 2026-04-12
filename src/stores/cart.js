@@ -20,7 +20,7 @@ function saveOrderId(value) {
       sessionStorage.removeItem(ORDER_ID_KEY)
     }
   } catch {
-    /* ignore storage issues */
+    void 0
   }
 }
 

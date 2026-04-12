@@ -1,5 +1,3 @@
-// simple i18n, selected language is stored in localstorage
-// currentLang is defined outside the composable so all components share the same ref
 import { ref, computed } from 'vue'
 import de from '@/locales/de'
 import en from '@/locales/en'
@@ -24,7 +22,7 @@ function writeStoredLanguage(code) {
   try {
     localStorage.setItem(LANG_KEY, code)
   } catch {
-    /* ignore storage issues */
+    void 0
   }
 }
 
@@ -71,7 +69,6 @@ export function useLanguage() {
     return resolveTranslation(key)
   }
 
-  // like t() but for translation keys that are functions (e.g. with parameters)
   function tFn(key, ...args) {
     const val = resolveTranslation(key)
     if (typeof val === 'function') return val(...args)

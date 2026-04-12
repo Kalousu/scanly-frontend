@@ -113,7 +113,6 @@ export default {
   deleteProductMessage: (name) => `Vuole davvero eliminare <strong>${name}</strong>?`,
   deleteProductConfirm: 'Elimina',
 
-  // Customer-facing: Coupon modal & payment
   couponRedeem: 'Riscuoti coupon',
   couponLabel: 'Coupon',
   couponRedeemSubtitle: 'Inserisci il codice o scansiona il coupon',
@@ -132,6 +131,8 @@ export default {
   summaryCouponDiscount: 'Sconto coupon',
 
   startOrderError: 'Impossibile avviare l ordine. Riprova.',
+  landingScanStarting: 'Scanner rilevato. Avvio ordine...',
+  landingScanError: 'Impossibile avviare l ordine con l articolo. Scansiona di nuovo.',
   orderLoadError: (message) => `Impossibile caricare l ordine: ${message}`,
   orderMissing: 'Nessun ordine disponibile.',
   orderActionError: (message) => `Errore: ${message}`,
@@ -159,7 +160,6 @@ export default {
   receiptTaxHeader: 'IVA% IVA   Netto = Lordo',
   adminLoginDemoNotice: 'Accesso demo: le credenziali vengono verificate localmente nel browser e non sostituiscono una vera autenticazione backend.',
 
-  // Admin: Common
   adminSave: 'Salva',
   adminSaved: 'Salvato!',
   adminCancel: 'Annulla',
@@ -179,7 +179,6 @@ export default {
   adminWarning: 'Attenzione',
   adminFillAllFields: 'Compilare tutti i campi.',
 
-  // Admin: Dashboard
   adminDashboard: 'Dashboard',
   adminDashboardSubtitle: 'Gestione e panoramica',
   adminBackToStart: 'Torna all\'inizio',
@@ -194,7 +193,6 @@ export default {
   adminSettings: 'Impostazioni',
   adminSettingsDesc: 'Configurazione del sistema e preferenze',
 
-  // Admin: Settings
   adminPayback: 'Payback',
   adminPaybackEnabled: 'Payback abilitato',
   adminPaybackQr: 'Payback codice QR',
@@ -210,7 +208,6 @@ export default {
   adminPassword: 'Password admin',
   adminPasswordPlaceholder: 'Password',
 
-  // Admin: Orders
   adminOrdersLoading: 'Caricamento ordini...',
   adminOrdersLoadError: 'Errore nel caricamento degli ordini',
   adminSearchOrdersPlaceholder: 'Cerca per ID, prodotto...',
@@ -235,7 +232,6 @@ export default {
   adminColGross: 'Lordo',
   adminOrderNoItems: 'Nessun articolo in questo ordine.',
 
-  // Admin: Revenue
   adminRevenueLoading: 'Caricamento dati...',
   adminRevenueOverview: 'Panoramica fatturato',
   adminRevenueOnlyClosed: 'Solo ordini chiusi (stato: CLOSED)',
@@ -252,7 +248,6 @@ export default {
   adminNoClosedOrders: 'Nessun ordine chiuso disponibile.',
   adminColOrderId: 'ID ordine',
 
-  // Admin: Products
   adminProductsManage: 'Gestisci prodotti',
   adminProductsManageSub: 'Aggiungi, modifica o rimuovi prodotti',
   adminProductAdd: 'Aggiungi prodotto',
@@ -313,7 +308,6 @@ export default {
   adminProductDeleteError: 'Errore nella rimozione del prodotto. Riprova.',
   adminNoProductSelected: 'Nessun prodotto selezionato.',
 
-  // Admin: Coupons
   adminCouponsManage: 'Coupon e voucher',
   adminCouponsManageSub: 'Gestisci codici coupon e sconti',
   adminCouponSearchPlaceholder: 'Cerca per codice o nome coupon...',
@@ -353,7 +347,6 @@ export default {
   adminCouponActivated: (code) => `Coupon ${code} attivato.`,
   adminCouponStatusError: 'Errore nel cambio stato del coupon.',
 
-  // Admin: Auth
   adminLogin: 'Admin Login',
   adminLoginSubmit: 'Accedi',
   adminLoginUserLabel: 'Nome utente',

@@ -113,7 +113,6 @@ export default {
   deleteProductMessage: (name) => `Вы действительно хотите удалить <strong>${name}</strong>?`,
   deleteProductConfirm: 'Удалить',
 
-  // Customer-facing: Coupon modal & payment
   couponRedeem: 'Применить купон',
   couponLabel: 'Купон',
   couponRedeemSubtitle: 'Введите код или отсканируйте купон',
@@ -132,6 +131,8 @@ export default {
   summaryCouponDiscount: 'Скидка по купону',
 
   startOrderError: 'Не удалось начать заказ. Попробуйте еще раз.',
+  landingScanStarting: 'Scanner detected. Starting order...',
+  landingScanError: 'The item could not start the order. Please scan again.',
   orderLoadError: (message) => `Не удалось загрузить заказ: ${message}`,
   orderMissing: 'Нет активного заказа.',
   orderActionError: (message) => `Ошибка: ${message}`,
@@ -159,7 +160,6 @@ export default {
   receiptTaxHeader: 'VAT% VAT   Net = Gross',
   adminLoginDemoNotice: 'Демо-доступ: данные проверяются локально в браузере и не заменяют настоящую backend-аутентификацию.',
 
-  // Admin: Common
   adminSave: 'Сохранить',
   adminSaved: 'Сохранено!',
   adminCancel: 'Отмена',
@@ -179,7 +179,6 @@ export default {
   adminWarning: 'Внимание',
   adminFillAllFields: 'Пожалуйста, заполните все поля.',
 
-  // Admin: Dashboard
   adminDashboard: 'Панель управления',
   adminDashboardSubtitle: 'Управление и обзор',
   adminBackToStart: 'Вернуться на главную',
@@ -194,7 +193,6 @@ export default {
   adminSettings: 'Настройки',
   adminSettingsDesc: 'Конфигурация системы и параметры',
 
-  // Admin: Settings
   adminPayback: 'Payback',
   adminPaybackEnabled: 'Payback включен',
   adminPaybackQr: 'Payback QR-код',
@@ -210,7 +208,6 @@ export default {
   adminPassword: 'Пароль администратора',
   adminPasswordPlaceholder: 'Пароль',
 
-  // Admin: Orders
   adminOrdersLoading: 'Загрузка заказов...',
   adminOrdersLoadError: 'Ошибка загрузки заказов',
   adminSearchOrdersPlaceholder: 'Поиск по ID, товару...',
@@ -235,7 +232,6 @@ export default {
   adminColGross: 'Брутто',
   adminOrderNoItems: 'В этом заказе нет товаров.',
 
-  // Admin: Revenue
   adminRevenueLoading: 'Загрузка данных...',
   adminRevenueOverview: 'Обзор выручки',
   adminRevenueOnlyClosed: 'Только закрытые заказы (статус: CLOSED)',
@@ -252,7 +248,6 @@ export default {
   adminNoClosedOrders: 'Нет закрытых заказов.',
   adminColOrderId: 'ID заказа',
 
-  // Admin: Products
   adminProductsManage: 'Управление товарами',
   adminProductsManageSub: 'Добавление, редактирование и удаление товаров',
   adminProductAdd: 'Добавить товар',
@@ -313,7 +308,6 @@ export default {
   adminProductDeleteError: 'Ошибка при удалении товара. Попробуйте ещё раз.',
   adminNoProductSelected: 'Товар не выбран.',
 
-  // Admin: Coupons
   adminCouponsManage: 'Купоны и ваучеры',
   adminCouponsManageSub: 'Управление купонами и скидочными кодами',
   adminCouponSearchPlaceholder: 'Поиск по коду или названию купона...',
@@ -353,7 +347,6 @@ export default {
   adminCouponActivated: (code) => `Купон ${code} активирован.`,
   adminCouponStatusError: 'Ошибка при изменении статуса купона.',
 
-  // Admin: Auth
   adminLogin: 'Вход администратора',
   adminLoginSubmit: 'Войти',
   adminLoginUserLabel: 'Имя пользователя',

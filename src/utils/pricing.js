@@ -4,7 +4,8 @@ export function toFiniteNumber(value, fallback = 0) {
 }
 
 export function calculateGrossUnitPrice(unitPriceNet, taxRate = 0) {
-  return toFiniteNumber(unitPriceNet) * (1 + toFiniteNumber(taxRate))
+  const gross = toFiniteNumber(unitPriceNet) * (1 + toFiniteNumber(taxRate))
+  return Math.round(gross * 100) / 100
 }
 
 export function calculateGrossLineTotal(item) {
@@ -16,7 +17,8 @@ export function calculateGrossLineTotal(item) {
 
   const unitPriceNet = item.unitPriceNet ?? item.priceNet ?? item.price ?? item.pricePerKg
   const amount = toFiniteNumber(item.amount ?? item.qty ?? item.meta?.kg, 1)
-  return calculateGrossUnitPrice(unitPriceNet, item.taxRate) * amount
+  const lineTotal = calculateGrossUnitPrice(unitPriceNet, item.taxRate) * amount
+  return Math.round(lineTotal * 100) / 100
 }
 
 export function calculateNetLineTotal(item) {

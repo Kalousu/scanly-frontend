@@ -101,11 +101,7 @@ const computedTotal = computed(() => {
 })
 
 function getUnitGrossPrice(item) {
-  const amount = toFiniteNumber(item.amount, 1)
-  if (item.totalPriceGross !== null && item.totalPriceGross !== undefined && amount > 0) {
-    return toFiniteNumber(item.totalPriceGross) / amount
-  }
-
+  // Immer den Preis pro Einheit neu berechnen für Konsistenz
   return calculateGrossUnitPrice(item.unitPriceNet, item.taxRate)
 }
 

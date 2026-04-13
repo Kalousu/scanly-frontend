@@ -167,7 +167,7 @@ function confirmCancel() {
   cancel()
 }
 
-const { pay } = usePaymentFlow({
+const { pay: payFlow } = usePaymentFlow({
   cartStore,
   orderItems,
   status,
@@ -177,6 +177,12 @@ const { pay } = usePaymentFlow({
   printReceipt,
   onMissingOrder: () => router.push('/'),
 })
+
+async function pay() {
+  await payFlow(() => {
+    router.push('/summary')
+  })
+}
 
 useKeyboardBarcodeScanner({
   onScan: onBarcodeScanned,

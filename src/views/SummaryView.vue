@@ -24,7 +24,7 @@ const finalTotal = computed(() => {
 function startCountdown() {
   countdownInterval = setInterval(() => {
     countdown.value--
-    if (countdown.value <= 0) {
+    if (countdown.value < 0) {
       clearInterval(countdownInterval)
       finishAndRedirect()
     }
@@ -37,7 +37,10 @@ function finishAndRedirect() {
 }
 
 onMounted(() => {
-  startCountdown()
+  // Kleine Verzögerung, damit die Seite vollständig geladen ist
+  setTimeout(() => {
+    startCountdown()
+  }, 100)
 })
 
 onBeforeUnmount(() => {

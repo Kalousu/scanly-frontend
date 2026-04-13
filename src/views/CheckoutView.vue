@@ -247,8 +247,7 @@ async function pay() {
 }
 
 function isCameraScannerActive() {
-  const nativeScanning = scannerPanelRef.value?.isNativeScanning
-  return nativeScanning?.value ?? Boolean(nativeScanning)
+  return scannerPanelRef.value?.isNativeScanning?.value ?? false
 }
 
 const { clearBuffer } = useKeyboardBarcodeScanner({
